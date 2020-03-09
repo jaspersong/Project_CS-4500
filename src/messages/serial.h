@@ -514,7 +514,7 @@ public:
    *         buffer size are not reflective of the allocated memory, the
    *         behavior is undefined.
    */
-  size_t set_bool_serialization(bool value, unsigned char *buffer,
+  static size_t set_bool_serialization(bool value, unsigned char *buffer,
                                 size_t offset, size_t buffer_size) {
     assert(buffer != nullptr);
     assert(offset <= buffer_size);
@@ -543,7 +543,7 @@ public:
    * @param buffer_size The maximum size of the buffer.
    * @return The value pulled from the buffer.
    */
-  bool get_bool_deserialization(unsigned char *buffer, size_t &offset,
+  static bool get_bool_deserialization(unsigned char *buffer, size_t &offset,
                                 size_t buffer_size) {
     // Make sure that the buffer has enough room to read at least a size of
     // the string

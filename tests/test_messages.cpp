@@ -114,6 +114,34 @@ void test_int() {
   exit(0);
 }
 
+void test_bool() {
+  Status *dummy = new Status();
+  dummy->set_sender_id(1);
+  dummy->set_target_id(2);
+  dummy->set_id(3);
+
+  size_t offset = 0;
+  size_t expected_buffer_size = sizeof(MsgKind) + sizeof(size_t) * 4;
+  unsigned char *buffer = dummy->prepare_serialize_buffer(0, offset);
+  ASSERT_EQ(offset, expected_buffer_size);
+  ASSERT_F(buffer == nullptr);
+
+
+  offset = 0;
+  ASSERT_EQ(Message::set_bool_serialization(true, buffer, offset,
+                                           expected_buffer_size),
+            sizeof(bool));
+  offset = 0;
+  ASSERT_EQ(
+      Message::get_bool_deserialization(buffer, offset, expected_buffer_size),
+      true);
+
+  delete dummy;
+  delete buffer;
+
+  exit(0);
+}
+
 void status_round_trip() {
   String *status_msg = new String("The fire nation attacked.\n");
   Status *status0 = new Status(*status_msg);
@@ -444,6 +472,7 @@ void directory_case() {
 TEST(A5, test_int) { ASSERT_EXIT_ZERO(test_int); }
 TEST(A5, test_string) { ASSERT_EXIT_ZERO(test_string); }
 TEST(A5, test_size_t) { ASSERT_EXIT_ZERO(test_size_t); }
+TEST(A5, test_bool) { ASSERT_EXIT_ZERO(test_bool); }
 TEST(A5, status_round_trip) { ASSERT_EXIT_ZERO(status_round_trip); }
 TEST(A5, status_funcs) { ASSERT_EXIT_ZERO(status_funcs); }
 TEST(A5, ack_case) { ASSERT_EXIT_ZERO(ack_case); }
