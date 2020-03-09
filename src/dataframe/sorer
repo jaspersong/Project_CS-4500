@@ -1,0 +1,247 @@
+#!/usr/bin/env python3
+
+import argparse
+import os
+import re
+from enum import IntEnum
+
+
+class SoRTypes(IntEnum):
+    """An enumeration of all handled data types of a SoR file. Each data type has a number assigned to it to
+    determine "rank" of the datatype. Lower the number, the more basic/restrictive of what it defines. So you can
+    determine if the data type is of a lower "rank" by comparing them with normal arithmetic conditional operators"""
+    BOOL = 0  # Lowest ranked data type
+    INTEGER = 1
+    FLOAT = 2
+    STRING = 3  # Highest ranked data type
+
+    def to_string(self):
+        """Returns the string version of the enumeration."""
+        if self is SoRTypes.BOOL:
+            return "BOOL"
+        elif self is SoRTypes.INTEGER:
+            return "INTEGER"
+        elif self is SoRTypes.FLOAT:
+            return "FLOAT"
+        else:
+            return "STRING"
+
+
+class SorInterpreter:
+    def __init__(self, file_name, start_pos_bytes=0, len_to_read_bytes=None):
+        """Initializes the SorInterpretor. It takes in the file name of the sor file that it needs to interpret.
+        start_pos_bytes is how many bytes into the file we should start reading from. len_to_read_bytes is how many
+        bytes to read in the file. If len_to_read_bytes is None, it will read until the very end of the file."""
+        self.__file = open(file_name, "r")
+        self.__column_schema = []
+
+        # Range in bytes of what we read from the file
+        self.__start_pos_bytes = start_pos_bytes
+        self.__len_to_read_bytes = len_to_read_bytes
+
+        # Get the column schema of the specified file
+        self.__get_column_schema()
+
+    def get_value(self, column_index, offset):
+        """Takes in a column index and an offset and returns the string representation of the value at that
+        coordinate (it is an empty string "" if the value is missing). If the coordinate is either off the file,
+        or if it is not within the range that has been set to read, it will throw an Exception"""
+        current_row = -1  # Set the current row to -1 because we haven't read any lines yet, and the rows are 0-indexed
+        bytes_read = 0  # Keep track of how many bytes we have read from the file in order to get to the specified coord
+
+        # Go to the start position of the file specified
+        self.__file.seek(0, os.SEEK_SET)
+        if self.__start_pos_bytes != 0:
+            self.__file.seek(self.__start_pos_bytes, os.SEEK_SET)
+            # Throw away the first line in order to start off
+            self.__file.readline()
+
+        # Read row until we have reached the offset, or we have read in too many bytes
+        line_row = self.__file.readline()
+        bytes_read += len(line_row)
+        if self.__len_to_read_bytes is None or bytes_read < self.__len_to_read_bytes:
+            current_row += 1
+        while line_row and current_row < offset :
+            # Throw away the line until we have reached our destination
+            line_row = self.__file.readline()
+            bytes_read += len(line_row)
+            if self.__len_to_read_bytes is not None and bytes_read > self.__len_to_read_bytes:
+                # We have read past the amount we needed to. Break out
+                break
+            current_row += 1
+
+        # Check to make sure we have reached the desired row given the amount of bytes we had to read
+        if current_row == offset:
+            read_items = self.__itemize_sor_row(line_row)
+            if column_index >= len(self.__column_schema):
+                raise Exception("Column %d does not exist in the SoR file." % column_index)
+            else:
+                if column_index >= len(read_items):
+                    # The item specified is missing.
+                    return ""
+                else:
+                    item = read_items[column_index]
+                    # Ensure that the item that we just read from this row matches the column schema, and then return it
+                    if item[0] <= self.__column_schema[column_index]:
+                        return item[1]
+                    else:
+                        # Does not match column schema. Consider the item missing
+                        return ""
+        else:
+            raise Exception("Offset %d is not within the readable range of the file." % offset)
+
+    def get_column_datatype(self, column_index):
+        """Takes in a column index valid within the column schema and returns the data type. If the provided column
+        index does not refer to a valid column within the schema, it will raise an Exception"""
+        if column_index < len(self.__column_schema):
+            return self.__column_schema[column_index]
+        else:
+            raise Exception("Column index %d does not exist in the column schema." % args.print_col_type)
+
+    def __get_column_schema(self):
+        """Reads through the first 500 rows (or less if it's a shorter file) of the provided file and determines the
+        column schema of"""
+        # Scan the first 500 lines (or less, if the file is small) and infer the row with the most fields
+        file_line = self.__file.readline()
+        line_count = 0
+        while file_line and (line_count < 500):
+            read_items = self.__itemize_sor_row(file_line)
+
+            # Upgrade the column schema accordingly for each item
+            for index in range(len(read_items)):
+                item_datatype = read_items[index][0]
+                if len(self.__column_schema) <= index:
+                    # This is a new column. Add the data type
+                    self.__column_schema.append(item_datatype)
+                else:
+                    # Take the item data type no matter what. It will be either the same data type in the current
+                    # schema, or it would be an upgraded one
+                    self.__column_schema[index] = item_datatype
+
+            # Go to the next line
+            file_line = self.__file.readline()
+            line_count += 1
+
+    def __get_greater_data_type_rank(self, column_index, other_rank):
+        """Determines which data type rank is higher: the one at the specified column index, or the provided
+        other_rank. If there is no data type specified in the current schema at the provided column index,
+        it will default to returning with the other_rank"""
+        if len(self.__column_schema) <= column_index:
+            return other_rank
+        elif self.__column_schema[column_index] > other_rank:
+            return self.__column_schema[column_index]
+        else:
+            return other_rank
+
+    def __itemize_sor_row(self, row):
+        """Reads in a raw line provided from a SoR file and outputs a list of tuples. Each tuple has 2 values. The
+        first is the data type of the item. It interprets the data type from the contents of the item, or the current
+        assumed column schema designator, whichever is ranked higher The second value is the string representation of
+        the value itself."""
+        itemized_list = []
+
+        # Pull the data from the "<" and ">" markers.
+        values = []
+        for regex_result in re.finditer('<\s*([0-9A-Za-z\s`~!@#$%^&*()\-_+=|\]\[{};:/?".\']*)\s*>', row):
+            values.append(regex_result.group(1))
+
+        # Loop through each of the pulled out data to build up the itemized list
+        for index in range(len(values)):
+            str_item = values[index]
+            # Determine if item is blank
+            if str_item is '':
+                # There is no value in this offset. Compare the current schema with BOOL, because BOOL is the lowest
+                # ranked data type
+                item_representation = [self.__get_greater_data_type_rank(index, SoRTypes.BOOL), ""]
+                itemized_list.append(tuple(item_representation))
+            # Regex expression to determine if the item is a 0 or 1, taking into account trailing spaces if there are
+            # any
+            elif re.fullmatch('[01]\s*', str_item):
+                # This is treated as a BOOL. Take the current column schema, or BOOL if by default
+                item_representation = [self.__get_greater_data_type_rank(index, SoRTypes.BOOL), str_item]
+                itemized_list.append(tuple(item_representation))
+            # Regex expression to determine if it's digits only, with or without a leading sign, taking into account
+            # trailing spaces if there are any
+            elif re.fullmatch('[+\-]?[0-9]+\s*', str_item):
+                # There are only digits in this. This can be interpreted as an integer
+                item_representation = [self.__get_greater_data_type_rank(index, SoRTypes.INTEGER), str_item]
+                itemized_list.append(tuple(item_representation))
+            # Regex expression to determine if there are only digits, with or without a leading sign, taking into
+            # account trailing spaces if there are any
+            elif re.fullmatch('[+\-]?[0-9.]+\s*', str_item):
+                # There are only digits and a decimal point. This can be interpreted as a FLOAT
+                item_representation = [self.__get_greater_data_type_rank(index, SoRTypes.FLOAT), str_item]
+                itemized_list.append(tuple(item_representation))
+            else:
+                is_valid_string = False  # Determines if we are allowed to mark this column as a string column
+                # This is probably a string. Validate that it is properly formatted
+                str_value = ""  # The value of the string, with start and end quotations
+                if re.search("\"([0-9A-Za-z\s`~!@#$%^&*()\-_+=|\]\[{};:/?']*)\"", str_item):
+                    # This string has quotations, which means that it is allowed to have spaces
+                    is_valid_string = True
+                    str_value = str_item
+                elif re.search("([0-9A-Za-z`~!@#$%^&*()\-_+=|\]\[{};:/?']*)", str_item):
+                    # This string doesn't have quotations, but it doesn't have any spaces.
+                    is_valid_string = True
+                    str_value = '"' + str_item + '"'
+                if is_valid_string:
+                    # This is a valid string.
+                    item_representation = [self.__get_greater_data_type_rank(index, SoRTypes.STRING), str_value]
+                    itemized_list.append(tuple(item_representation))
+                else:
+                    # This is not a valid string. We will treat it as a missing value.
+                    item_representation = [self.__get_greater_data_type_rank(index, SoRTypes.BOOL), str_value]
+                    itemized_list.append(tuple(item_representation))
+
+        return itemized_list
+
+
+# Set up the argument parser
+parser = argparse.ArgumentParser(description='Takes in a SoR file and generates dataframes. It prints based off what '
+                                             'has been requested.')
+parser.add_argument('-f', dest='file_path', action='store', required=True,
+                    help='Path to SoR file that needs to be read')
+parser.add_argument('-from', dest='start_pos', type=int, action='store', required=False,
+                    default=0,
+                    help='Starting position in the file (in bytes). Default value is 0.')
+parser.add_argument('-len', dest='len', type=int, action='store', required=False,
+                    default=None,
+                    help='Number of bytes to read. If not provided, it will read the whole file.')
+parser.add_argument('-print_col_type', dest='print_col_type', type=int, action='store', required=False,
+                    default=None,
+                    help='Print the type of column at specified column number, which is 0-indexed. The output would '
+                         'then be one of: BOOL, INT, FLOAT, STRING')
+parser.add_argument('-print_col_idx', dest='print_col_idx', type=int, action='store', required=False, nargs=2,
+                    default=None,
+                    help='Print the value at the column index by offset. Takes in 2 values, first one being the '
+                         'column, and second being the offset.')
+parser.add_argument('-is_missing_idx', dest='is_missing_idx', type=int, action='store', required=False, nargs=2,
+                    default=None,
+                    help='Prints whether or not the specified column offset is missing. 0 if false, and 1 if true.')
+
+# Parse the arguments
+args = parser.parse_args()
+
+# Instantiate the SoR interpreter from the file provided
+sor_interpreter = SorInterpreter(args.file_path, args.start_pos, args.len)
+
+# User requested to print column data type.
+if args.print_col_type is not None:
+    print(sor_interpreter.get_column_datatype(args.print_col_type).to_string())
+
+# Handle commands that require actually reading from a certain point in the data
+if args.print_col_idx is not None:
+    assert (len(args.print_col_idx) == 2)  # Assert that the argument has 2 values, first as col, and second as offset
+    desired_item = sor_interpreter.get_value(args.print_col_idx[0], args.print_col_idx[1])
+    if desired_item is '':
+        print('""')
+    else:
+        print(desired_item)
+
+if args.is_missing_idx is not None:
+    assert (len(args.is_missing_idx) == 2)  # Assert that the argument has 2 values, first as col, and second as offset
+    desired_item = sor_interpreter.get_value(args.is_missing_idx[0], args.is_missing_idx[1])
+    if desired_item is not '':
+        print("0")
+    else:
+        print("1")
