@@ -284,7 +284,7 @@ public:
   }
 
   // Override of the virtual function
-  bool equals(Object *const obj) {
+  bool equals(Object *const obj) override {
     if (obj == nullptr) {
       return false;
     }
