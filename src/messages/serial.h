@@ -46,6 +46,7 @@ enum class MsgKind {
  * -1, then the sender/target is the rendezvous server.
  */
 class Message : public Object {
+  // TODO: Create a serializer helper class to assist serialization
 public:
   static const size_t HEADER_SIZE = sizeof(MsgKind) + 4 * sizeof(size_t);
 

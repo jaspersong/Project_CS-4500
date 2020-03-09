@@ -50,7 +50,6 @@ include_directories(
         "${CMAKE_CURRENT_SOURCE_DIR}/tests")
 
 # Create targets for the test suites
-# TODO: Bring in the test suite for the sorer
 add_executable(test_suite_array
         "${CMAKE_CURRENT_SOURCE_DIR}/tests/test_array.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/array.h"
