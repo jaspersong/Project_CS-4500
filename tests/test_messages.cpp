@@ -120,6 +120,40 @@ void test_int() {
   exit(0);
 }
 
+void test_double() {
+  Serializer serializer;
+
+  // Serialize a bunch of int values
+  serializer.set_double(4.2);
+  serializer.set_int(5);
+  serializer.set_double(6.3);
+
+  unsigned char *buffer = serializer.get_serialized_buffer();
+  size_t buffer_size = serializer.get_size_serialized_data();
+  ASSERT_T(buffer_size != 0);
+  ASSERT_T(buffer != nullptr);
+
+  // Now deserialize
+  Deserializer deserializer(buffer, buffer_size);
+  ASSERT_T(deserializer.get_num_bytes_left() > 0);
+  ASSERT_T(deserializer.has_double());
+  ASSERT_EQ(deserializer.get_double(), 4.2);
+
+  ASSERT_T(deserializer.get_num_bytes_left() > 0);
+  ASSERT_T(deserializer.has_int());
+  ASSERT_EQ(deserializer.get_int(), 5);
+
+  ASSERT_T(deserializer.get_num_bytes_left() > 0);
+  ASSERT_T(deserializer.has_double());
+  ASSERT_EQ(deserializer.get_double(), 6.3);
+
+  ASSERT_T(deserializer.get_num_bytes_left() == 0);
+  ASSERT_F(deserializer.has_double());
+
+  delete buffer;
+  exit(0);
+}
+
 void test_bool() {
   Serializer serializer;
 
@@ -540,6 +574,7 @@ TEST(serializer, test_int) { ASSERT_EXIT_ZERO(test_int); }
 TEST(serializer, test_string) { ASSERT_EXIT_ZERO(test_string); }
 TEST(serializer, test_size_t) { ASSERT_EXIT_ZERO(test_size_t); }
 TEST(serializer, test_bool) { ASSERT_EXIT_ZERO(test_bool); }
+TEST(serializer, test_double) { ASSERT_EXIT_ZERO(test_double); }
 TEST(messages, status_round_trip) { ASSERT_EXIT_ZERO(status_round_trip); }
 TEST(messages, status_funcs) { ASSERT_EXIT_ZERO(status_funcs); }
 TEST(messages, ack_case) { ASSERT_EXIT_ZERO(ack_case); }
