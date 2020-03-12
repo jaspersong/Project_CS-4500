@@ -3,11 +3,12 @@
 By: Snowy Chen and Joe Song
 
 ## Introduction
-Unlike the pmap function from the previous homework, our eau2 system will have 
-multiple machine, each machine will be a thread. The pmap function from the previous 
-homework will contain multiple threads in the same machine. The eau2 systems is 
-a distributed system, each computer is a thread, and all threads will 
-join together at the end. 
+
+The eau2 system is a distributed system meant to handle large pieces of data
+across multiple devices. As a result, this system can be used as a larger scale
+concurrency system manipulating or analyzing a large dataset in a shorter amount
+of time by distributing the workload across multiple devices.
+
 ## Architecture
 
 The eau2 system is made up of a server, called the registrar, and a fixed
@@ -37,6 +38,7 @@ For nodes that do not contain the Value of a particular Key can send a Get or a
 WaitAndGet message to the node id associated to that Key.
 
 ## Implementation
+
 ###dataframe Folder
 * `dataframe.h`
 An implementation of thread that will be used to concurrently iterate
@@ -407,19 +409,24 @@ String ip_addresses[max_num_clients]
 
 ## Use cases
 
+TODO
 examples of uses of the system. This could be in the form of code
  like the one above. It is okay to leave this section mostly empty if there is nothing to say. Maybe just an example of creating a dataframe would be enough.
 
 ## Open questions
 
-where you list things that you are not sure of and would
- like the answer to.
+- What will the official use case for the eau2 system going to be?
 
 ## Status
 
+### Completed Tasks
+
+- Finished transferring the code to this new project repository
+- Paid technical debt: Creating a serializer helper class to assist
+serializing messages and data
+
 ### Technical Debt and TODOs
 
-- Create a serializer helper class to assist serializing messages and data
 - Implement the use cases for the following message types:
     - Ack
     - Nack
