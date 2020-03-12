@@ -26,11 +26,13 @@ int main(int argc, char **argv) {
     sleep(1);
   }
   for (int i = 0; i < argc; i++) {
-    String *status_message = new String(argv[i]);
-    Status *status = new Status(*status_message);
+    String status_message(argv[i]);
+    Status status(status_message);
 
-    size_t message_size = 0;
-    unsigned char * message = status->serialize(message_size);
+    Serializer serialized_message;
+    status.serialize(serialized_message);
+    unsigned char *message = serialized_message.get_serialized_buffer();
+    size_t message_size = serialized_message.get_size_serialized_data();
 
     client1->send_direct_message(0, message, message_size);
   }

@@ -90,7 +90,7 @@ add_executable(test_suite_messages
         "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/helper.h"
         "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/object.h"
         "${CMAKE_CURRENT_SOURCE_DIR}/src/messages/serial.h"
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/messages/serialized_arrays.h")
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/messages/serialized_arrays.h" src/messages/serializer.h)
 target_link_libraries(test_suite_messages gtest)
 add_executable(test_suite_network
         "${CMAKE_CURRENT_SOURCE_DIR}/tests/test_network.cpp"
@@ -111,7 +111,7 @@ add_executable(demo_echo_server
         "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/object.h"
         "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/thread.h"
         "${CMAKE_CURRENT_SOURCE_DIR}/src/network/network.h"
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/network/echo_network.h")
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/network/echo_network.h" src/messages/serializer.h)
 add_executable(demo_echo_client
         "${CMAKE_CURRENT_SOURCE_DIR}/tests/echo_client.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/queue.h"
@@ -120,7 +120,7 @@ add_executable(demo_echo_client
         "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/object.h"
         "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/thread.h"
         "${CMAKE_CURRENT_SOURCE_DIR}/src/network/network.h"
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/network/echo_network.h")
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/network/echo_network.h" src/messages/serializer.h)
 add_executable(demo_registrar
         "${CMAKE_CURRENT_SOURCE_DIR}/tests/registrar.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/queue.h"
@@ -130,7 +130,7 @@ add_executable(demo_registrar
         "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/thread.h"
         "${CMAKE_CURRENT_SOURCE_DIR}/src/network/network.h"
         "${CMAKE_CURRENT_SOURCE_DIR}/src/network/distributed_app.h"
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/messages/serial.h")
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/messages/serial.h" src/messages/serializer.h)
 add_executable(demo_node
         "${CMAKE_CURRENT_SOURCE_DIR}/tests/node.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/queue.h"
@@ -140,4 +140,4 @@ add_executable(demo_node
         "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/thread.h"
         "${CMAKE_CURRENT_SOURCE_DIR}/src/network/network.h"
         "${CMAKE_CURRENT_SOURCE_DIR}/src/network/distributed_app.h"
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/messages/serial.h")
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/messages/serial.h" src/messages/serializer.h)

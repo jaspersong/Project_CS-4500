@@ -3,12 +3,12 @@
 // lang::Cpp
 // Code was borrowed from the Concurrency lecture provided on Piazza.
 
-#include <cstdlib>
-#include <thread>
-#include <mutex>
-#include <condition_variable>
-#include <sstream>
 #include <atomic>
+#include <condition_variable>
+#include <cstdlib>
+#include <mutex>
+#include <sstream>
+#include <thread>
 
 #include "custom_string.h"
 #include "object.h"
@@ -20,7 +20,9 @@ public:
   std::thread thread_;
 
   /** Starts running the thread, invoked the run() method. */
-  void start() { thread_ = std::thread([this]{ this->run(); }); }
+  void start() {
+    thread_ = std::thread([this] { this->run(); });
+  }
 
   /** Wait on this thread to terminate. */
   void join() { thread_.join(); }
@@ -36,9 +38,10 @@ public:
   /** Subclass responsibility, the body of the run method */
   virtual void run() { assert(false); }
 
-  // there's a better way to get an CwC value out of a threadid, but this'll do for now
+  // there's a better way to get an CwC value out of a threadid, but this'll do
+  // for now
   /** Return the id of the current thread */
-  static String * thread_id() {
+  static String *thread_id() {
     std::stringstream buf;
     buf << std::this_thread::get_id();
     std::string buffer(buf.str());
@@ -89,5 +92,5 @@ public:
     return r;
   }
 
-  size_t current() { return next_;  }
+  size_t current() { return next_; }
 };

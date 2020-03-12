@@ -124,450 +124,37 @@ public:
    */
   void set_payload_size(size_t payload_size) { this->size_ = payload_size; }
 
-  /**
-   * Serializes the contents of the message into the provided buffer.
-   * @param buffer_size The function will not do anything with the value.
-   *        Instead, once the function completes, it will set the value with
-   *        the size of the buffer containing the serialized message.
-   * @return A pointer to the buffer containing the message in a serialized
-   *        format. The buffer will then be owned by the caller.
-   *        If it failed to serialize the data, it will return with nullptr.
-   */
-  virtual unsigned char *serialize(size_t &buffer_size) { assert(false); }
+  void serialize(Serializer &serializer) override {
+    // Serialize the header.
+    // NOTE: All Message classes should call this function before serializing
+    // the rest of their payloads!
+    serializer.set_generic(&this->kind_, sizeof(MsgKind));
+    serializer.set_size_t(this->sender_);
+    serializer.set_size_t(this->target_);
+    serializer.set_size_t(this->id_);
+    serializer.set_size_t(this->size_);
+  }
 
   /**
    * Takes the buffer provided and deserializes only the header of the
    * message into a new message instance. This is used for inspection
-   * purposes ONLY, as it does not deserialize a full message.
-   * @param buffer The buffer containing the message to deserialize.
+   * purposes ONLY, as it does not deserialize_as_message a full message.
+   * @param buffer The buffer containing the message to deserialize_as_message.
    * @param num_bytes The number of bytes the buffer is.
    * @return A new instance of Message (cannot call any as_* functions) that
-   * the caller will now acquire. If it failed to deserialize, it will return
+   * the caller will now acquire. If it failed to deserialize_as_message, it will return
    * with nullptr.
    */
-  static Message *deserialize_header(unsigned char *buffer, size_t num_bytes);
+  static Message *deserialize_as_message_header(unsigned char *buffer, size_t num_bytes);
 
   /**
    * Takes the buffer provided and deserializes it into a new message instance.
-   * @param buffer The buffer containing the message to deserialize.
+   * @param buffer The buffer containing the message to deserialize_as_message.
    * @param num_bytes The number of bytes the message is.
    * @return A new instance of the message with its contents deserialized. If
-   *        it failed to deserialize, it will return with nullptr.
+   *        it failed to deserialize_as_message, it will return with nullptr.
    */
-  static Message *deserialize(unsigned char *buffer, size_t num_bytes);
-
-  /**
-   * A helper function used by the children classes of message. It will
-   * prepare a newly allocated buffer that can serialize the message into.
-   * The buffer will be of the requested number of bytes + the number of
-   * bytes that would contain the header (message kind, sender id, target id,
-   * and id). The buffer will have the header already filled in.
-   * @param requested_bytes The number of bytes the buffer should be,
-   *        excluding the space needed for the header.
-   * @param offset A space of memory to hold the offset. The function will
-   *        not use the offset at first, but after the function has finished,
-   *        the offset value will be updated to the offset from the pointer of
-   *        the returned buffer where the buffer is blank (no serailized data)
-   * @return The prepared buffer that a message can be serialized into. The
-   *         prepared buffer will contain the header already set up.
-   */
-  unsigned char *prepare_serialize_buffer(size_t requested_bytes,
-                                          size_t &offset) {
-    unsigned char *ret_value =
-        new unsigned char[requested_bytes + Message::HEADER_SIZE];
-
-    // Fill in the header
-    MsgKind *casted_kind_buffer = reinterpret_cast<MsgKind *>(ret_value);
-    casted_kind_buffer[0] = this->kind_;
-    size_t *casted_size_buffer =
-        reinterpret_cast<size_t *>(ret_value + sizeof(MsgKind));
-    casted_size_buffer[0] = this->sender_;
-    casted_size_buffer[1] = this->target_;
-    casted_size_buffer[2] = this->id_;
-    casted_size_buffer[3] = requested_bytes;
-
-    offset = Message::HEADER_SIZE;
-    return ret_value;
-  }
-
-  /**
-   * Serializes the provided size_t value into the buffer starting from the
-   * offset value.
-   * @param size The value to put into the buffer.
-   * @param buffer The buffer to serialize the value into.
-   * @param offset The offset, in bytes, from the beginning address of the
-   *        buffer. This will be the offset where the value should be stored
-   *        in the buffer.
-   * @param buffer_size The maximum size of the buffer.
-   * @return The offset value from the beginning address of the buffer to the
-   *        beginning of the blank portion of the buffer in bytes.
-   * @throws If the buffer provided is not big enough to store the provided
-   *         string, the program will be terminated. If the provided buffer
-   *         is null, the program will be terminated. If the buffer and the
-   *         buffer size are not reflective of the allocated memory, the
-   *         behavior is undefined.
-   */
-  static size_t set_size_t_serialization(size_t size, unsigned char *buffer,
-                                         size_t offset, size_t buffer_size) {
-    assert(buffer != nullptr);
-    assert(offset <= buffer_size);
-
-    // Get the amount of bytes required in order set the provided string as a
-    // serialized value in the buffer
-    size_t required_bytes = sizeof(size_t);
-
-    // Check if the buffer has enough space to write the string
-    assert(buffer_size - offset >= required_bytes);
-
-    // Fill in the size value for the string at the first index
-    size_t *size_t_buffer = reinterpret_cast<size_t *>(buffer + offset);
-    size_t_buffer[0] = size;
-
-    // Return the new offset after the string has been added.
-    return offset + required_bytes;
-  }
-
-  /**
-   * Gets the size_t value stored in the buffer by the provided offset.
-   * @param buffer The buffer to deserialize from.
-   * @param offset The offset from the start of the buffer to read the value
-   *        from. After the function returns, this value will be updated to
-   *        the offset
-   * @param buffer_size
-   * @return The value pulled from the buffer.
-   */
-  static size_t get_size_t_deserialization(unsigned char *buffer,
-                                           size_t &offset, size_t buffer_size) {
-    // Make sure that the buffer has enough room to read at least a size of
-    // the string
-    assert(buffer != nullptr);
-    assert(offset <= buffer_size);
-    assert(buffer_size - offset >= sizeof(size_t));
-
-    // Get the size of the string
-    size_t *size_t_buffer = reinterpret_cast<size_t *>(buffer + offset);
-    size_t ret_value = size_t_buffer[0];
-
-    // Update the offset to a new offset based off the string
-    offset += sizeof(size_t);
-
-    return ret_value;
-  }
-
-  /**
-   * Gets the required bytes needed to store the provided value in memory.
-   * @param value The value that should be stored later.
-   * @return The nubmer of bytes required to store the provided value in memory.
-   */
-  static size_t get_required_bytes(size_t value) { return sizeof(value); }
-
-  /**
-   * Serializes the provided string value into the buffer starting from the
-   * offset value.
-   * @param str The value to store. the string will remain external.
-   * @param buffer The buffer to serialize the value into.
-   * @param offset The offset, in bytes, from the beginning address of the
-   *        buffer. This will be the offset where the value should be stored
-   *        in the buffer.
-   * @param buffer_size The maximum size of the buffer.
-   * @return The offset value from the beginning address of the buffer to the
-   *        beginning of the blank portion of the buffer in bytes.
-   * @throws If the buffer provided is not big enough to store the provided
-   *         string, the program will be terminated. If the provided buffer
-   *         is null, the program will be terminated. If the buffer and the
-   *         buffer size are not reflective of the allocated memory, the
-   *         behavior is undefined.
-   */
-  static size_t set_string_serialization(String *str, unsigned char *buffer,
-                                         size_t offset, size_t buffer_size) {
-    assert(buffer != nullptr);
-    assert(offset <= buffer_size);
-    assert(str != nullptr);
-
-    // Get the amount of bytes required in order set the provided string as a
-    // serialized value in the buffer
-    size_t required_bytes = sizeof(size_t) + (sizeof(char) * (str->size() + 1));
-
-    // Check if the buffer has enough space to write the string
-    assert(buffer_size - offset >= required_bytes);
-
-    // Fill in the size value for the string at the first index
-    size_t *size_t_buffer = reinterpret_cast<size_t *>(buffer + offset);
-    size_t_buffer[0] = str->size();
-
-    // Now fill in the actual string + the null terminator
-    char *char_buffer =
-        reinterpret_cast<char *>(buffer + offset + sizeof(size_t));
-    for (size_t i = 0; i < str->size(); i++) {
-      char_buffer[i] = str->at(i);
-    }
-    char_buffer[str->size()] = '\0'; // Tack on null terminator
-
-    // Return the new offset after the string has been added.
-    return offset + required_bytes;
-  }
-
-  /**
-   * Gets the string value stored in the buffer by the provided offset.
-   * @param buffer The buffer to deserialize from.
-   * @param offset The offset from the start of the buffer to read the value
-   *        from. After the function returns, this value will be updated to
-   *        the offset
-   * @param buffer_size The maximum size of the buffer.
-   * @return The value pulled from the buffer. The string will be owned by
-   *        the caller.
-   */
-  static String *get_string_deserialization(unsigned char *buffer,
-                                            size_t &offset,
-                                            size_t buffer_size) {
-    // Make sure that the buffer has enough room to read at least a size of
-    // the string
-    assert(buffer != nullptr);
-    assert(offset <= buffer_size);
-    assert(buffer_size - offset >= sizeof(size_t));
-
-    // Get the size of the string
-    size_t *size_t_buffer = reinterpret_cast<size_t *>(buffer + offset);
-    size_t size_of_string = size_t_buffer[0];
-
-    // Make sure that the buffer has enough room to read the promised string
-    assert(buffer_size - offset - sizeof(size_t) >= size_of_string + 1);
-
-    // Get the starting pointer of the c string
-    const char *c_str =
-        reinterpret_cast<const char *>(buffer + offset + sizeof(size_t));
-
-    // Create the string
-    String *ret_value = new String(c_str, size_of_string);
-
-    // Update the offset to a new offset based off the string
-    offset += sizeof(size_t) + size_of_string + 1;
-
-    return ret_value;
-  }
-
-  /**
-   * Gets the required bytes needed to store the provided value in memory.
-   * @param value The value that should be stored later.
-   * @return The nubmer of bytes required to store the provided value in memory.
-   */
-  static size_t get_required_bytes(String *value) {
-    assert(value != nullptr);
-    return sizeof(size_t) + value->size() + 1;
-  }
-
-  /**
-   * Serializes the provided int value into the buffer starting from the
-   * offset value.
-   * @param value The value to put into the buffer.
-   * @param buffer The buffer to serialize the value into.
-   * @param offset The offset, in bytes, from the beginning address of the
-   *        buffer. This will be the offset where the value should be stored
-   *        in the buffer.
-   * @param buffer_size The maximum size of the buffer.
-   * @return The offset value from the beginning address of the buffer to the
-   *        beginning of the blank portion of the buffer in bytes.
-   * @throws If the buffer provided is not big enough to store the provided
-   *         string, the program will be terminated. If the provided buffer
-   *         is null, the program will be terminated. If the buffer and the
-   *         buffer size are not reflective of the allocated memory, the
-   *         behavior is undefined.
-   */
-  static size_t set_int_serialization(int value, unsigned char *buffer,
-                                      size_t offset, size_t buffer_size) {
-    assert(buffer != nullptr);
-    assert(offset <= buffer_size);
-
-    // Get the amount of bytes required in order set the provided string as a
-    // serialized value in the buffer
-    size_t required_bytes = sizeof(int);
-
-    // Check if the buffer has enough space to write the string
-    assert(buffer_size - offset >= required_bytes);
-
-    // Fill in the size value for the string at the first index
-    int *casted_buffer = reinterpret_cast<int *>(buffer + offset);
-    casted_buffer[0] = value;
-
-    // Return the new offset after the string has been added.
-    return offset + required_bytes;
-  }
-
-  /**
-   * Gets the int value stored in the buffer by the provided offset.
-   * @param buffer The buffer to deserialize from.
-   * @param offset The offset from the start of the buffer to read the value
-   *        from. After the function returns, this value will be updated to
-   *        the offset
-   * @param buffer_size The maximum size of the buffer.
-   * @return The value pulled from the buffer.
-   */
-  static int get_int_deserialization(unsigned char *buffer, size_t &offset,
-                                     size_t buffer_size) {
-    // Make sure that the buffer has enough room to read at least a size of
-    // the string
-    assert(buffer != nullptr);
-    assert(offset <= buffer_size);
-    assert(buffer_size - offset >= sizeof(int));
-
-    // Get the size of the string
-    int *casted_buffer = reinterpret_cast<int *>(buffer + offset);
-    int ret_value = casted_buffer[0];
-
-    // Update the offset to a new offset based off the string
-    offset += sizeof(int);
-
-    return ret_value;
-  }
-
-  /**
-   * Gets the required bytes needed to store the provided value in memory.
-   * @param value The value that should be stored later.
-   * @return The nubmer of bytes required to store the provided value in memory.
-   */
-  static size_t get_required_bytes(int value) { return sizeof(value); }
-
-  /**
-   * Serializes the provided double value into the buffer starting from the
-   * offset value.
-   * @param value The value to put into the buffer.
-   * @param buffer The buffer to serialize the value into.
-   * @param offset The offset, in bytes, from the beginning address of the
-   *        buffer. This will be the offset where the value should be stored
-   *        in the buffer.
-   * @param buffer_size The maximum size of the buffer.
-   * @return The offset value from the beginning address of the buffer to the
-   *        beginning of the blank portion of the buffer in bytes.
-   * @throws If the buffer provided is not big enough to store the provided
-   *         string, the program will be terminated. If the provided buffer
-   *         is null, the program will be terminated. If the buffer and the
-   *         buffer size are not reflective of the allocated memory, the
-   *         behavior is undefined.
-   */
-  static size_t set_double_serialization(double value, unsigned char *buffer,
-                                         size_t offset, size_t buffer_size) {
-    assert(buffer != nullptr);
-    assert(offset <= buffer_size);
-
-    // Get the amount of bytes required in order set the provided string as a
-    // serialized value in the buffer
-    size_t required_bytes = sizeof(double);
-
-    // Check if the buffer has enough space to write the string
-    assert(buffer_size - offset >= required_bytes);
-
-    // Fill in the size value for the string at the first index
-    double *casted_buffer = reinterpret_cast<double *>(buffer + offset);
-    casted_buffer[0] = value;
-
-    // Return the new offset after the string has been added.
-    return offset + required_bytes;
-  }
-
-  /**
-   * Gets the double value stored in the buffer by the provided offset.
-   * @param buffer The buffer to deserialize from.
-   * @param offset The offset from the start of the buffer to read the value
-   *        from. After the function returns, this value will be updated to
-   *        the offset
-   * @param buffer_size The maximum size of the buffer.
-   * @return The value pulled from the buffer.
-   */
-  static double get_double_deserialization(unsigned char *buffer,
-                                           size_t &offset, size_t buffer_size) {
-    // Make sure that the buffer has enough room to read at least a size of
-    // the string
-    assert(buffer != nullptr);
-    assert(offset <= buffer_size);
-    assert(buffer_size - offset >= sizeof(double));
-
-    // Get the size of the string
-    double *casted_buffer = reinterpret_cast<double *>(buffer + offset);
-    double ret_value = casted_buffer[0];
-
-    // Update the offset to a new offset based off the string
-    offset += sizeof(double);
-
-    return ret_value;
-  }
-
-  /**
-   * Gets the required bytes needed to store the provided value in memory.
-   * @param value The value that should be stored later.
-   * @return The nubmer of bytes required to store the provided value in memory.
-   */
-  static size_t get_required_bytes(double value) { return sizeof(value); }
-
-  /**
-   * Serializes the provided bool value into the buffer starting from the
-   * offset value.
-   * @param value The value to put into the buffer.
-   * @param buffer The buffer to serialize the value into.
-   * @param offset The offset, in bytes, from the beginning address of the
-   *        buffer. This will be the offset where the value should be stored
-   *        in the buffer.
-   * @param buffer_size The maximum size of the buffer.
-   * @return The offset value from the beginning address of the buffer to the
-   *        beginning of the blank portion of the buffer in bytes.
-   * @throws If the buffer provided is not big enough to store the provided
-   *         string, the program will be terminated. If the provided buffer
-   *         is null, the program will be terminated. If the buffer and the
-   *         buffer size are not reflective of the allocated memory, the
-   *         behavior is undefined.
-   */
-  static size_t set_bool_serialization(bool value, unsigned char *buffer,
-                                size_t offset, size_t buffer_size) {
-    assert(buffer != nullptr);
-    assert(offset <= buffer_size);
-
-    // Get the amount of bytes required in order set the provided string as a
-    // serialized value in the buffer
-    size_t required_bytes = sizeof(bool);
-
-    // Check if the buffer has enough space to write the string
-    assert(buffer_size - offset >= required_bytes);
-
-    // Fill in the size value for the string at the first index
-    bool *casted_buffer = reinterpret_cast<bool *>(buffer + offset);
-    casted_buffer[0] = value;
-
-    // Return the new offset after the string has been added.
-    return offset + required_bytes;
-  }
-
-  /**
-   * Gets the bool value stored in the buffer by the provided offset.
-   * @param buffer The buffer to deserialize from.
-   * @param offset The offset from the start of the buffer to read the value
-   *        from. After the function returns, this value will be updated to
-   *        the offset
-   * @param buffer_size The maximum size of the buffer.
-   * @return The value pulled from the buffer.
-   */
-  static bool get_bool_deserialization(unsigned char *buffer, size_t &offset,
-                                size_t buffer_size) {
-    // Make sure that the buffer has enough room to read at least a size of
-    // the string
-    assert(buffer != nullptr);
-    assert(offset <= buffer_size);
-    assert(buffer_size - offset >= sizeof(bool));
-
-    // Get the size of the string
-    bool *casted_buffer = reinterpret_cast<bool *>(buffer + offset);
-    bool ret_value = casted_buffer[0];
-
-    // Update the offset to a new offset based off the string
-    offset += sizeof(bool);
-
-    return ret_value;
-  }
-
-  /**
-   * Gets the required bytes needed to store the provided value in memory.
-   * @param value The value that should be stored later.
-   * @return The nubmer of bytes required to store the provided value in memory.
-   */
-  static size_t get_required_bytes(bool value) { return sizeof(value); }
+  static Message *deserialize_as_message(unsigned char *buffer, size_t num_bytes);
 
   /**
    * Casts the message to an Ack message, if the message is an Ack message.
@@ -681,9 +268,10 @@ public:
     assert(num_bytes == 0);
   }
 
-  unsigned char *serialize(size_t &buffer_size) override {
-    // Just prepare the message header since it has no payload.
-    return this->prepare_serialize_buffer(0, buffer_size);
+  void serialize(Serializer &serializer) override {
+    // Just prepare the message header since it has no payload
+    this->set_payload_size(0);
+    return Message::serialize(serializer);
   }
 
   Ack *as_ack() override { return this; }
@@ -711,9 +299,10 @@ public:
     assert(num_bytes == 0);
   }
 
-  unsigned char *serialize(size_t &buffer_size) override {
-    // Just prepare the message header since it has no payload.
-    return this->prepare_serialize_buffer(0, buffer_size);
+  void serialize(Serializer &serializer) override {
+    // Just prepare the message header since it has no payload
+    this->set_payload_size(0);
+    return Message::serialize(serializer);
   }
 
   Nack *as_nack() override { return this; }
@@ -741,9 +330,10 @@ public:
     assert(num_bytes == 0);
   }
 
-  unsigned char *serialize(size_t &buffer_size) override {
-    // Just prepare the message header since it has no payload.
-    return this->prepare_serialize_buffer(0, buffer_size);
+  void serialize(Serializer &serializer) override {
+    // Just prepare the message header since it has no payload
+    this->set_payload_size(0);
+    return Message::serialize(serializer);
   }
 
   Put *as_put() override { return this; }
@@ -771,9 +361,10 @@ public:
     assert(num_bytes == 0);
   }
 
-  unsigned char *serialize(size_t &buffer_size) override {
-    // Just prepare the message header since it has no payload.
-    return this->prepare_serialize_buffer(0, buffer_size);
+  void serialize(Serializer &serializer) override {
+    // Just prepare the message header since it has no payload
+    this->set_payload_size(0);
+    return Message::serialize(serializer);
   }
 
   Reply *as_reply() override { return this; }
@@ -801,9 +392,10 @@ public:
     assert(num_bytes == 0);
   }
 
-  unsigned char *serialize(size_t &buffer_size) override {
-    // Just prepare the message header since it has no payload.
-    return this->prepare_serialize_buffer(0, buffer_size);
+  void serialize(Serializer &serializer) override {
+    // Just prepare the message header since it has no payload
+    this->set_payload_size(0);
+    return Message::serialize(serializer);
   }
 
   Get *as_get() override { return this; }
@@ -832,9 +424,10 @@ public:
     assert(num_bytes == 0);
   }
 
-  unsigned char *serialize(size_t &buffer_size) override {
-    // Just prepare the message header since it has no payload.
-    return this->prepare_serialize_buffer(0, buffer_size);
+  void serialize(Serializer &serializer) override {
+    // Just prepare the message header since it has no payload
+    this->set_payload_size(0);
+    return Message::serialize(serializer);
   }
 
   WaitAndGet *as_waitandget() override { return this; }
@@ -869,8 +462,8 @@ public:
    */
   Status(unsigned char *payload, size_t num_bytes) : Message(MsgKind::Status) {
     // Pull the message from the payload
-    size_t offset = 0;
-    this->msg_ = this->get_string_deserialization(payload, offset, num_bytes);
+    Deserializer deserializer(payload, num_bytes);
+    this->msg_ = String::deserialize_as_string(deserializer);
   }
 
   /**
@@ -878,30 +471,14 @@ public:
    */
   ~Status() override { delete this->msg_; }
 
-  /**
-   * Constructs a status message from a serialized buffer payload.
-   * @param buffer A pointer to the start of the payload containing the
-   *        status message.
-   * @param num_bytes The number of bytes the payload is.
-   * @throws If the provided payload does not have the expected size, it will
-   *         terminate the program. A payload not of the correct message type
-   *         will result in undefined behavior.
-   */
-  unsigned char *serialize(size_t &buffer_size) override {
-    // Get the number of bytes we will need
-    size_t required_bytes = Message::get_required_bytes(this->msg_);
+  void serialize(Serializer &serializer) override {
+    // Prepare the header
+    size_t payload_size = this->msg_->serialization_required_bytes();
+    this->set_payload_size(payload_size);
+    Message::serialize(serializer);
 
-    // Get the buffer ready
-    size_t offset = 0;
-    unsigned char *buffer =
-        this->prepare_serialize_buffer(required_bytes, offset);
-    buffer_size = required_bytes + offset;
-
-    // Set the values into the buffer
-    offset = Message::set_string_serialization(this->msg_, buffer, offset,
-                                               buffer_size);
-
-    return buffer;
+    // Now serialize it as a string
+    this->msg_->serialize(serializer);
   }
 
   /**
@@ -962,9 +539,10 @@ public:
     assert(num_bytes == 0);
   }
 
-  unsigned char *serialize(size_t &buffer_size) override {
-    // Just prepare the message header since it has no payload.
-    return this->prepare_serialize_buffer(0, buffer_size);
+  void serialize(Serializer &serializer) override {
+    // Just prepare the message header since it has no payload
+    this->set_payload_size(0);
+    return Message::serialize(serializer);
   }
 
   Kill *as_kill() override { return this; }
@@ -1014,43 +592,31 @@ public:
    */
   Register(unsigned char *payload, size_t num_bytes)
       : Message(MsgKind::Register) {
-    assert(payload != nullptr);
+    Deserializer deserializer(payload, num_bytes);
 
-    // Get the number of bytes this message should be
-    size_t required_bytes =
-        Message::get_required_bytes(this->port) + sizeof(struct sockaddr_in);
-    assert(num_bytes == required_bytes);
+    // Get the socket address
+    unsigned char *sock_addr_buffer =
+        reinterpret_cast<unsigned char *>(&this->client);
+    for (size_t i = 0; i < sizeof(struct sockaddr_in); i++) {
+      sock_addr_buffer[i] = deserializer.get_byte();
+    }
 
-    // Get the values
-    struct sockaddr_in *sock_addr_buffer =
-        reinterpret_cast<struct sockaddr_in *>(payload);
-    this->client = sock_addr_buffer[0];
-
-    size_t offset = sizeof(struct sockaddr_in);
-    this->port =
-        Message::get_size_t_deserialization(payload, offset, num_bytes);
+    // Now get the port
+    this->port = deserializer.get_size_t();
   }
 
-  unsigned char *serialize(size_t &buffer_size) override {
-    // Get the number of bytes we will need
-    size_t required_bytes =
-        sizeof(struct sockaddr_in) + Message::get_required_bytes(this->port);
+  void serialize(Serializer &serializer) override {
+    // Prepare the header
+    size_t payload_size = sizeof(this->client) +
+        Serializer::get_required_bytes(this->port);
+    this->set_payload_size(payload_size);
+    Message::serialize(serializer);
 
-    // Get the buffer ready
-    size_t offset = 0;
-    unsigned char *buffer =
-        this->prepare_serialize_buffer(required_bytes, offset);
-    buffer_size = offset + required_bytes;
+    // Now copy in the socket address structure byte by byte
+    serializer.set_generic(&this->client, sizeof(this->client));
 
-    // Set the values into the buffer
-    struct sockaddr_in *sock_addr_buffer =
-        reinterpret_cast<struct sockaddr_in *>(buffer + offset);
-    sock_addr_buffer[0] = this->client;
-    offset += sizeof(struct sockaddr_in);
-    offset = Message::set_size_t_serialization(this->port, buffer, offset,
-                                               buffer_size);
-
-    return buffer;
+    // Set the port
+    serializer.set_size_t(this->port);
   }
 
   void set_ip_addr(String *ip_addr) {
@@ -1145,35 +711,23 @@ public:
    */
   Directory(unsigned char *payload, size_t num_bytes)
       : Message(MsgKind::Directory) {
-    assert(payload != nullptr);
+    Deserializer deserializer(payload, num_bytes);
+    String blank_string("");
 
-    // Get the number of bytes this message should be at least
-    size_t required_bytes = Message::get_required_bytes(this->clients);
-    assert(num_bytes > required_bytes);
+    // Get the maximum number of clients
+    this->clients = deserializer.get_size_t();
 
-    // Get the maximum number of clients for the directory
-    size_t offset = 0;
-    this->clients =
-        Message::get_size_t_deserialization(payload, offset, num_bytes);
-
-    // Ensure that the directory message is big enough to hold all the
-    // clients (including the blank ones)
-    String *blank_string = new String("");
-    required_bytes += this->clients * sizeof(size_t) +
-                      this->clients * Message::get_required_bytes(blank_string);
-    assert(num_bytes >= required_bytes);
+    // Get the ports
     this->ports = new size_t[this->clients];
-    this->addresses = new String *[this->clients];
-
-    // Get the port and IP address information and store them accordingly
     for (size_t i = 0; i < this->clients; i++) {
-      this->ports[i] =
-          Message::get_size_t_deserialization(payload, offset, num_bytes);
+      this->ports[i] = deserializer.get_size_t();
     }
+
+    // Get the addresses
+    this->addresses = new String *[this->clients];
     for (size_t i = 0; i < this->clients; i++) {
-      String *address =
-          Message::get_string_deserialization(payload, offset, num_bytes);
-      if (address->equals(blank_string)) {
+      String *address = String::deserialize_as_string(deserializer);
+      if (address->equals(&blank_string)) {
         // Replace it with a nullptr
         this->addresses[i] = nullptr;
         delete address;
@@ -1181,8 +735,6 @@ public:
         this->addresses[i] = address;
       }
     }
-
-    delete blank_string;
   }
 
   /**
@@ -1199,50 +751,37 @@ public:
     this->clients = 0;
   }
 
-  unsigned char *serialize(size_t &buffer_size) override {
-    // Get the number of bytes we will need
-    size_t testing = Message::HEADER_SIZE;
-    size_t required_bytes = Message::get_required_bytes(clients);
-    required_bytes +=
-        Message::get_required_bytes(this->ports[0]) * this->clients;
-    String *blank_string = new String("");
+  void serialize(Serializer &serializer) override {
+    // Prepare the header
+    String blank_string("");
+    size_t payload_size = Serializer::get_required_bytes(this->clients);
     for (size_t i = 0; i < this->clients; i++) {
+      payload_size += Serializer::get_required_bytes(this->ports[i]);
       if (this->addresses[i] != nullptr) {
-        required_bytes += Message::get_required_bytes(this->addresses[i]);
+        payload_size += this->addresses[i]->serialization_required_bytes();
       } else {
         // Request enough bytes for an empty string as a place holder for
         // empty client ids
-        required_bytes += Message::get_required_bytes(blank_string);
+        payload_size += blank_string.serialization_required_bytes();
       }
     }
+    this->set_payload_size(payload_size);
+    Message::serialize(serializer);
 
-    // Get the buffer ready
-    size_t offset = 0;
-    unsigned char *buffer =
-        this->prepare_serialize_buffer(required_bytes, offset);
-    buffer_size = offset + required_bytes;
-
-    // Set the values into the buffer
-    offset = Message::set_size_t_serialization(this->clients, buffer, offset,
-                                               buffer_size);
+    // Now serialize the values.
+    serializer.set_size_t(this->clients);
     for (size_t i = 0; i < this->clients; i++) {
-      offset = Message::set_size_t_serialization(this->ports[i], buffer, offset,
-                                                 buffer_size);
+      serializer.set_size_t(this->ports[i]);
     }
     for (size_t i = 0; i < this->clients; i++) {
       if (this->addresses[i] != nullptr) {
-        offset = Message::set_string_serialization(this->addresses[i], buffer,
-                                                   offset, buffer_size);
+        this->addresses[i]->serialize(serializer);
       } else {
         // Request enough bytes for an empty string as a place holder for
         // empty client ids
-        offset = Message::set_string_serialization(blank_string, buffer, offset,
-                                                   buffer_size);
+        blank_string.serialize(serializer);
       }
     }
-
-    delete blank_string;
-    return buffer;
   }
 
   /**
@@ -1386,31 +925,40 @@ public:
   }
 };
 
-Message *Message::deserialize_header(unsigned char *buffer, size_t num_bytes) {
+Message *Message::deserialize_as_message_header(unsigned char *buffer, size_t num_bytes) {
   if (num_bytes < Message::HEADER_SIZE) {
     // A valid message buffer should always have a header. A message
     // smaller than that is invalid.
     return nullptr;
   }
+  else {
+    // Begin deserializing the header
+    Deserializer deserializer(buffer, num_bytes);
 
-  MsgKind *casted_msgkind_buffer = reinterpret_cast<MsgKind *>(buffer);
-  size_t *casted_header_buffer =
-      reinterpret_cast<size_t *>(buffer + sizeof(MsgKind));
-  MsgKind type = casted_msgkind_buffer[0];
-  size_t sender = casted_header_buffer[0];
-  size_t target = casted_header_buffer[1];
-  size_t id = casted_header_buffer[2];
-  size_t len = casted_header_buffer[3];
+    // Build the MsgKind by pulling it byte by byte
+    MsgKind type;
+    unsigned char *type_bytes = reinterpret_cast<unsigned char*>(&type);
+    for (size_t i = 0; i < sizeof(MsgKind); i++) {
+      type_bytes[i] = deserializer.get_byte();
+    }
 
-  Message *ret_value = new Message(type);
-  ret_value->set_sender_id(sender);
-  ret_value->set_target_id(target);
-  ret_value->set_id(id);
-  ret_value->set_payload_size(len);
-  return ret_value;
+    // Now get the rest of the header
+    size_t sender = deserializer.get_size_t();
+    size_t target = deserializer.get_size_t();
+    size_t id = deserializer.get_size_t();
+    size_t len = deserializer.get_size_t();
+
+    // Create the return value
+    Message *ret_value = new Message(type);
+    ret_value->set_sender_id(sender);
+    ret_value->set_target_id(target);
+    ret_value->set_id(id);
+    ret_value->set_payload_size(len);
+    return ret_value;
+  }
 }
 
-Message *Message::deserialize(unsigned char *buffer, size_t num_bytes) {
+Message *Message::deserialize_as_message(unsigned char *buffer, size_t num_bytes) {
   if (num_bytes < Message::HEADER_SIZE) {
     // A valid message buffer should always have a header. A message
     // smaller than that is invalid.
@@ -1418,21 +966,14 @@ Message *Message::deserialize(unsigned char *buffer, size_t num_bytes) {
   }
 
   // Grab the header by casting the buffer to the correct values.
-  MsgKind *casted_msgkind_buffer = reinterpret_cast<MsgKind *>(buffer);
-  size_t *casted_header_buffer =
-      reinterpret_cast<size_t *>(buffer + sizeof(MsgKind));
-  MsgKind type = casted_msgkind_buffer[0];
-  size_t sender = casted_header_buffer[0];
-  size_t target = casted_header_buffer[1];
-  size_t id = casted_header_buffer[2];
-  size_t len = casted_header_buffer[3];
+  Message *header = Message::deserialize_as_message_header(buffer, num_bytes);
 
-  // Get the beggining of the payload
+  // Get the begining of the payload
   size_t payload_size = num_bytes - Message::HEADER_SIZE;
   unsigned char *payload = buffer + Message::HEADER_SIZE;
 
   Message *ret_value = nullptr;
-  switch (type) {
+  switch (header->get_message_kind()) {
   case MsgKind::Ack:
     ret_value = new Ack(payload, payload_size);
     break;
@@ -1469,11 +1010,11 @@ Message *Message::deserialize(unsigned char *buffer, size_t num_bytes) {
   }
 
   if (ret_value != nullptr) {
-    // Fill in the header if we returned with a created message
-    ret_value->set_sender_id(sender);
-    ret_value->set_target_id(target);
-    ret_value->set_id(id);
-    ret_value->set_payload_size(len);
+    // Fill in the header into the return value
+    ret_value->set_sender_id(header->get_sender_id());
+    ret_value->set_target_id(header->get_target_id());
+    ret_value->set_id(header->get_id());
+    ret_value->set_payload_size(header->get_payload_size());
   }
 
   return ret_value;

@@ -57,18 +57,20 @@ public:
     this->buffer_index += num_bytes;
 
     // Peek at the header for inspection
-    Message *header = Message::deserialize_header(this->buffer,
-        this->buffer_index);
+    Message *header = Message::deserialize_as_message_header(
+        this->buffer, this->buffer_index);
     // Determine if it's a full message if the collected buffer is big enough
     // to hold the data that the message header promises
     if (header != nullptr) {
       if (header->get_payload_size() ==
           this->buffer_index - Message::HEADER_SIZE) {
-        ret_value = Message::deserialize(this->buffer, this->buffer_index);
+        ret_value =
+            Message::deserialize_as_message(this->buffer, this->buffer_index);
         this->buffer_index = 0;
       } else if (header->get_payload_size() <
                  this->buffer_index - Message::HEADER_SIZE) {
-        ret_value = Message::deserialize(this->buffer, this->buffer_index);
+        ret_value =
+            Message::deserialize_as_message(this->buffer, this->buffer_index);
 
         // Move the left over to the beginning
         size_t prev_message_size = header->get_payload_size() -
@@ -247,8 +249,14 @@ public:
     for (size_t i = 0; i < this->client_dir_->get_max_num_clients(); i++) {
       if (this->client_dir_->is_client_connected(i)) {
         this->client_dir_->set_target_id(i);
-        size_t broadcast_size = 0;
-        unsigned char *broadcast = this->client_dir_->serialize(broadcast_size);
+
+        // Serialize the directory
+        Serializer serialized_broadcast;
+        this->client_dir_->serialize(serialized_broadcast);
+        unsigned char *broadcast = serialized_broadcast.get_serialized_buffer();
+        size_t broadcast_size = serialized_broadcast.get_size_serialized_data();
+
+        // Send the data
         this->send_message(i, broadcast, broadcast_size);
         printf("Sent directory message, size %zu to client id %zu\n",
             broadcast_size, i);
@@ -497,17 +505,18 @@ public:
     // Start up the direct message manager
     this->dm_manager_->start();
 
-    // Send a registration message
-    Register *reg = new Register(this->dm_manager_->ip_addr_,
-        this->dm_manager_->port_num_);
-    reg->set_sender_id(-1); // Don't know what the index is yet. Use the servers
-    reg->set_target_id(-1); // Goes to the server
-    size_t num_bytes = 0;
-    unsigned char * msg = reg->serialize(num_bytes);
+    // Set up the register message
+    Register reg(this->dm_manager_->ip_addr_, this->dm_manager_->port_num_);
+    reg.set_sender_id(-1); // Don't know what the index is yet. Use the servers
+    reg.set_target_id(-1); // Goes to the server
+
+    // Serialize the message
+    Serializer serialized_message;
+    reg.serialize(serialized_message);
+    unsigned char *msg = serialized_message.get_serialized_buffer();
+    size_t num_bytes = serialized_message.get_size_serialized_data();
 
     this->send_message(msg, num_bytes);
-
-    delete reg;
   }
 
   void run_client() override {}

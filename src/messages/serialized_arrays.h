@@ -100,7 +100,7 @@ public:
 
   /**
    * Takes in the provided buffer and interprets it as an array of strings.
-   * @param buffer The buffer to deserialize from.
+   * @param buffer The buffer to deserialize_as_message from.
    * @param buffer_size The size of the buffer.
    * @return A newly allocated StringArray that was deserialized from the
    *        buffer. If it failed to interpret the provided buffer as a String
@@ -240,7 +240,7 @@ public:
 
   /**
    * Takes in the provided buffer and interprets it as an array of strings.
-   * @param buffer The buffer to deserialize from.
+   * @param buffer The buffer to deserialize_as_message from.
    * @param buffer_size The size of the buffer.
    * @return A newly allocated DoubleArray that was deserialized from the
    *        buffer. If it failed to interpret the provided buffer as a String
