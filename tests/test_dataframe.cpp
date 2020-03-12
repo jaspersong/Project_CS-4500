@@ -21,73 +21,10 @@
 
 #define ASSERT_EXIT_ONE(a) ASSERT_EXIT(a(), ::testing::ExitedWithCode(1), ".*")
 
-// Test all functionality of dataframe
-void testDataFrame() {
-  String *str_hello = new String("Hello");
-  String *str_world = new String("World");
-  String *str_software = new String("Software");
-  String *str_dev = new String("Development");
-  String *str_avatar = new String("Then the fire nation attacked.");
-
-  // Create a schema for the rows
-  Schema *s1 = new Schema();
-  s1->add_column('B', nullptr);
-  s1->add_column('I', nullptr);
-  s1->add_column('F', nullptr);
-  s1->add_column('S', nullptr);
-  s1->add_column('S', str_avatar);
-  s1->add_column('B', str_dev);
-  s1->add_row(str_hello);
-  s1->add_row(str_world);
-  s1->add_row(nullptr);
-  s1->add_row(nullptr);
-  s1->add_row(str_software);
-
-  // Construct a dummy column
-  Column *bool_column = new BoolColumn(2, false, true);
-
-  // Construct the row
-  Row * r3 = new Row(*s1);
-  r3->set(3, str_software);
-  r3->set(4, str_dev);
-
-  // Construct the dataframe
-  DataFrame *df0 = new DataFrame(*s1);
-
-  // Test adding row information in bulk
-  df0->add_row(*r3);
-  df0->fill_row(0, *r3);
-
-  df0->add_column(bool_column, nullptr);
-  df0->add_column(bool_column, str_world);
-
-  // Test getting column/rows through name
-  ASSERT_EQ(df0->get_col(*str_avatar), 4);
-  ASSERT_EQ(df0->get_col(*str_dev), 5);
-  ASSERT_EQ(df0->get_col(*str_world), 7);
-  ASSERT_EQ(df0->get_col(*str_hello), -1);
-  ASSERT_EQ(df0->get_row(*str_hello), 0);
-  ASSERT_EQ(df0->get_row(*str_world), 1);
-  ASSERT_EQ(df0->get_row(*str_software), 4);
-  ASSERT_EQ(df0->get_row(*str_avatar), -1);
-
-  // Deconstruct the memory accordingly
-  delete str_hello;
-  delete str_world;
-  delete str_software;
-  delete str_dev;
-  delete str_avatar;
-  delete s1;
-  delete r3;
-  delete df0;
-
-  exit(0);
-}
-
 void test_str_accept_case() {
   // create different string types
-  String *str_homework = new String("homework");
-  String *str_hard = new String("hard");
+  String str_homework("homework");
+  String str_hard("hard");
 
   // create string types of schema
   Schema schema_string("S");
@@ -101,11 +38,7 @@ void test_str_accept_case() {
 
   // test the accept function and print out an error message
   SummationFielder fielder(r);
-  fielder.accept(str_homework);
-
-  // free the memory
-  delete str_homework;
-  delete str_hard;
+  fielder.accept(&str_homework);
 
   exit(0);
 }
@@ -186,25 +119,20 @@ void basic() {
 }
 
 void test1() {
-  String * str_hello = new String("Hello");
-  String * str_world = new String("World");
-  String * str_software = new String("Software");
-  String * str_dev = new String ("Development");
-  String * str_avatar = new String("Then the fire nation attacked.");
+  String str_hello("Hello");
+  String str_world("World");
+  String str_software("Software");
+  String str_dev("Development");
+  String str_avatar("Then the fire nation attacked.");
 
   // Create a schema for the rows
   Schema * s1 = new Schema();
-  s1->add_column('B', nullptr);
-  s1->add_column('I', nullptr);
-  s1->add_column('F', nullptr);
-  s1->add_column('S', nullptr);
-  s1->add_column('S', str_avatar);
-  s1->add_column('B', str_dev);
-  s1->add_row(str_hello);
-  s1->add_row(str_world);
-  s1->add_row(nullptr);
-  s1->add_row(nullptr);
-  s1->add_row(str_software);
+  s1->add_column('B');
+  s1->add_column('I');
+  s1->add_column('F');
+  s1->add_column('S');
+  s1->add_column('S');
+  s1->add_column('B');
 
   // Construct a dummy column
   Column * bool_column = new BoolColumn(2, false, true);
@@ -217,16 +145,16 @@ void test1() {
   r0->set(0, false);
   r0->set(1, 3);
   r0->set(2, 4.2f);
-  r0->set(4, str_avatar);
+  r0->set(4, &str_avatar);
   r0->set(5, false);
   r1->set(0, true);
   r1->set(1, 4);
   r1->set(2, 5.3f);
-  r1->set(3, str_hello);
-  r1->set(4, str_world);
+  r1->set(3, &str_hello);
+  r1->set(4, &str_world);
   r1->set(5, false);
-  r3->set(3, str_software);
-  r3->set(4, str_dev);
+  r3->set(3, &str_software);
+  r3->set(4, &str_dev);
 
   // Construct the dataframe
   DataFrame * df0 = new DataFrame(*s1);
@@ -241,47 +169,47 @@ void test1() {
   ASSERT_F(df0->get_bool(0, 0));
   ASSERT_EQ(df0->get_int(1, 0), 3);
   ASSERT_EQ(df0->get_float(2, 0), 4.2f);
-  ASSERT_T(df0->get_string(4, 0)->equals(str_avatar));
+  ASSERT_T(df0->get_string(4, 0)->equals(&str_avatar));
   ASSERT_F(df0->get_bool(5, 0));
   ASSERT_T(df0->get_bool(0, 1));
   ASSERT_EQ(df0->get_int(1, 1), 4);
   ASSERT_EQ(df0->get_float(2, 1), 5.3f);
-  ASSERT_T(df0->get_string(3, 1)->equals(str_hello));
-  ASSERT_T(df0->get_string(4, 1)->equals(str_world));
+  ASSERT_T(df0->get_string(3, 1)->equals(&str_hello));
+  ASSERT_T(df0->get_string(4, 1)->equals(&str_world));
   ASSERT_F(df0->get_bool(5, 1));
-  ASSERT_T(df0->get_string(3, 3)->equals(str_software));
-  ASSERT_T(df0->get_string(4, 3)->equals(str_dev));
+  ASSERT_T(df0->get_string(3, 3)->equals(&str_software));
+  ASSERT_T(df0->get_string(4, 3)->equals(&str_dev));
   df0->set(0, 0, true);
   df0->set(1, 0, 4);
   df0->set(2, 1, 3.3f);
-  df0->set(4, 3, str_avatar);
+  df0->set(4, 3, &str_avatar);
   ASSERT_T(df0->get_bool(0, 0));
   ASSERT_EQ(df0->get_int(1, 0), 4);
   ASSERT_EQ(df0->get_float(2, 1), 3.3f);
-  ASSERT_T(df0->get_string(4, 3)->equals(str_avatar));
+  ASSERT_T(df0->get_string(4, 3)->equals(&str_avatar));
   df0->set(0, 2, false);
   df0->set(1, 2, 20);
   df0->set(2, 2, 80.9f);
-  df0->set(4, 2, str_world);
+  df0->set(4, 2, &str_world);
   ASSERT_F(df0->get_bool(0, 2));
   ASSERT_EQ(df0->get_int(1, 2), 20);
   ASSERT_EQ(df0->get_float(2, 2), 80.9f);
-  ASSERT_T(df0->get_string(4, 2)->equals(str_world));
+  ASSERT_T(df0->get_string(4, 2)->equals(&str_world));
 
   // Test adding row information in bulk
   ASSERT_EQ(df0->nrows(), 4);
   df0->add_row(*r3);
   ASSERT_EQ(df0->nrows(), 5);
-  ASSERT_T(df0->get_string(3, 4)->equals(str_software));
-  ASSERT_T(df0->get_string(4, 4)->equals(str_dev));
+  ASSERT_T(df0->get_string(3, 4)->equals(&str_software));
+  ASSERT_T(df0->get_string(4, 4)->equals(&str_dev));
   df0->fill_row(0, *r3);
-  ASSERT_T(df0->get_string(3, 0)->equals(str_software));
-  ASSERT_T(df0->get_string(4, 0)->equals(str_dev));
+  ASSERT_T(df0->get_string(3, 0)->equals(&str_software));
+  ASSERT_T(df0->get_string(4, 0)->equals(&str_dev));
 
   // Test adding new columns
   ASSERT_EQ(df0->ncols(), 6);
-  df0->add_column(bool_column, nullptr);
-  df0->add_column(bool_column, str_world);
+  df0->add_column(bool_column);
+  df0->add_column(bool_column);
   ASSERT_EQ(df0->ncols(), 8);
   ASSERT_F(df0->get_bool(6, 0));
   ASSERT_T(df0->get_bool(6, 1));
@@ -289,11 +217,6 @@ void test1() {
   ASSERT_T(df0->get_bool(7, 1));
 
   // Deconstruct the memory accordingly
-  delete str_hello;
-  delete str_world;
-  delete str_software;
-  delete str_dev;
-  delete str_avatar;
   delete s1;
   delete r0;
   delete r1;
@@ -306,22 +229,22 @@ void test1() {
 
 // Tests the functionality of the API functions for Schema
 void test2() {
-  String * str_hello = new String("Hello");
-  String * str_world = new String("World");
-  String * str_software = new String("Software");
-  String * str_dev = new String ("Development");
-  String * str_avatar = new String("Then the fire nation attacked.");
+  String str_hello("Hello");
+  String str_world("World");
+  String str_software("Software");
+  String str_dev("Development");
+  String str_avatar("Then the fire nation attacked.");
 
   Schema * s1 = new Schema();
 
   // Add some columns
   ASSERT_EQ(s1->width(), 0);
-  s1->add_column('B', nullptr);
-  s1->add_column('I', nullptr);
-  s1->add_column('F', nullptr);
-  s1->add_column('S', nullptr);
-  s1->add_column('S', str_avatar);
-  s1->add_column('B', str_hello);
+  s1->add_column('B');
+  s1->add_column('I');
+  s1->add_column('F');
+  s1->add_column('S');
+  s1->add_column('S');
+  s1->add_column('B');
 
   // Test the getter functions for columns
   ASSERT_EQ(s1->col_type(0), 'B');
@@ -331,37 +254,6 @@ void test2() {
   ASSERT_EQ(s1->col_type(4), 'S');
   ASSERT_EQ(s1->col_type(5), 'B');
   ASSERT_EQ(s1->width(), 6);
-  ASSERT_EQ(s1->col_name(0), nullptr);
-  ASSERT_EQ(s1->col_name(1), nullptr);
-  ASSERT_EQ(s1->col_name(2), nullptr);
-  ASSERT_EQ(s1->col_name(3), nullptr);
-  ASSERT_T(s1->col_name(4)->equals(str_avatar));
-  ASSERT_T(s1->col_name(5)->equals(str_hello));
-  ASSERT_EQ(s1->col_idx(nullptr), -1);
-  ASSERT_EQ(s1->col_idx("Hello"), 5);
-  ASSERT_EQ(s1->col_idx("asdfasdfaosdjfasidjf"), -1);
-  ASSERT_EQ(s1->col_idx("Then the fire nation attacked."), 4);
-
-  // Add some rows
-  ASSERT_EQ(s1->length(), 0);
-  s1->add_row(str_hello);
-  s1->add_row(str_world);
-  s1->add_row(nullptr);
-  s1->add_row(nullptr);
-  s1->add_row(str_software);
-
-  // Test the getter functions for rows
-  ASSERT_T(s1->row_name(0)->equals(str_hello));
-  ASSERT_T(s1->row_name(1)->equals(str_world));
-  ASSERT_EQ(s1->row_name(2), nullptr);
-  ASSERT_EQ(s1->row_name(3), nullptr);
-  ASSERT_T(s1->row_name(4)->equals(str_software));
-  ASSERT_EQ(s1->length(), 5);
-  ASSERT_EQ(s1->row_idx(nullptr), -1);
-  ASSERT_EQ(s1->row_idx("Hello"), 0);
-  ASSERT_EQ(s1->row_idx("alskdjflasdf"), -1);
-  ASSERT_EQ(s1->row_idx("World"), 1);
-  ASSERT_EQ(s1->row_idx("Software"), 4);
 
   // Test the copy constructor
   Schema * copy = new Schema(*s1);
@@ -372,15 +264,10 @@ void test2() {
   ASSERT_EQ(copy->col_type(4), 'S');
   ASSERT_EQ(copy->col_type(5), 'B');
   ASSERT_EQ(copy->width(), 6);
-  ASSERT_EQ(copy->length(), 5);
   ASSERT_EQ(s1->width(), 6);
-  ASSERT_EQ(s1->length(), 5);
-  copy->add_column('F', nullptr);
-  copy->add_row(nullptr);
+  copy->add_column('F');
   ASSERT_EQ(copy->width(), 7);
   ASSERT_EQ(s1->width(), 6);
-  ASSERT_EQ(copy->length(), 6);
-  ASSERT_EQ(s1->length(), 5);
 
   // Test the string of types constructor
   Schema * s2 = new Schema("IFSS");
@@ -388,19 +275,9 @@ void test2() {
   ASSERT_EQ(s2->col_type(1), 'F');
   ASSERT_EQ(s2->col_type(2), 'S');
   ASSERT_EQ(s2->col_type(3), 'S');
-  ASSERT_EQ(s2->col_name(0), nullptr);
-  ASSERT_EQ(s2->col_name(1), nullptr);
-  ASSERT_EQ(s2->col_name(2), nullptr);
-  ASSERT_EQ(s2->col_name(3), nullptr);
   ASSERT_EQ(s2->width(), 4);
-  ASSERT_EQ(s2->length(), 0);
 
   // Free the memory accordingly
-  delete str_hello;
-  delete str_world;
-  delete str_software;
-  delete str_dev;
-  delete str_avatar;
   delete s1;
 
   exit(0);
@@ -409,11 +286,11 @@ void test2() {
 // Test the functionality of the Column API functions
 void test3() {
   // Create some test strings
-  String * str_hello = new String("Hello");
-  String * str_world = new String("World");
-  String * str_software = new String("Software");
-  String * str_dev = new String ("Development");
-  String * str_avatar = new String("Then the fire nation attacked.");
+  String str_hello("Hello");
+  String str_world("World");
+  String str_software("Software");
+  String str_dev("Development");
+  String str_avatar("Then the fire nation attacked.");
 
   // Create all the column types
   Column * bool_column = new BoolColumn();
@@ -437,11 +314,11 @@ void test3() {
   float_column->push_back(20.5f);
   float_column->push_back(46.2f);
   float_column->push_back(0.0f);
-  string_column->push_back(str_hello);
-  string_column->push_back(str_world);
-  string_column->push_back(str_software);
-  string_column->push_back(str_dev);
-  string_column->push_back(str_avatar);
+  string_column->push_back(&str_hello);
+  string_column->push_back(&str_world);
+  string_column->push_back(&str_software);
+  string_column->push_back(&str_dev);
+  string_column->push_back(&str_avatar);
 
   // Verify the sizes of each of the column
   ASSERT_EQ(bool_column->size(), 2);
@@ -501,23 +378,23 @@ void test3() {
   ASSERT_EQ(conv_float_column->size(), 5);
 
   // Test the string column
-  ASSERT_T(conv_string_colunmn->get(0)->equals(str_hello));
-  ASSERT_T(conv_string_colunmn->get(1)->equals(str_world));
-  ASSERT_T(conv_string_colunmn->get(2)->equals(str_software));
-  ASSERT_T(conv_string_colunmn->get(3)->equals(str_dev));
-  ASSERT_T(conv_string_colunmn->get(4)->equals(str_avatar));
-  conv_string_colunmn->set(0, str_avatar);
-  ASSERT_T(conv_string_colunmn->get(0)->equals(str_avatar));
-  conv_string_colunmn->push_back(str_hello);
-  ASSERT_T(conv_string_colunmn->get(5)->equals(str_hello));
+  ASSERT_T(conv_string_colunmn->get(0)->equals(&str_hello));
+  ASSERT_T(conv_string_colunmn->get(1)->equals(&str_world));
+  ASSERT_T(conv_string_colunmn->get(2)->equals(&str_software));
+  ASSERT_T(conv_string_colunmn->get(3)->equals(&str_dev));
+  ASSERT_T(conv_string_colunmn->get(4)->equals(&str_avatar));
+  conv_string_colunmn->set(0, &str_avatar);
+  ASSERT_T(conv_string_colunmn->get(0)->equals(&str_avatar));
+  conv_string_colunmn->push_back(&str_hello);
+  ASSERT_T(conv_string_colunmn->get(5)->equals(&str_hello));
   ASSERT_EQ(conv_string_colunmn->size(), 6);
 
   // Test the constructors
   BoolColumn * cons_bool_column = new BoolColumn(2, false, true);
   IntColumn * cons_int_column = new IntColumn(3, 0, 1, 2);
   FloatColumn * cons_float_column = new FloatColumn(4, 0.1f, 0.2f, 0.3f, 0.4f);
-  StringColumn * cons_string_column = new StringColumn(3, str_hello, str_world,
-                                                       str_avatar);
+  StringColumn * cons_string_column = new StringColumn(3, &str_hello,
+      &str_world, &str_avatar);
   ASSERT_T(cons_bool_column->get(1));
   ASSERT_F((cons_bool_column->get(0)));
   cons_bool_column->push_back(false);
@@ -536,19 +413,14 @@ void test3() {
   cons_float_column->push_back(0.5f);
   ASSERT_EQ(cons_float_column->get(4), 0.5f);
   ASSERT_EQ(cons_float_column->size(), 5);
-  ASSERT_T(cons_string_column->get(0)->equals(str_hello));
-  ASSERT_T(cons_string_column->get(1)->equals(str_world));
-  ASSERT_T((cons_string_column->get(2)->equals(str_avatar)));
-  cons_string_column->push_back(str_software);
-  ASSERT_T(cons_string_column->get(3)->equals(str_software));
+  ASSERT_T(cons_string_column->get(0)->equals(&str_hello));
+  ASSERT_T(cons_string_column->get(1)->equals(&str_world));
+  ASSERT_T((cons_string_column->get(2)->equals(&str_avatar)));
+  cons_string_column->push_back(&str_software);
+  ASSERT_T(cons_string_column->get(3)->equals(&str_software));
   ASSERT_EQ(cons_string_column->size(), 4);
 
   // Free memory accordingly
-  delete str_hello;
-  delete str_world;
-  delete str_software;
-  delete str_dev;
-  delete str_avatar;
   delete bool_column;
   delete int_column;
   delete float_column;
@@ -563,25 +435,20 @@ void test3() {
 
 // Tests the API functions of the Rows
 void test4() {
-  String * str_hello = new String("Hello");
-  String * str_world = new String("World");
-  String * str_software = new String("Software");
-  String * str_dev = new String ("Development");
-  String * str_avatar = new String("Then the fire nation attacked.");
+  String str_hello("Hello");
+  String str_world("World");
+  String str_software("Software");
+  String str_dev("Development");
+  String str_avatar("Then the fire nation attacked.");
 
   // Create a schema for the rows
   Schema * s1 = new Schema();
-  s1->add_column('B', nullptr);
-  s1->add_column('I', nullptr);
-  s1->add_column('F', nullptr);
-  s1->add_column('S', nullptr);
-  s1->add_column('S', str_avatar);
-  s1->add_column('B', str_dev);
-  s1->add_row(str_hello);
-  s1->add_row(str_world);
-  s1->add_row(nullptr);
-  s1->add_row(nullptr);
-  s1->add_row(str_software);
+  s1->add_column('B');
+  s1->add_column('I');
+  s1->add_column('F');
+  s1->add_column('S');
+  s1->add_column('S');
+  s1->add_column('B');
 
   // Construct the row
   Row * r1 = new Row(*s1);
@@ -590,14 +457,14 @@ void test4() {
   r1->set(0, true);
   r1->set(1, 4);
   r1->set(2, 5.3f);
-  r1->set(3, str_hello);
-  r1->set(4, str_world);
+  r1->set(3, &str_hello);
+  r1->set(4, &str_world);
   r1->set(5, false);
   ASSERT_T(r1->get_bool(0));
   ASSERT_EQ(r1->get_int(1), 4);
   ASSERT_EQ(r1->get_float(2), 5.3f);
-  ASSERT_T(r1->get_string(3)->equals(str_hello));
-  ASSERT_T(r1->get_string(4)->equals(str_world));
+  ASSERT_T(r1->get_string(3)->equals(&str_hello));
+  ASSERT_T(r1->get_string(4)->equals(&str_world));
   ASSERT_F(r1->get_bool(5));
 
   // Row schema tests
@@ -614,75 +481,8 @@ void test4() {
   ASSERT_EQ(r1->get_idx(), 1);
 
   // Free the memory accordingly
-  delete str_hello;
-  delete str_world;
-  delete str_software;
-  delete str_dev;
-  delete str_avatar;
   delete s1;
   delete r1;
-
-  exit(0);
-}
-
-void test5() {
-  String * str_hello = new String("Hello");
-  String * str_world = new String("World");
-  String * str_software = new String("Software");
-  String * str_dev = new String ("Development");
-  String * str_avatar = new String("Then the fire nation attacked.");
-
-  // Create a schema for the rows
-  Schema * s1 = new Schema();
-  s1->add_column('B', nullptr);
-  s1->add_column('I', nullptr);
-  s1->add_column('F', nullptr);
-  s1->add_column('S', nullptr);
-  s1->add_column('S', str_avatar);
-  s1->add_column('B', str_dev);
-  s1->add_row(str_hello);
-  s1->add_row(str_world);
-  s1->add_row(nullptr);
-  s1->add_row(nullptr);
-  s1->add_row(str_software);
-
-  // Construct a dummy column
-  Column * bool_column = new BoolColumn(2, false, true);
-
-  // Construct the row
-  Row * r3 = new Row(*s1);
-  r3->set(3, str_software);
-  r3->set(4, str_dev);
-
-  // Construct the dataframe
-  DataFrame * df0 = new DataFrame(*s1);
-
-  // Test adding row information in bulk
-  df0->add_row(*r3);
-  df0->fill_row(0, *r3);
-
-  df0->add_column(bool_column, nullptr);
-  df0->add_column(bool_column, str_world);
-
-  // Test getting column/rows through name
-  ASSERT_EQ(df0->get_col(*str_avatar), 4);
-  ASSERT_EQ(df0->get_col(*str_dev), 5);
-  ASSERT_EQ(df0->get_col(*str_world), 7);
-  ASSERT_EQ(df0->get_col(*str_hello), -1);
-  ASSERT_EQ(df0->get_row(*str_hello), 0);
-  ASSERT_EQ(df0->get_row(*str_world), 1);
-  ASSERT_EQ(df0->get_row(*str_software), 4);
-  ASSERT_EQ(df0->get_row(*str_avatar), -1);
-
-  // Deconstruct the memory accordingly
-  delete str_hello;
-  delete str_world;
-  delete str_software;
-  delete str_dev;
-  delete str_avatar;
-  delete s1;
-  delete r3;
-  delete df0;
 
   exit(0);
 }
@@ -712,10 +512,10 @@ void test6() {
   }
 
   // Now add the column 4 times to the dataframe
-  df.add_column(&c, nullptr);
-  df.add_column(&c, nullptr);
-  df.add_column(&c, nullptr);
-  df.add_column(&c, nullptr);
+  df.add_column(&c);
+  df.add_column(&c);
+  df.add_column(&c);
+  df.add_column(&c);
 
   ASSERT_EQ(df.ncols(), 6);
   ASSERT_EQ(df.nrows(), 100);
@@ -912,13 +712,11 @@ TEST(A5, test_bool_accept_case) { ASSERT_EXIT_ONE(test_bool_accept_case); }
 TEST(A5, test_str_accept_case) { ASSERT_EXIT_ONE(test_str_accept_case); }
 TEST(A5, test_float_accept_case) { ASSERT_EXIT_ZERO(test_float_accept_case); }
 TEST(A5, test_int_accept_case) { ASSERT_EXIT_ZERO(test_int_accept_case); }
-TEST(A5, testDataFrame) { ASSERT_EXIT_ZERO(testDataFrame); }
 TEST(A5, basic){ ASSERT_EXIT_ZERO(basic); }
 TEST(A5, test1) { ASSERT_EXIT_ZERO(test1); }
 TEST(A5, test2) { ASSERT_EXIT_ZERO(test2); }
 TEST(A5, test3) { ASSERT_EXIT_ZERO(test3); }
 TEST(A5, test4) { ASSERT_EXIT_ZERO(test4); }
-TEST(A5, test5) { ASSERT_EXIT_ZERO(test5); }
 TEST(A5, test6) { ASSERT_EXIT_ZERO(test6); }
 TEST(A5, test7) { ASSERT_EXIT_ZERO(test7); }
 TEST(A5, test_pmap) { ASSERT_EXIT_ZERO(test_pmap); }

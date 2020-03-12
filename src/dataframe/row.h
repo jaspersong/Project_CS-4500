@@ -32,18 +32,18 @@ public:
   size_t row_index;
 
   /** Build a row following a schema. */
-  Row(Schema &scm) {
+  explicit Row(Schema &scm) {
     this->schema_ = &scm;
     this->value_list = new LinkedListArray_();
 
     // Default the row index to 0 for now.
     this->row_index = 0;
 
-    // Create default "missing" values to the row
-    // TODO: Revisit when we start handling missing values.
+    // Initialize the values to all 0s
     while (this->value_list->size() < this->schema_->width()) {
       // Fill the value list until it has the same number of columns as the schema
       DataItem_ data_item;
+      data_item.o = nullptr;
       while (this->value_list->size() < this->schema_->width()) {
         this->value_list->add_new_item(data_item);
       }
@@ -53,7 +53,7 @@ public:
   /**
    * Deconstructs the row.
    */
-  ~Row() { delete this->value_list; }
+  ~Row() override { delete this->value_list; }
 
   /** Setters: set the given column with the given value. Setting a column with
    * a value of the wrong type is undefined. */
@@ -93,7 +93,7 @@ public:
     this->value_list->set_new_item(col, value);
   }
 
-  /** Acquire ownership of the string. **/
+  /** The string is external. */
   void set(size_t col, String *val) {
     // Verify that this column index takes in a string
     if (this->schema_->col_type(col) != static_cast<char>(ColumnType_String)) {

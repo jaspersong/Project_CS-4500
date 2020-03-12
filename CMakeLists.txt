@@ -82,7 +82,7 @@ add_executable(test_suite_dataframe
         "${CMAKE_CURRENT_SOURCE_DIR}/src/dataframe/fielder.h"
         "${CMAKE_CURRENT_SOURCE_DIR}/src/dataframe/rower.h"
         "${CMAKE_CURRENT_SOURCE_DIR}/src/dataframe/summation_rower.h"
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/dataframe/euclidean_magnitude_rower.h")
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/dataframe/euclidean_magnitude_rower.h" src/dataframe/print_rower.h)
 target_link_libraries(test_suite_dataframe gtest)
 add_executable(test_suite_messages
         "${CMAKE_CURRENT_SOURCE_DIR}/tests/test_messages.cpp"

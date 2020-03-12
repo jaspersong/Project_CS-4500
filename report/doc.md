@@ -424,6 +424,8 @@ examples of uses of the system. This could be in the form of code
 - Finished transferring the code to this new project repository
 - Paid technical debt: Creating a serializer helper class to assist
 serializing messages and data
+- Paid technical debt: Simplified the dataframe implementation, stripping out
+unnecessary functionality, such as row and column names.
 
 ### Technical Debt and TODOs
 
@@ -436,6 +438,6 @@ serializing messages and data
     - WaitAndGet
     - Kill
 - Make polling timeouts configurable within the server and clients
-- Simplify the dataframe implementation
+- Optimize dataframe get methods, and write unit tests for the dataframe helper
 - Create unit tests for the sorer
  

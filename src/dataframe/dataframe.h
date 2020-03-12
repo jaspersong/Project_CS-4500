@@ -20,6 +20,7 @@
 #include "row.h"
 #include "rower.h"
 #include "schema.h"
+#include "print_rower.h"
 
 // Forward declaration
 class DataFrame;
@@ -51,7 +52,7 @@ public:
    */
   RowerThread_(DataFrame &df, Rower &rower, size_t id, unsigned inc);
 
-  virtual void run();
+  void run() override;
 };
 
 /****************************************************************************
@@ -74,48 +75,13 @@ public:
   size_t num_rows;
 
   /** Create a data frame with the same columns as the give df but no rows */
-  DataFrame(DataFrame &df) {
-    this->col_list_ = new LinkedListArray_();
-    this->num_rows = 0;
-
-    // Create a blank schema that will only contain the columns but no rows.
-    this->schema_ = new Schema();
-
-    // add blank internal columns
-    for (size_t i = 0; i < df.get_schema().width(); i++) {
-      // Add the column to the newly generated schema
-      this->schema_->add_column(df.get_schema().col_type(i),
-                                df.get_schema().col_name(i));
-
-      // Create blank columns and add them to the list accordingly
-      Column *new_column = nullptr;
-      switch (df.get_schema().col_type(i)) {
-      case ColumnType_Bool:
-        new_column = new BoolColumn();
-        break;
-      case ColumnType_Integer:
-        new_column = new IntColumn();
-        break;
-      case ColumnType_Float:
-        new_column = new FloatColumn();
-        break;
-      case ColumnType_String:
-      default:
-        new_column = new StringColumn();
-        break;
-      }
-      DataItem_ item;
-      item.o = new_column;
-      this->col_list_->add_new_item(item);
-    }
-  }
+  DataFrame(DataFrame &df) : DataFrame(df.get_schema()) {}
 
   /** Create a data frame from a schema and columns. All columns are created
    * empty. */
   DataFrame(Schema &schema) {
     this->col_list_ = new LinkedListArray_();
     this->num_rows = 0;
-
     this->schema_ = new Schema(schema);
 
     // add blank internal columns
@@ -146,7 +112,7 @@ public:
   /**
    * Deconstructs the dataframe
    */
-  ~DataFrame() {
+  ~DataFrame() override {
     delete this->schema_;
 
     // Iterate through the column and delete the internally allocated columns
@@ -168,14 +134,14 @@ public:
   /** Adds a column this dataframe, updates the schema, the new column
    * is external, and appears as the last column of the dataframe, the
    * name is optional and external. A nullptr colum is undefined. */
-  void add_column(Column *col, String *name) {
+  void add_column(Column *col) {
     // Verify that the column is valid
     if (col == nullptr) {
       printf("Invalid column provided to the dataframe.\n");
       exit(1);
     } else {
       // Add the new column information to the schema
-      this->schema_->add_column(col->get_type(), name);
+      this->schema_->add_column(col->get_type());
 
       // Copy the new column and add it to the column list
       Column *new_column = nullptr;
@@ -287,12 +253,6 @@ public:
     }
   }
 
-  /** Return the offset of the given column name or -1 if no such col. */
-  int get_col(String &col) { return this->schema_->col_idx(col.c_str()); }
-
-  /** Return the offset of the given row name or -1 if no such row. */
-  int get_row(String &col) { return this->schema_->row_idx(col.c_str()); }
-
   /** Set the value at the given column and row to the given value.
    * If the column is not  of the right type or the indices are out of
    * bound, the result is undefined. */
@@ -389,9 +349,7 @@ public:
       case ColumnType_Bool: {
         BoolColumn *bool_column = column->as_bool();
 
-        // Add empty values until we reach the row index so we may set the value
-        // TODO: Once we start being able to handle missing values, update
-        //  this piece of code
+        // Add 0 until we reach the row index so we may set the value
         while (idx >= bool_column->size()) {
           bool_column->push_back(false);
         }
@@ -403,9 +361,7 @@ public:
       case ColumnType_Integer: {
         IntColumn *int_column = column->as_int();
 
-        // Add empty values until we reach the row index so we may set the value
-        // TODO: Once we start being able to handle missing values, update
-        //  this piece of code
+        // Add 0 until we reach the row index so we may set the value
         while (idx >= int_column->size()) {
           int_column->push_back(0);
         }
@@ -417,9 +373,7 @@ public:
       case ColumnType_Float: {
         FloatColumn *float_column = column->as_float();
 
-        // Add empty values until we reach the row index so we may set the value
-        // TODO: Once we start being able to handle missing values, update
-        //  this piece of code
+        // Add 0 until we reach the row index so we may set the value
         while (idx >= float_column->size()) {
           float_column->push_back(0.0f);
         }
@@ -432,9 +386,7 @@ public:
       default: {
         StringColumn *string_column = column->as_string();
 
-        // Add empty values until we reach the row index so we may set the value
-        // TODO: Once we start being able to handle missing values, update
-        //  this piece of code
+        // Add 0 until we reach the row index so we may set the value
         while (idx >= string_column->size()) {
           string_column->push_back(nullptr);
         }
@@ -585,46 +537,9 @@ public:
 
   /** Print the dataframe in SoR format to standard output. */
   void print() {
-    // Iterate down the rows
-    for (size_t row = 0; row < this->nrows(); row++) {
-
-      // Go through the columns and print out each of the data.
-      for (size_t c = 0; c < this->ncols(); c++) {
-        // Get the column at the specified index
-        DataItem_ item = this->col_list_->get_item(c);
-        Column *column = dynamic_cast<Column *>(item.o);
-
-        // Handle printing out each of the values.
-        switch (column->get_type()) {
-        case ColumnType_Bool: {
-          BoolColumn *bool_column = column->as_bool();
-          printf("<%d>", bool_column->get(row));
-          break;
-        }
-        case ColumnType_Integer: {
-          IntColumn *int_column = column->as_int();
-          printf("<%d>", int_column->get(row));
-          break;
-        }
-        case ColumnType_Float: {
-          FloatColumn *float_column = column->as_float();
-          printf("<%f>", float_column->get(row));
-          break;
-        }
-        case ColumnType_String:
-        default: {
-          StringColumn *string_column = column->as_string();
-          printf("<%s>", string_column->get(row)->c_str());
-        }
-        }
-
-        // Now add a space between this value and the next value
-        printf(" ");
-      }
-
-      // Completed a row. Print out the new line to go to the next row.
-      printf("\n");
-    }
+    // Use a rower to print out the dataframe
+    PrintRower rower;
+    this->map(rower);
   }
 };
 
