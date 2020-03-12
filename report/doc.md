@@ -3,9 +3,11 @@
 By: Snowy Chen and Joe Song
 
 ## Introduction
-
-where we give a high-level description of the eau2 system.
-
+Unlike the pmap function from the previous homework, our eau2 system will have 
+multiple machine, each machine will be a thread. The pmap function from the previous 
+homework will contain multiple threads in the same machine. The eau2 systems is 
+a distributed system, each computer is a thread, and all threads will 
+join together at the end. 
 ## Architecture
 
 The eau2 system is made up of a server, called the registrar, and a fixed
@@ -35,8 +37,62 @@ For nodes that do not contain the Value of a particular Key can send a Get or a
 WaitAndGet message to the node id associated to that Key.
 
 ## Implementation
+###dataframe Folder
+* `dataframe.h`
+An implementation of thread that will be used to concurrently iterate
+through the rows of a dataframe. A RowerThread_ will only every other
+RowerThread_ id row index within the DataFrame.
 
-### Network
+* `dataframe_helper.h`
+A helper class for Column, Row and Schema in order to have a resizeable
+data structure with sort of O(1) algorithmic getting methods. This class
+primarily stores items in DataItem_, which is a union of various other
+primitives. The data type of the value stored within a DataItem must be
+determined by the class that uses the LinkedListArray_.
+NOTE: This linked list of arrays does NOT support removing items. Only
+replacing them with different values, or adding new ones. This is because
+Row, Schema and Column APIs do not have a need for removing items.
+
+* `column.h`
+Represents one column of a data frame which holds values of a single type.
+This abstract class defines methods overriden in subclasses. There is
+one subclass per element type. Columns are mutable, equality is pointer
+equality. 
+
+* `row.h`
+This class represents a single row of data constructed according to a
+dataframe's schema. The purpose of this class is to make it easier to add
+read/write complete rows. Internally a dataframe hold data in columns.
+Rows have pointer equality.
+
+* `rower.h`
+An interface for iterating through each row of a data frame. The intent
+is that this class should subclassed and the accept() method be given
+a meaningful implementation. Rowers can be cloned for parallel execution.
+
+* `schema.h`
+A schema is a description of the contents of a data frame, the schema
+knows the number of columns and number of rows, the type of each column,
+optionally columns and rows can be named by strings.
+The valid types are represented by the chars 'S', 'B', 'I' and 'F'.
+
+* `euclidean_magnitude_rower.h`
+An implementation of Rower that goes through a dataframe comprised
+entirely of floats and integer type columns. It treats each row in a
+dataframe as a vector, and then calculates the Euclidean normal magnitude
+of each of the vectors. The calculated Euclidean magnitude can be queried
+by get_euclidean_magnitude(), and the average Euclidean magnitude can be
+queried by get_average().
+
+* `summation_rower.h`
+An implementation of a Fielder that accepts the values of the row with a
+schema comprised entirely of integer and float column data types, stores
+the summation of all of the values of that row. To get the summation once the
+row has been iterated through, call get_summation(). If any of fields
+within the row is not integer or float, the fielder will throw an error to
+stdout and terminate the program.
+
+### Network Folder
 
 The communication layer was implemented in two pieces: One is the Registrar, 
 and the other is Node. The Registrar is an implementation of an abstract class 
