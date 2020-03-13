@@ -13,7 +13,7 @@
 #include <stdlib.h>
 #include <math.h>
 
-#include "object.h"
+#include "custom_object.h"
 #include "custom_string.h"
 
 /**
@@ -37,7 +37,7 @@ typedef union {
   // store other data types into this data item. This value is primarily used
   // by Schema and Row, whereas the primitives mentioned above is to cater to
   // Column.
-  Object *o;
+  CustomObject *o;
 } DataItem_;
 
 /**
@@ -78,7 +78,7 @@ public:
  * array, it is made up of array nodes, which have a quadratic growth
  * starting from 2 in size.
  */
-class ArrayOfArrays : public Object {
+class ArrayOfArrays : public CustomObject {
 public:
   ArrayNode_ **nodes_;
   size_t num_nodes_;
@@ -117,12 +117,6 @@ public:
     delete[] this->nodes_;
   }
 
-  /**
-   * Private helper function that determines which node index the provided
-   * index is referencing to in the array of arrays.
-   * @param index The index of the desired item.
-   * @return The index of the node that would contain this index.
-   */
   /**
    * Private helper function that determines the node index and the offset
    * within that node in regards to the provided index.

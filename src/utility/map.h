@@ -1,4 +1,4 @@
-#include "object.h"
+#include "custom_object.h"
 #include <stddef.h>
 
 // A private class that is a linked list node stemming from the Map's hash
@@ -6,17 +6,17 @@
 class HashChainNode_ {
 public:
   HashChainNode_ *next_;
-  Object *key_;
-  Object *value_;
+  CustomObject *key_;
+  CustomObject *value_;
 
   // Constructs a hash chain node with the provided information
-  HashChainNode_(Object *key, Object *value) {
+  HashChainNode_(CustomObject *key, CustomObject *value) {
     this->key_ = key;
     this->value_ = value;
   }
 };
 
-class Map : public Object {
+class Map : public CustomObject {
 public:
   static const size_t DEFAULT_HASH_SIZE = 64;
 
@@ -64,7 +64,7 @@ public:
   }
 
   // Does this map contain the given key
-  bool contains_key(Object *key) {
+  bool contains_key(CustomObject *key) {
     // Get the hash of the key in order to determine which bucket we need to
     // look into in the hash table.
     size_t key_hash = key->hash();
@@ -89,7 +89,7 @@ public:
   }
 
   // Places the given value at the given key
-  void put(Object *key, Object *value) {
+  void put(CustomObject *key, CustomObject *value) {
     // Get the hash of the key in order to determine which bucket we need to
     // look into in the hash table.
     size_t key_hash = key->hash();
@@ -123,7 +123,7 @@ public:
   }
 
   // Returns the value at the given key
-  Object *get(Object *key) {
+  CustomObject *get(CustomObject *key) {
     // Get the hash of the key in order to determine which bucket we need to
     // look into in the hash table.
     size_t key_hash = key->hash();
@@ -148,7 +148,7 @@ public:
   }
 
   // Does this map equal the given Object
-  bool equals(Object *other) {
+  bool equals(CustomObject *other) {
     if (other == nullptr) {
       return false;
     }
@@ -208,9 +208,9 @@ public:
   }
 
   // Returns the set of keys in this map
-  Object **key_set() {
+  CustomObject **key_set() {
     // Allocate the array containing the sets of keys
-    Object **ret_value = new Object *[this->size()];
+    CustomObject **ret_value = new CustomObject *[this->size()];
 
     // Now iterate through the map and its chains and slowly add them to the
     // array
@@ -231,7 +231,7 @@ public:
   }
 
   // Removes and returns the object at the given key
-  Object *remove(Object *key) {
+  CustomObject *remove(CustomObject *key) {
     // Get the hash of the key in order to determine which bucket we need to
     // look into in the hash table.
     size_t key_hash = key->hash();
@@ -258,7 +258,7 @@ public:
         this->num_elements_ -= 1;
 
         // Now get the return value, free the hash chain as well.
-        Object *ret_value = curr_node->value_;
+        CustomObject *ret_value = curr_node->value_;
         delete curr_node;
         return ret_value;
       }

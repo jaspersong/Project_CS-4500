@@ -1,6 +1,6 @@
 #pragma once
 // LANGUAGE: CwC
-#include "object.h"
+#include "custom_object.h"
 #include "serializer.h"
 
 #include <cassert>
@@ -13,7 +13,7 @@
  * work by copy, but there are exceptions (this is mostly to support
  * large strings and avoid them being copied).
  *  author: vitekj@me.com */
-class String : public Object {
+class String : public CustomObject {
 public:
   size_t size_; // number of characters excluding terminate (\0)
   char *cstr_;  // owned; char array
@@ -36,7 +36,7 @@ public:
   explicit String(char const *cstr) : String(cstr, strlen(cstr)) {}
 
   /** Build a string from another String */
-  String(String &from) : Object(from) {
+  String(String &from) : CustomObject(from) {
     size_ = from.size_;
     cstr_ = new char[size_ + 1]; // ensure that we copy the terminator
     memcpy(cstr_, from.cstr_, size_ + 1);
@@ -59,7 +59,7 @@ public:
   }
 
   /** Compare two strings. */
-  bool equals(Object *other) override {
+  bool equals(CustomObject *other) override {
     if (other == this)
       return true;
     String *x = dynamic_cast<String *>(other);
@@ -134,7 +134,7 @@ public:
 
 /** A string buffer builds a string from various pieces.
  *  author: jv */
-class StrBuff : public Object {
+class StrBuff : public CustomObject {
 public:
   char *val_; // owned; consumed by get()
   size_t capacity_;

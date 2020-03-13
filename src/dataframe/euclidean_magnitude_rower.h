@@ -12,7 +12,7 @@
 #include <math.h>
 #include <stdlib.h>
 
-#include "object.h"
+#include "custom_object.h"
 
 #include "fielder.h"
 #include "row.h"
@@ -229,5 +229,5 @@ public:
     return this->num_vectors_;
   }
 
-  Object *clone() { return new EuclideanMagnitudeRower(this->num_vectors_); }
+  CustomObject *clone() { return new EuclideanMagnitudeRower(this->num_vectors_); }
 };

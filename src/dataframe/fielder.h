@@ -11,14 +11,14 @@
 
 #include <stdlib.h>
 
-#include "object.h"
+#include "custom_object.h"
 #include "custom_string.h"
 
 /*****************************************************************************
  * Fielder::
  * A field visitor invoked by Row.
  */
-class Fielder : public Object {
+class Fielder : public CustomObject {
 public:
   /** Called before visiting a row, the argument is the row offset in the
     dataframe. */

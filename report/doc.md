@@ -9,6 +9,28 @@ across multiple devices. As a result, this system can be used as a larger scale
 concurrency system manipulating or analyzing a large dataset in a shorter amount
 of time by distributing the workload across multiple devices.
 
+In order to use and run this project, the following tools must be installed:
+- g++
+- valgrind
+- cmake
+- git
+- clang
+- python3
+
+The following are terminal commands to run within the root of the project folder
+in order to build and run the various parts of the project system:
+- `make build_all`: Builds the whole project.
+- `make test_all`: Runs all of the test suites of the project
+- `make demo_echo`: Runs the demo for a EchoServer and EchoClient network
+system. Note: This system currently does not run within Docker.
+- `make demo_distro_app`: Runs the demo for the distributed app network
+system. Note: This system currently does not run in Docker.
+- `make clean`: Cleans the builds
+- `make docker_build_all`: Builds the whole project within a Docker image. This 
+command only will run if Docker is online.
+- `make docker_test_all`: Runs all of the test suites of the project within
+a Docker image. This command only will run if the Docker is online.
+
 ## Architecture
 
 The eau2 system is made up of a server, called the registrar, and a fixed
@@ -680,6 +702,7 @@ structure in regard to a growing buffer of large amounts of data
     - WaitAndGet
     - Kill
 - Make polling timeouts configurable within the server and clients
-- Create unit tests for the sorer
 - Create unit tests for the dataframe's array of arrays
+- Get the network code to run within Docker
+- Integrate 4500ne's sorer into the project.
  

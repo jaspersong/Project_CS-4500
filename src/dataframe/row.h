@@ -11,7 +11,7 @@
 
 #include <stdlib.h>
 
-#include "object.h"
+#include "custom_object.h"
 #include "custom_string.h"
 
 #include "fielder.h"
@@ -25,7 +25,7 @@
  * read/write complete rows. Internally a dataframe hold data in columns.
  * Rows have pointer equality.
  */
-class Row : public Object {
+class Row : public CustomObject {
 public:
   Schema *schema_;
   ArrayOfArrays *value_list;

@@ -1,6 +1,6 @@
-#include "map.h"
-#include "object.h"
+#include "custom_object.h"
 #include "custom_string.h"
+#include "map.h"
 
 bool it_returns_the_value_for_a_key() {
   Map *map = new Map();
@@ -58,7 +58,7 @@ bool it_computes_keyset() {
   String *bar = new String("bar");
   map->put(foo_key, foo);
   map->put(bar_key, bar);
-  Object **keys = map->key_set();
+  CustomObject **keys = map->key_set();
 
   bool containsFoo = false;
   bool containsBar = false;
@@ -86,13 +86,13 @@ bool it_removes_elements() {
   if (map->size() != 2)
     return false;
 
-  Object *foo_removed = map->remove(foo_key);
+  CustomObject *foo_removed = map->remove(foo_key);
   if (map->size() != 1)
     return false;
   if (!foo->equals(foo_removed))
     return false;
 
-  Object *bar_removed = map->remove(bar_key);
+  CustomObject *bar_removed = map->remove(bar_key);
   if (map->size() != 0)
     return false;
   return bar->equals(bar_removed);

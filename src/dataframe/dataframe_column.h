@@ -12,7 +12,7 @@
 #include <stdarg.h>
 #include <stdlib.h>
 
-#include "object.h"
+#include "custom_object.h"
 #include "custom_string.h"
 
 #include "dataframe_helper.h"
@@ -20,10 +20,10 @@
 /**
  * Class prototypes
  */
-class IntColumn;
-class BoolColumn;
-class FloatColumn;
-class StringColumn;
+class DF_IntColumn;
+class DF_BoolColumn;
+class DF_FloatColumn;
+class DF_StringColumn;
 
 /**
  * An enumeration that contains the column type represented in a char. The
@@ -44,7 +44,7 @@ typedef enum {
  * This abstract class defines methods overriden in subclasses. There is
  * one subclass per element type. Columns are mutable, equality is pointer
  * equality. */
-class Column : public Object {
+class DF_Column : public CustomObject {
 public:
   // A protected variable containing all of the data within the column. It
   // can be used by its derivative classes.
@@ -55,23 +55,23 @@ public:
   ColumnType_t data_type_;
 
   // Constructs a column
-  explicit Column(ColumnType_t column_type) {
+  explicit DF_Column(ColumnType_t column_type) {
     this->list_ = new ArrayOfArrays();
     this->data_type_ = column_type;
   }
 
   // Deconstructs the column
-  ~Column() override { delete this->list_; }
+  ~DF_Column() override { delete this->list_; }
 
   /** Type converters: Return same column under its actual type, or
    *  nullptr if of the wrong type.  */
-  virtual IntColumn *as_int() { return nullptr; }
+  virtual DF_IntColumn *as_int() { return nullptr; }
 
-  virtual BoolColumn *as_bool() { return nullptr; }
+  virtual DF_BoolColumn *as_bool() { return nullptr; }
 
-  virtual FloatColumn *as_float() { return nullptr; }
+  virtual DF_FloatColumn *as_float() { return nullptr; }
 
-  virtual StringColumn *as_string() { return nullptr; }
+  virtual DF_StringColumn *as_string() { return nullptr; }
 
   /** Type appropriate push_back methods. Calling the wrong method is
    * undefined behavior. **/
@@ -130,11 +130,11 @@ public:
  * BoolColumn::
  * Holds primitive int values, unwrapped.
  */
-class BoolColumn : public Column {
+class DF_BoolColumn : public DF_Column {
 public:
-  BoolColumn() : Column(ColumnType_Bool) {}
+  DF_BoolColumn() : DF_Column(ColumnType_Bool) {}
 
-  explicit BoolColumn(int n, ...) : Column(ColumnType_Bool) {
+  explicit DF_BoolColumn(int n, ...) : DF_Column(ColumnType_Bool) {
     // Iterate through the variadic list as boolean values and add them into
     // the list within the column
     va_list ap;
@@ -150,7 +150,7 @@ public:
 
   // Constructs a column by copying the data from the provided column into
   // this new instance of column.
-  BoolColumn(BoolColumn &column) : Column(ColumnType_Bool) {
+  DF_BoolColumn(DF_BoolColumn &column) : DF_Column(ColumnType_Bool) {
     this->data_type_ = column.data_type_;
     this->list_ = new ArrayOfArrays(*column.list_);
   }
@@ -160,7 +160,7 @@ public:
     return data.b;
   }
 
-  BoolColumn *as_bool() override { return this; }
+  DF_BoolColumn *as_bool() override { return this; }
 
   void set(size_t idx, bool val) {
     // Create a data item to be passed
@@ -171,18 +171,18 @@ public:
     this->list_->set_new_item(idx, data);
   }
 
-  size_t size() override { return Column::size(); }
+  size_t size() override { return DF_Column::size(); }
 };
 
 /*************************************************************************
  * IntColumn::
  * Holds int values.
  */
-class IntColumn : public Column {
+class DF_IntColumn : public DF_Column {
 public:
-  IntColumn() : Column(ColumnType_Integer) {}
+  DF_IntColumn() : DF_Column(ColumnType_Integer) {}
 
-  explicit IntColumn(int n, ...) : Column(ColumnType_Integer) {
+  explicit DF_IntColumn(int n, ...) : DF_Column(ColumnType_Integer) {
     // Iterate through the variadic list as int values and add them into
     // the list within the column
     va_list ap;
@@ -197,7 +197,7 @@ public:
 
   // Constructs a column by copying the data from the provided column into
   // this new instance of column.
-  IntColumn(IntColumn &column) : Column(ColumnType_Integer) {
+  DF_IntColumn(DF_IntColumn &column) : DF_Column(ColumnType_Integer) {
       this->data_type_ = column.data_type_;
       this->list_ = new ArrayOfArrays(*column.list_);
   }
@@ -207,7 +207,7 @@ public:
     return data.i;
   }
 
-  IntColumn *as_int() override { return this; }
+  DF_IntColumn *as_int() override { return this; }
 
   /** Set value at idx. An out of bound idx is undefined.  */
   void set(size_t idx, int val) {
@@ -219,18 +219,18 @@ public:
     this->list_->set_new_item(idx, data);
   }
 
-  size_t size() override { return Column::size(); }
+  size_t size() override { return DF_Column::size(); }
 };
 
 /*************************************************************************
  * FloatColumn::
  * Holds primitive int values, unwrapped.
  */
-class FloatColumn : public Column {
+class DF_FloatColumn : public DF_Column {
 public:
-  FloatColumn() : Column(ColumnType_Float) {}
+  DF_FloatColumn() : DF_Column(ColumnType_Float) {}
 
-  explicit FloatColumn(int n, ...) : Column(ColumnType_Float) {
+  explicit DF_FloatColumn(int n, ...) : DF_Column(ColumnType_Float) {
     // Iterate through the variadic list as float values and add them into
     // the list within the column
     va_list ap;
@@ -245,7 +245,7 @@ public:
 
   // Constructs a column by copying the data from the provided column into
   // this new instance of column.
-  FloatColumn(FloatColumn &column) : Column(ColumnType_Float) {
+  DF_FloatColumn(DF_FloatColumn &column) : DF_Column(ColumnType_Float) {
       this->data_type_ = column.data_type_;
       this->list_ = new ArrayOfArrays(*column.list_);
   }
@@ -255,7 +255,7 @@ public:
     return data.f;
   }
 
-  FloatColumn *as_float() override { return this; }
+  DF_FloatColumn *as_float() override { return this; }
 
   void set(size_t idx, float val) {
     // Create a data item to be passed
@@ -266,7 +266,7 @@ public:
     this->list_->set_new_item(idx, data);
   }
 
-  size_t size() override { return Column::size(); }
+  size_t size() override { return DF_Column::size(); }
 };
 
 /*************************************************************************
@@ -274,11 +274,11 @@ public:
  * Holds string pointers. The strings are external.  Nullptr is a valid
  * value.
  */
-class StringColumn : public Column {
+class DF_StringColumn : public DF_Column {
 public:
-  StringColumn() : Column(ColumnType_String) {}
+  DF_StringColumn() : DF_Column(ColumnType_String) {}
 
-  explicit StringColumn(int n, ...) : Column(ColumnType_String) {
+  explicit DF_StringColumn(int n, ...) : DF_Column(ColumnType_String) {
     // Iterate through the variadic list as string values and add them into
     // the list within the column
     va_list ap;
@@ -293,12 +293,12 @@ public:
 
   // Constructs a column by copying the data from the provided column into
   // this new instance of column.
-  StringColumn(StringColumn &column) : Column(ColumnType_String) {
+  DF_StringColumn(DF_StringColumn &column) : DF_Column(ColumnType_String) {
       this->data_type_ = column.data_type_;
       this->list_ = new ArrayOfArrays(*column.list_);
   }
 
-  StringColumn *as_string() override { return this; }
+  DF_StringColumn *as_string() override { return this; }
 
   /** Returns the string at idx; undefined on invalid idx.*/
   String *get(size_t idx) {
@@ -316,5 +316,5 @@ public:
     this->list_->set_new_item(idx, data);
   }
 
-  size_t size() override { return Column::size(); }
+  size_t size() override { return DF_Column::size(); }
 };

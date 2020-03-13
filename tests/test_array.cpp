@@ -1,7 +1,7 @@
 // lang:cwc
 
 #include "array.h"
-#include "object.h"
+#include "custom_object.h"
 #include "custom_string.h"
 #include <stdio.h>
 
@@ -21,10 +21,10 @@ void checkFalse(bool b) {
 }
 
 void objectArrayTest() {
-  Object *o1 = new Object();
-  Object *o2 = new Object();
-  Object *o3 = new Object();
-  Object *o4 = new Object();
+  CustomObject *o1 = new CustomObject();
+  CustomObject *o2 = new CustomObject();
+  CustomObject *o3 = new CustomObject();
+  CustomObject *o4 = new CustomObject();
 
   Array *arr1 = new Array();
 
@@ -66,8 +66,8 @@ void objectArrayTest() {
 
   // Create new array
   Array *arr2 = new Array();
-  Object *o5 = new Object();
-  Object *o6 = new Object();
+  CustomObject *o5 = new CustomObject();
+  CustomObject *o6 = new CustomObject();
 
   arr2->insertAtEnd(o5);
   arr2->insert(o6, 0);

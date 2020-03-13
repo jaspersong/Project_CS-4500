@@ -20,9 +20,9 @@
 #include <netinet/in.h>
 #include <sys/socket.h>
 
-#include "object.h"
-#include "queue.h"
+#include "custom_object.h"
 #include "custom_string.h"
+#include "queue.h"
 #include "thread.h"
 
 /**
@@ -33,7 +33,7 @@
  * The whole purpose is to allow message information to go into a queue of
  * outgoing messages in the client and the server.
  */
-class OutgoingMessage_ : public Object {
+class OutgoingMessage_ : public CustomObject {
 public:
   size_t client_id;
   unsigned char *sending_buffer;

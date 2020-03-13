@@ -11,14 +11,14 @@
 
 #include <stdlib.h>
 
-#include "object.h"
+#include "custom_object.h"
 #include "custom_string.h"
 
 /**
  * A helper class object in order to store column and its name. This is a
  * pair value exclusively used by Schema.
  */
-class ColumnInfo_ : public Object {
+class ColumnInfo_ : public CustomObject {
 public:
   ColumnType_t type_;
 
@@ -39,7 +39,7 @@ public:
  * optionally columns and rows can be named by strings.
  * The valid types are represented by the chars 'S', 'B', 'I' and 'F'.
  */
-class Schema : public Object {
+class Schema : public CustomObject {
 public:
   // ASSERT: All items within this list is of type ColumnInfo_.
   ArrayOfArrays *column_list_;

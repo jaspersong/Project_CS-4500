@@ -3,7 +3,7 @@
 
 #include <stdio.h>
 
-#include "object.h"
+#include "custom_object.h"
 
 /**
  *  The CwC implementation of a Queue supports Objects and (since String is a
@@ -14,7 +14,7 @@
  * its object entries. Objects must be guaranteed by user code to be valid
  * during the lifetime of this queue, and must also be freed by user code.
  */
-class Queue : public Object {
+class Queue : public CustomObject {
 public:
   // Default initial capacity for queue
   static const unsigned long DEFAULT_CAPACITY = 16;
@@ -23,7 +23,7 @@ public:
                                 // store.
   unsigned long size_; // The current number of items in this queue
 
-  Object **buffer_; // The buffer to store the data.
+  CustomObject **buffer_; // The buffer to store the data.
   size_t curr_head_; // Index of the current head of the queue
   size_t curr_tail_; // Index of the current tail of the queue
 
@@ -38,11 +38,11 @@ public:
    * items ie, enqueue can be called this many times initially without Queue
    * having to perform a reallocation
    */
-  Queue(unsigned long initial_capacity) : Object() {
+  Queue(unsigned long initial_capacity) : CustomObject() {
     this->curr_capacity_ = initial_capacity;
     this->size_ = 0;
 
-    this->buffer_ = new Object*[this->curr_capacity_];
+    this->buffer_ = new CustomObject *[this->curr_capacity_];
     this->curr_head_ = 0;
     this->curr_tail_ = 0;
   }
@@ -79,7 +79,7 @@ public:
    * object later. o must also be valid for the lifetime of this queue.
    * @param o Object to add (non-null, or this method will abort)
    */
-  virtual void enqueue(Object *o) {
+  virtual void enqueue(CustomObject *o) {
     if (this->size_ + 1 > this->curr_capacity_) {
       // Not enough room to add the object. Resize quadratically to
       // compensate
@@ -101,13 +101,13 @@ public:
    * Removes and returns the object at the bottom of the queue.
    * @returns The object, or null if the queue is empty
    */
-  virtual Object *dequeue() {
+  virtual CustomObject *dequeue() {
     if (this->size_ == 0) {
       return nullptr;
     }
     else {
       // Get the object from the queue
-      Object *ret_value = this->buffer_[this->curr_head_];
+      CustomObject *ret_value = this->buffer_[this->curr_head_];
       this->size_ -= 1;
 
       // Now increment the head, taking into account the rollover
@@ -124,7 +124,7 @@ public:
    * Return the Object on the top (last in) of the Queue
    * @return Object on top of the Queue, or null if the queue is empty
    */
-  virtual Object *getTop() {
+  virtual CustomObject *getTop() {
     if (this->size_ == 0) {
       return nullptr;
     } else {
@@ -144,7 +144,7 @@ public:
    * Return Object on bottom (first in) of queue
    * @return Object on bottom of the Queue, or null if the queue is empty
    */
-  virtual Object *getBottom() {
+  virtual CustomObject *getBottom() {
     if (this->size_ == 0) {
       return nullptr;
     } else {
@@ -158,7 +158,7 @@ public:
    * @param object What to look for
    * @return true if exists, false if not
    */
-  virtual bool contains(Object *object) {
+  virtual bool contains(CustomObject *object) {
     // Iterate through the queue until we find the object
     size_t curr_index = this->curr_head_;
     while (curr_index != this->curr_tail_) {
@@ -197,7 +197,7 @@ public:
     return hash;
   }
 
-  virtual bool equals(Object *other) {
+  virtual bool equals(CustomObject *other) {
     if (other == nullptr) {
       return false;
     }
@@ -249,7 +249,7 @@ public:
     }
 
     // Create the new buffer
-    Object **new_buffer = new Object*[desired_capacity];
+    CustomObject **new_buffer = new CustomObject *[desired_capacity];
 
     // Copy the current values in the old buffer into the new buffer
     size_t old_curr = this->curr_head_;

@@ -45,7 +45,7 @@ enum class MsgKind {
  * optional payload. If the sender id or the target id can be interpreted as
  * -1, then the sender/target is the rendezvous server.
  */
-class Message : public Object {
+class Message : public CustomObject {
   // TODO: Create a serializer helper class to assist serialization
 public:
   static const size_t HEADER_SIZE = sizeof(MsgKind) + 4 * sizeof(size_t);
@@ -230,7 +230,7 @@ public:
    */
   virtual Directory *as_directory() { return nullptr; }
 
-  bool equals(Object *other) override {
+  bool equals(CustomObject *other) override {
     if (other == this)
       return true;
     Message *x = dynamic_cast<Message *>(other);
@@ -500,7 +500,7 @@ public:
 
   Status *as_status() override { return this; }
 
-  virtual bool equals(Object *other) override {
+  virtual bool equals(CustomObject *other) override {
     if (other == this)
       return true;
     if (!Message::equals(other))
@@ -645,7 +645,7 @@ public:
 
   Register *as_register() override { return this; }
 
-  virtual bool equals(Object *other) override {
+  virtual bool equals(CustomObject *other) override {
     if (other == this)
       return true;
     if (!Message::equals(other))
@@ -884,7 +884,7 @@ public:
 
   Directory *as_directory() override { return this; }
 
-  virtual bool equals(Object *other) override {
+  virtual bool equals(CustomObject *other) override {
     if (other == this)
       return true;
     if (!Message::equals(other))

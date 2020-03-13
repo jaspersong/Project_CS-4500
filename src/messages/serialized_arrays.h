@@ -19,7 +19,7 @@
  * A non-growing array of strings. All of the strings stored in the array
  * will remain external.
  */
-class StringArray : public Object {
+class StringArray : public CustomObject {
 public:
   String **vals_;
   size_t capacity_;
@@ -137,7 +137,7 @@ public:
     return ret_value;
   }
 
-  bool equals(Object *other) override {
+  bool equals(CustomObject *other) override {
     if (other == this)
       return true;
     StringArray *x = dynamic_cast<StringArray *>(other);
@@ -164,7 +164,7 @@ public:
   }
 };
 
-class DoubleArray : public Object {
+class DoubleArray : public CustomObject {
 public:
   size_t capacity_;
   double *vals_;
@@ -265,7 +265,7 @@ public:
     return ret_value;
   }
 
-  bool equals(Object *other) override {
+  bool equals(CustomObject *other) override {
     if (other == this)
       return true;
     DoubleArray *x = dynamic_cast<DoubleArray *>(other);

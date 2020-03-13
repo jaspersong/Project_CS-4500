@@ -1,13 +1,13 @@
 #pragma once
 
+#include "custom_object.h"
 #include "custom_string.h"
-#include "object.h"
 #include <stdlib.h>
 
 // general purpose array that stores Objects
-class Array : public Object {
+class Array : public CustomObject {
 public:
-  Object** container_; // Array of all the objects.
+  CustomObject ** container_; // Array of all the objects.
   size_t num_items_; // The number of continuous items in the array.
   size_t current_capacity_; // Current maximum amount of items array can hold
 
@@ -15,7 +15,7 @@ public:
 
   // constructor
   Array() {
-    this->container_ = new Object*[DEFAULT_CAPACITY];
+    this->container_ = new CustomObject *[DEFAULT_CAPACITY];
     this->num_items_ = 0;
     this->current_capacity_ = DEFAULT_CAPACITY;
   }
@@ -26,7 +26,7 @@ public:
   }
 
   // insert element at given index and push back rest of elements
-  void insert(Object *val, size_t index) {
+  void insert(CustomObject *val, size_t index) {
     // size_t is a unsigned integer, which means that a negative value is
     // impossible. The value will always be 0 or greater. Therefore, there is
     // no need to check for invalid indices.
@@ -35,7 +35,7 @@ public:
       // We now need more space within the array in order to accomodate the
       // new value.
       size_t new_capacity = index + 2; // Add 2 to account for pushing back
-      Object** new_container = new Object*[new_capacity];
+      CustomObject ** new_container = new CustomObject *[new_capacity];
 
       // Now move all the items from the old container into the new container
       for (size_t i = 0; i < this->num_items_; i++) {
@@ -69,7 +69,7 @@ public:
   }
 
   // insert element at end of array
-  void insertAtEnd(Object *val) {
+  void insertAtEnd(CustomObject *val) {
     this->insert(val, this->num_items_);
   }
 
@@ -83,8 +83,8 @@ public:
 
   // set element at index to given value
   //return old value at this index
-  Object *set(Object *val, size_t index) {
-    Object *ret_value = nullptr;
+  CustomObject *set(CustomObject *val, size_t index) {
+    CustomObject *ret_value = nullptr;
     if (index >= this->current_capacity_) {
       // This index is outside of the current capacity. We need to add more
       // space, so call insert. Because the index is past the capacity, there
@@ -119,13 +119,13 @@ public:
   }
 
   // remove object at given index and return that object
-  Object *remove(size_t index) {
+  CustomObject *remove(size_t index) {
     if (index >= this->num_items_) {
       fprintf(stderr, "Index is out of bounds.\n");
       exit(1);
     }
     else {
-      Object * ret_value = this->container_[index];
+      CustomObject * ret_value = this->container_[index];
 
       // Iterate up the array in order to pull the other objects up the array.
       for (size_t i = index; i < this->num_items_ - 1; i++) {
@@ -140,7 +140,7 @@ public:
   }
 
   // return element at given index and error if out-of-bounds
-  Object *getElementAt(size_t index) {
+  CustomObject *getElementAt(size_t index) {
     if (index >= this->num_items_) {
       fprintf(stderr, "Index is out of bounds.\n");
       exit(1);
@@ -156,7 +156,7 @@ public:
   }
 
   // first index of that element and -1 if doesn't exist
-  int indexOf(Object *val) {
+  int indexOf(CustomObject *val) {
     // Iterate through the array to find the element specified
     for (size_t i = 0; i < this->num_items_; i++) {
       if (val->equals(this->container_[i])) {
@@ -168,7 +168,7 @@ public:
   }
 
   // Override of the virtual function
-  bool equals(Object *const obj) {
+  bool equals(CustomObject *const obj) {
     if (obj == nullptr) {
       return false;
     }
@@ -212,7 +212,7 @@ public:
 };
 
 // type strict array that stores Strings
-class StringArray : public Object {
+class StringArray : public CustomObject {
 public:
   // Delegate array management to generalized obj array.
   Array * delegator_;
@@ -245,7 +245,7 @@ public:
   // set element at index to given value
   //return old value at this index
   String *set(String *val, size_t index) {
-    Object * ret_value = this->delegator_->set(val, index);
+    CustomObject * ret_value = this->delegator_->set(val, index);
 
     return dynamic_cast<String *>(ret_value);
   }
@@ -257,7 +257,7 @@ public:
 
   // remove object at given index and return that object
   String *remove(size_t index) {
-    Object * ret_value = this->delegator_->remove(index);
+    CustomObject * ret_value = this->delegator_->remove(index);
 
     // Cast the return of the remove function because all of the contents in
     // this array is guaranteed to be a string.
@@ -266,7 +266,7 @@ public:
 
   // return element at given index and error if out-of-bounds
   String *getElementAt(size_t index) {
-    Object * ret_value = this->delegator_->getElementAt(index);
+    CustomObject * ret_value = this->delegator_->getElementAt(index);
 
     // Cast the return of the getElementAt function because all of the
     // contents in this array is guaranteed to be a string
@@ -284,7 +284,7 @@ public:
   }
 
   // Override of the virtual function
-  bool equals(Object *const obj) override {
+  bool equals(CustomObject *const obj) override {
     if (obj == nullptr) {
       return false;
     }
@@ -301,7 +301,7 @@ public:
 
 // A boxed object representing a float value. This representation is used
 // solely for the FloatArray.
-class BoxedFloat_ : public Object {
+class BoxedFloat_ : public CustomObject {
 public:
   float val_;
 
@@ -316,7 +316,7 @@ public:
   }
 
   /* Returns whether two objects are equal, to be overriden by subclasses */
-  bool equals(Object* const obj) {
+  bool equals(CustomObject * const obj) {
     if (obj == nullptr) {
       return false;
     }
@@ -338,7 +338,7 @@ public:
 };
 
 // type strict array that stores floats
-class FloatArray : public Object {
+class FloatArray : public CustomObject {
 public:
   // Delegate array management to generalized obj array.
   Array * delegator_;
@@ -352,7 +352,7 @@ public:
   ~FloatArray() {
     // Iterate through the array and free all the boxed floats
     while (this->delegator_->getSize() > 0) {
-      Object * to_free = this->delegator_->remove(this->delegator_->getSize()
+      CustomObject * to_free = this->delegator_->remove(this->delegator_->getSize()
           - 1);
       delete to_free;
     }
@@ -383,7 +383,7 @@ public:
   //return old value at this index
   float set(float val, size_t index) {
     BoxedFloat_ * value = new BoxedFloat_(val);
-    Object * ret_value = this->delegator_->set(value, index);
+    CustomObject * ret_value = this->delegator_->set(value, index);
 
     // Get the old value from the set function
     BoxedFloat_ *ret_boxed_float = dynamic_cast<BoxedFloat_ *>(ret_value);
@@ -403,7 +403,7 @@ public:
     // Iterate through the delegator until it's empty, because we need to get
     // the objects in order to free them.
     while (this->delegator_->getSize() > 0) {
-      Object * to_free = this->delegator_->remove(this->delegator_->getSize()
+      CustomObject * to_free = this->delegator_->remove(this->delegator_->getSize()
                                                   - 1);
       delete to_free;
     }
@@ -411,7 +411,7 @@ public:
 
   // remove object at given index and return that object
   float remove(size_t index) {
-    Object * value = this->delegator_->remove(index);
+    CustomObject * value = this->delegator_->remove(index);
 
     // Cast the value in order to get the float value.
     BoxedFloat_ * float_value = dynamic_cast<BoxedFloat_ *>(value);
@@ -425,7 +425,7 @@ public:
 
   // return element at given index and error if out-of-bounds
   float getElementAt(size_t index) {
-    Object * value = this->delegator_->getElementAt(index);
+    CustomObject * value = this->delegator_->getElementAt(index);
 
     // Cast the value in order to get the float value
     BoxedFloat_ * float_value = dynamic_cast<BoxedFloat_ *>(value);
@@ -454,7 +454,7 @@ public:
   }
 
   // Override of the virtual function
-  bool equals(Object *const obj) {
+  bool equals(CustomObject *const obj) {
     if (obj == nullptr) {
       return false;
     }
@@ -471,7 +471,7 @@ public:
 
 // A boxed object representing an integer value. This class is solely used
 // for an IntArray.
-class BoxedInt_ : public Object {
+class BoxedInt_ : public CustomObject {
 public:
   int val_;
 
@@ -486,7 +486,7 @@ public:
   }
 
   /* Returns whether two objects are equal, to be overriden by subclasses */
-  bool equals(Object* const obj) {
+  bool equals(CustomObject * const obj) {
     if (obj == nullptr) {
       return false;
     }
@@ -508,7 +508,7 @@ public:
 };
 
 // type strict array that stores ints
-class IntArray : public Object {
+class IntArray : public CustomObject {
 public:
   // Delegate array management to generalized obj array.
   Array * delegator_;
@@ -522,7 +522,7 @@ public:
   ~IntArray() {
     // Iterate through the array and delete the boxed objects within the array
     while (this->delegator_->getSize() > 0) {
-      Object * to_free = this->delegator_->remove(this->delegator_->getSize()
+      CustomObject * to_free = this->delegator_->remove(this->delegator_->getSize()
                                                   - 1);
       delete to_free;
     }
@@ -551,7 +551,7 @@ public:
   //return old value at this index
   int set(int val, size_t index) {
     BoxedInt_ * value = new BoxedInt_(val);
-    Object * ret_value = this->delegator_->set(value, index);
+    CustomObject * ret_value = this->delegator_->set(value, index);
 
     BoxedInt_ * ret_boxed_int = dynamic_cast<BoxedInt_ *>(ret_value);
 
@@ -568,7 +568,7 @@ public:
   // clear Array
   void clear() {
     while (this->delegator_->getSize() > 0) {
-      Object * to_free = this->delegator_->remove(this->delegator_->getSize()
+      CustomObject * to_free = this->delegator_->remove(this->delegator_->getSize()
                                                   - 1);
       delete to_free;
     }
@@ -576,7 +576,7 @@ public:
 
   // remove object at given index and return that object
   int remove(size_t index) {
-    Object * value = this->delegator_->remove(index);
+    CustomObject * value = this->delegator_->remove(index);
 
     // Cast the value into a boxed integer in order to retrieve the integer.
     BoxedInt_ * int_value = dynamic_cast<BoxedInt_ *>(value);
@@ -588,7 +588,7 @@ public:
 
   // return element at given index and error if out-of-bounds
   int getElementAt(size_t index) {
-    Object * value = this->delegator_->getElementAt(index);
+    CustomObject * value = this->delegator_->getElementAt(index);
 
     // Cast the value into a boxed integer in order to retrieve the integer.
     BoxedInt_ * int_value = dynamic_cast<BoxedInt_ *>(value);
@@ -615,7 +615,7 @@ public:
   }
 
   // Override of the virtual function
-  bool equals(Object *const obj) {
+  bool equals(CustomObject *const obj) {
     if (obj == nullptr) {
       return false;
     }
@@ -632,7 +632,7 @@ public:
 
 // A boxed object representing a boolean value. This class is solely used
 // for an BoolArray.
-class BoxedBool_ : public Object {
+class BoxedBool_ : public CustomObject {
 public:
   bool val_;
 
@@ -647,7 +647,7 @@ public:
   }
 
   /* Returns whether two objects are equal, to be overriden by subclasses */
-  bool equals(Object* const obj) {
+  bool equals(CustomObject * const obj) {
     if (obj == nullptr) {
       return false;
     }
@@ -669,7 +669,7 @@ public:
 };
 
 // type strict array that stores booleans
-class BoolArray : public Object {
+class BoolArray : public CustomObject {
 public:
   // Delegate array management to generalized obj array.
   Array * delegator_;
@@ -683,7 +683,7 @@ public:
   ~BoolArray() {
     // Iterate through the array and delete the boxed objects within the array
     while (this->delegator_->getSize() > 0) {
-      Object * to_free = this->delegator_->remove(this->delegator_->getSize()
+      CustomObject * to_free = this->delegator_->remove(this->delegator_->getSize()
                                                   - 1);
       delete to_free;
     }
@@ -712,7 +712,7 @@ public:
   //return old value at this index
   bool set(bool val, size_t index) {
     BoxedBool_ * value = new BoxedBool_(val);
-    Object * ret_value = this->delegator_->set(value, index);
+    CustomObject * ret_value = this->delegator_->set(value, index);
 
     BoxedBool_ * ret_boxed_bool = dynamic_cast<BoxedBool_ *>(ret_value);
 
@@ -730,7 +730,7 @@ public:
   void clear() {
     // Iterate through the array and delete the boxed objects within the array
     while (this->delegator_->getSize() > 0) {
-      Object * to_free = this->delegator_->remove(this->delegator_->getSize()
+      CustomObject * to_free = this->delegator_->remove(this->delegator_->getSize()
                                                   - 1);
       delete to_free;
     }
@@ -738,7 +738,7 @@ public:
 
   // remove object at given index and return that object
   bool remove(size_t index) {
-    Object * value = this->delegator_->remove(index);
+    CustomObject * value = this->delegator_->remove(index);
 
     // Cast the removed item into a boxed boolean in order to retrieve the value
     BoxedBool_ * bool_value = dynamic_cast<BoxedBool_ *>(value);
@@ -750,7 +750,7 @@ public:
 
   // return element at given index and error if out-of-bounds
   bool getElementAt(size_t index) {
-    Object * value = this->delegator_->getElementAt(index);
+    CustomObject * value = this->delegator_->getElementAt(index);
 
     // Cast the removed item into a boxed boolean in order to retrieve the value
     BoxedBool_ * bool_value = dynamic_cast<BoxedBool_ *>(value);
@@ -777,7 +777,7 @@ public:
   }
 
   // Override of the virtual function
-  bool equals(Object *const obj) {
+  bool equals(CustomObject *const obj) {
     if (obj == nullptr) {
       return false;
     }

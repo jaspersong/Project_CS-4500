@@ -10,12 +10,12 @@
 #include <sstream>
 #include <thread>
 
+#include "custom_object.h"
 #include "custom_string.h"
-#include "object.h"
 
 /** A Thread wraps the thread operations in the standard library.
  *  author: vitekj@me.com */
-class Thread : public Object {
+class Thread : public CustomObject {
 public:
   std::thread thread_;
 
@@ -50,7 +50,7 @@ public:
 };
 
 /** A convenient lock and condition variable wrapper. */
-class Lock : public Object {
+class Lock : public CustomObject {
 public:
   std::mutex mtx_;
   std::condition_variable_any cv_;
@@ -77,7 +77,7 @@ public:
 };
 
 /** A simple thread-safe counter. */
-class Counter : public Object {
+class Counter : public CustomObject {
 public:
   std::atomic<size_t> next_;
 

@@ -11,7 +11,7 @@
 
 #include <stdlib.h>
 
-#include "object.h"
+#include "custom_object.h"
 #include "custom_string.h"
 
 #include "fielder.h"
@@ -169,7 +169,7 @@ public:
     return this->summation_;
   }
 
-  Object* clone() {
+  CustomObject * clone() {
     return new SummationGreaterThanRower(this->threshold_);
   }
 };

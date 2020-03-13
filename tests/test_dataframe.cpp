@@ -135,7 +135,7 @@ void test1() {
   s1->add_column('B');
 
   // Construct a dummy column
-  Column * bool_column = new BoolColumn(2, false, true);
+  DF_Column * bool_column = new DF_BoolColumn(2, false, true);
 
   // Construct the row
   Row * r0 = new Row(*s1);
@@ -293,10 +293,10 @@ void test3() {
   String str_avatar("Then the fire nation attacked.");
 
   // Create all the column types
-  Column * bool_column = new BoolColumn();
-  Column * int_column = new IntColumn();
-  Column * float_column = new FloatColumn();
-  Column *string_column = new StringColumn();
+  DF_Column * bool_column = new DF_BoolColumn();
+  DF_Column * int_column = new DF_IntColumn();
+  DF_Column * float_column = new DF_FloatColumn();
+  DF_Column *string_column = new DF_StringColumn();
 
   // Test the get column type
   ASSERT_EQ(bool_column->get_type(), 'B');
@@ -342,10 +342,10 @@ void test3() {
 
   // Now get the column under its actual type to start testing primitive
   // functions
-  BoolColumn * conv_bool_column = bool_column->as_bool();
-  IntColumn * conv_int_column = int_column->as_int();
-  FloatColumn * conv_float_column = float_column->as_float();
-  StringColumn * conv_string_colunmn = string_column->as_string();
+  DF_BoolColumn * conv_bool_column = bool_column->as_bool();
+  DF_IntColumn * conv_int_column = int_column->as_int();
+  DF_FloatColumn * conv_float_column = float_column->as_float();
+  DF_StringColumn * conv_string_colunmn = string_column->as_string();
 
   // Test the boolean column
   ASSERT_T(conv_bool_column->get(0));
@@ -390,10 +390,10 @@ void test3() {
   ASSERT_EQ(conv_string_colunmn->size(), 6);
 
   // Test the constructors
-  BoolColumn * cons_bool_column = new BoolColumn(2, false, true);
-  IntColumn * cons_int_column = new IntColumn(3, 0, 1, 2);
-  FloatColumn * cons_float_column = new FloatColumn(4, 0.1f, 0.2f, 0.3f, 0.4f);
-  StringColumn * cons_string_column = new StringColumn(3, &str_hello,
+  DF_BoolColumn * cons_bool_column = new DF_BoolColumn(2, false, true);
+  DF_IntColumn * cons_int_column = new DF_IntColumn(3, 0, 1, 2);
+  DF_FloatColumn * cons_float_column = new DF_FloatColumn(4, 0.1f, 0.2f, 0.3f, 0.4f);
+  DF_StringColumn * cons_string_column = new DF_StringColumn(3, &str_hello,
       &str_world, &str_avatar);
   ASSERT_T(cons_bool_column->get(1));
   ASSERT_F((cons_bool_column->get(0)));
@@ -503,7 +503,7 @@ void test6() {
   }
 
   // Create a column with a few numbers as well
-  IntColumn c;
+  DF_IntColumn c;
   for (size_t i = 0; i < 100; i++) {
     c.push_back(static_cast<int>(i + 3));
 

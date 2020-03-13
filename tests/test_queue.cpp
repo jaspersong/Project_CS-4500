@@ -1,8 +1,8 @@
 // Lang::CwC
 
-#include "object.h"
-#include "queue.h"
+#include "custom_object.h"
 #include "custom_string.h"
+#include "queue.h"
 
 // clang-format off
 void FAIL() { exit(1); }
@@ -23,7 +23,7 @@ void test1() {
 
   q->enqueue(s);
   q->enqueue(t);
-  Object *s1 = q->getBottom();
+  CustomObject *s1 = q->getBottom();
 
   t_true(s->equals(s1));
 
@@ -34,12 +34,12 @@ void test2() {
   // Test getTop and getBottom and getSize
   Queue *q = new Queue(10);
 
-  Object *s = new Object();
-  Object *t = new Object();
+  CustomObject *s = new CustomObject();
+  CustomObject *t = new CustomObject();
 
   q->enqueue(s);
   q->enqueue(t);
-  Object *s1 = q->getBottom();
+  CustomObject *s1 = q->getBottom();
 
   t_true(s->equals(s1));
 

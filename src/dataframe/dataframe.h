@@ -11,16 +11,16 @@
 
 #include <stdlib.h>
 
-#include "object.h"
+#include "custom_object.h"
 #include "custom_string.h"
 #include "thread.h"
 
-#include "column.h"
+#include "dataframe_column.h"
 #include "fielder.h"
+#include "print_rower.h"
 #include "row.h"
 #include "rower.h"
 #include "schema.h"
-#include "print_rower.h"
 
 // Forward declaration
 class DataFrame;
@@ -62,7 +62,7 @@ public:
  * holds values of the same type (I, S, B, F). A dataframe has a schema that
  * describes it.
  */
-class DataFrame : public Object {
+class DataFrame : public CustomObject {
 public:
   Schema *schema_;
 
@@ -87,20 +87,20 @@ public:
     // add blank internal columns
     for (size_t i = 0; i < schema.width(); i++) {
       // Create blank columns and add them to the list accordingly
-      Column *new_column = nullptr;
+      DF_Column *new_column = nullptr;
       switch (schema.col_type(i)) {
       case ColumnType_Bool:
-        new_column = new BoolColumn();
+        new_column = new DF_BoolColumn();
         break;
       case ColumnType_Integer:
-        new_column = new IntColumn();
+        new_column = new DF_IntColumn();
         break;
       case ColumnType_Float:
-        new_column = new FloatColumn();
+        new_column = new DF_FloatColumn();
         break;
       case ColumnType_String:
       default:
-        new_column = new StringColumn();
+        new_column = new DF_StringColumn();
         break;
       }
       DataItem_ item;
@@ -118,7 +118,7 @@ public:
     // Iterate through the column and delete the internally allocated columns
     for (size_t i = 0; i < this->col_list_->size(); i++) {
       DataItem_ item = this->col_list_->get_item(i);
-      Column *column = dynamic_cast<Column *>(item.o);
+      DF_Column *column = dynamic_cast<DF_Column *>(item.o);
       delete column;
     }
   }
@@ -130,7 +130,7 @@ public:
   /** Adds a column this dataframe, updates the schema, the new column
    * is external, and appears as the last column of the dataframe, the
    * name is optional and external. A nullptr colum is undefined. */
-  void add_column(Column *col) {
+  void add_column(DF_Column *col) {
     // Verify that the column is valid
     if (col == nullptr) {
       printf("Invalid column provided to the dataframe.\n");
@@ -140,20 +140,20 @@ public:
       this->schema_->add_column(col->get_type());
 
       // Copy the new column and add it to the column list
-      Column *new_column = nullptr;
+      DF_Column *new_column = nullptr;
       switch (col->get_type()) {
       case ColumnType_Bool:
-        new_column = new BoolColumn(*col->as_bool());
+        new_column = new DF_BoolColumn(*col->as_bool());
         break;
       case ColumnType_Integer:
-        new_column = new IntColumn(*col->as_int());
+        new_column = new DF_IntColumn(*col->as_int());
         break;
       case ColumnType_Float:
-        new_column = new FloatColumn(*col->as_float());
+        new_column = new DF_FloatColumn(*col->as_float());
         break;
       case ColumnType_String:
       default:
-        new_column = new StringColumn(*col->as_string());
+        new_column = new DF_StringColumn(*col->as_string());
         break;
       }
       DataItem_ item;
@@ -196,10 +196,10 @@ public:
     } else {
       // Get the column
       DataItem_ item = this->col_list_->get_item(col);
-      Column *column = dynamic_cast<Column *>(item.o);
+      DF_Column *column = dynamic_cast<DF_Column *>(item.o);
 
       // Now get the item in that row for that column
-      IntColumn *int_column = column->as_int();
+      DF_IntColumn *int_column = column->as_int();
       return int_column->get(row);
     }
   }
@@ -211,10 +211,10 @@ public:
     } else {
       // Get the column
       DataItem_ item = this->col_list_->get_item(col);
-      Column *column = dynamic_cast<Column *>(item.o);
+      DF_Column *column = dynamic_cast<DF_Column *>(item.o);
 
       // Now get the item in that row for that column
-      BoolColumn *bool_column = dynamic_cast<BoolColumn *>(column);
+      DF_BoolColumn *bool_column = dynamic_cast<DF_BoolColumn *>(column);
       return bool_column->get(row);
     }
   }
@@ -226,10 +226,10 @@ public:
     } else {
       // Get the column
       DataItem_ item = this->col_list_->get_item(col);
-      Column *column = dynamic_cast<Column *>(item.o);
+      DF_Column *column = dynamic_cast<DF_Column *>(item.o);
 
       // Now get the item in that row for that column
-      FloatColumn *float_column = column->as_float();
+      DF_FloatColumn *float_column = column->as_float();
       return float_column->get(row);
     }
   }
@@ -241,10 +241,10 @@ public:
     } else {
       // Get the column
       DataItem_ item = this->col_list_->get_item(col);
-      Column *column = dynamic_cast<Column *>(item.o);
+      DF_Column *column = dynamic_cast<DF_Column *>(item.o);
 
       // Now get the item in that row for that column
-      StringColumn *string_column = column->as_string();
+      DF_StringColumn *string_column = column->as_string();
       return string_column->get(row);
     }
   }
@@ -259,10 +259,10 @@ public:
     } else {
       // Get the column
       DataItem_ item = this->col_list_->get_item(col);
-      Column *column = dynamic_cast<Column *>(item.o);
+      DF_Column *column = dynamic_cast<DF_Column *>(item.o);
 
       // Now get the item in that row for that column
-      IntColumn *int_column = column->as_int();
+      DF_IntColumn *int_column = column->as_int();
       int_column->set(row, val);
     }
   }
@@ -274,10 +274,10 @@ public:
     } else {
       // Get the column
       DataItem_ item = this->col_list_->get_item(col);
-      Column *column = dynamic_cast<Column *>(item.o);
+      DF_Column *column = dynamic_cast<DF_Column *>(item.o);
 
       // Now get the item in that row for that column
-      BoolColumn *bool_column = column->as_bool();
+      DF_BoolColumn *bool_column = column->as_bool();
       bool_column->set(row, val);
     }
   }
@@ -289,10 +289,10 @@ public:
     } else {
       // Get the column
       DataItem_ item = this->col_list_->get_item(col);
-      Column *column = dynamic_cast<Column *>(item.o);
+      DF_Column *column = dynamic_cast<DF_Column *>(item.o);
 
       // Now get the item in that row for that column
-      FloatColumn *float_column = column->as_float();
+      DF_FloatColumn *float_column = column->as_float();
       float_column->set(row, val);
     }
   }
@@ -304,10 +304,10 @@ public:
     } else {
       // Get the column
       DataItem_ item = this->col_list_->get_item(col);
-      Column *column = dynamic_cast<Column *>(item.o);
+      DF_Column *column = dynamic_cast<DF_Column *>(item.o);
 
       // Now get the item in that row for that column
-      StringColumn *stringColumn = column->as_string();
+      DF_StringColumn *stringColumn = column->as_string();
       stringColumn->set(row, val);
     }
   }
@@ -339,11 +339,11 @@ public:
     for (size_t i = 0; i < row.width(); i++) {
       // Get the column at the specified index
       DataItem_ item = this->col_list_->get_item(i);
-      Column *column = dynamic_cast<Column *>(item.o);
+      DF_Column *column = dynamic_cast<DF_Column *>(item.o);
 
       switch (column->get_type()) {
       case ColumnType_Bool: {
-        BoolColumn *bool_column = column->as_bool();
+        DF_BoolColumn *bool_column = column->as_bool();
 
         // Add 0 until we reach the row index so we may set the value
         while (idx >= bool_column->size()) {
@@ -355,7 +355,7 @@ public:
         break;
       }
       case ColumnType_Integer: {
-        IntColumn *int_column = column->as_int();
+        DF_IntColumn *int_column = column->as_int();
 
         // Add 0 until we reach the row index so we may set the value
         while (idx >= int_column->size()) {
@@ -367,7 +367,7 @@ public:
         break;
       }
       case ColumnType_Float: {
-        FloatColumn *float_column = column->as_float();
+        DF_FloatColumn *float_column = column->as_float();
 
         // Add 0 until we reach the row index so we may set the value
         while (idx >= float_column->size()) {
@@ -380,7 +380,7 @@ public:
       }
       case ColumnType_String:
       default: {
-        StringColumn *string_column = column->as_string();
+        DF_StringColumn *string_column = column->as_string();
 
         // Add 0 until we reach the row index so we may set the value
         while (idx >= string_column->size()) {
@@ -432,28 +432,28 @@ public:
     for (size_t c = 0; c < this->ncols(); c++) {
       // Get the column at the specified index
       DataItem_ item = this->col_list_->get_item(c);
-      Column *column = dynamic_cast<Column *>(item.o);
+      DF_Column *column = dynamic_cast<DF_Column *>(item.o);
 
       // Handle adding to the rows based off of the type of the column
       switch (column->get_type()) {
       case ColumnType_Bool: {
-        BoolColumn *bool_column = column->as_bool();
+        DF_BoolColumn *bool_column = column->as_bool();
         new_row->set(c, bool_column->get(row));
         break;
       }
       case ColumnType_Integer: {
-        IntColumn *int_column = column->as_int();
+        DF_IntColumn *int_column = column->as_int();
         new_row->set(c, int_column->get(row));
         break;
       }
       case ColumnType_Float: {
-        FloatColumn *float_column = column->as_float();
+        DF_FloatColumn *float_column = column->as_float();
         new_row->set(c, float_column->get(row));
         break;
       }
       case ColumnType_String:
       default: {
-        StringColumn *string_column = column->as_string();
+        DF_StringColumn *string_column = column->as_string();
         new_row->set(c, string_column->get(row));
       }
       }
