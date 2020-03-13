@@ -245,7 +245,82 @@ The buffer will also be acquired by the abstract Client class, and be put on a
 queue of messages to send.
 - `size_t get_max_receive_size()`: Gets the maximum size of incoming messages.
 
-#### Serialized Messages
+#### Serialization
+
+All objects have the following functions to assist with their serialization:
+```C++
+// Provides the number of bytes required in order to serialize the object.
+virtual size_t serialization_required_bytes();
+
+// Serializes the object within the buffer provided by the Serializer.
+virtual void serialize(Serializer &serializer);
+```
+All objects that have implemented the above two functions should have a static
+function to assist with deserialization with a return type of that object type,
+and an argument to a Deserializer passed in by reference.
+
+Helper classes Serializer and Deserializers are provided in order to assist
+with serialization and deserialization respectively.
+
+##### Serializer
+
+The Serializer contains a variety of functions to serialize primitive data
+types, such as `bool`, `int`, and `double`, that will grow a buffer
+quadratically in order to accomodate newly added serialized data. Then when
+the desired data has been serialized within the Serializer, a function is 
+provided to gain ownership of the buffer containing the serialized data.
+
+The following static functions gets the number of bytes required in order
+to serialize the passed in primitive data type value:
+- `static size_t get_required_bytes(bool value)`
+- `static size_t get_required_bytes(size_t value)`
+- `static size_t get_required_bytes(int value)`
+- `static size_t get_required_bytes(double value)`
+
+The following functions serializes the passed in primitive data type value
+into the resizeable Seralizer buffer:
+- `bool set_bool(bool value)`
+- `bool set_size_t(size_t value)`
+- `bool set_int(int value)`
+- `bool set_double(double value)`
+- `bool set_generic(void *value, size_t num_bytes)`
+
+Once the serialization has been completed, the function 
+`unsigned char *get_serialized_buffer()` can retrieve the completed buffer
+from the Serializer. Note: Once that function has been called, the Serializer
+will not allow new data to be serialized, as the Serializer no longer owns
+the buffer.
+
+The function `size_t get_size_serialized_data()` can be used to get the
+number of bytes of concurrent serialized data has been written into the 
+Serializer buffer.
+
+##### Deserializer
+
+The Deserializer is the reverse of the Serializer class, where it takes 
+in a buffer, which it does not own and will not manipulate, and provide
+helper functions that facilitate interpreting the serialized data into its
+primitive data types. The Deserializer will read the data byte-by-byte as
+needed.
+
+The following functions can be used to determine whether or not there is
+data that can be read from the buffer:
+- `size_t get_num_bytes_left()`
+- `bool has_byte()`
+- `bool has_bool()`
+- `bool has_size_t()`
+- `bool has_int()`
+- `bool has_double()`
+
+The following functions are used to read data from the buffer as a certain 
+data type:
+- `unsigned char get_byte()`
+- `bool get_bool()`
+- `size_t get_size_t()`
+- `int get_int()`
+- `double get_double()`
+
+##### Serialized Messages
 
 All messages are serialized in a binary format compacted in a C-like struct
 format and split into two parts: a header and a payload. All messages will
@@ -262,7 +337,7 @@ size_t payload_length
 MsgKind is an enumeration value that determines what sort of message the payload
 contains, thus determining how to deserialize the serialized payload.
 
-##### Ack
+###### Ack
 
 This message kind can be sent between nodes, from server to node, or node to
 server. It is sent as a response to another message in order to notify the
@@ -275,7 +350,7 @@ that the node had received the Directory message.
 The Ack message contains only the header, and does not have a payload to 
 deserialize.
 
-##### Nack
+###### Nack
 
 This message kind can be sent between nodes, from server to node, or node to
 server. It is sent to notify a registrar or a node that the sender had been
@@ -293,20 +368,16 @@ registrar to notify the registrar that it did not receive the message.
 The Nack message contains only the header, and does not have a payload to 
 deserialize.
 
-##### Put
+###### Put
 
-// TODO: Define a use case for this message type.
-
-##### Reply
-
-This message is sent between nodes in response to either a Get or a WaitAndGet
-message. It contains the dataframe data associated with the Key specified in
-a Get or a WaitAndGet.
+This message is sent between nodes in order to update a data chunk in its
+home node. It contains the updated dataframe data associated with the Key
+specified within its payload.
 
 The values of the payload are formatted in the following order:
 ```C++
 Key key
-Dataframe dataframe
+Dataframe updated_dataframe
 ```
 
 The Key is serialized in the following C-struct binary format:
@@ -331,7 +402,22 @@ where `DataType` is an enumeration value that determines the data type the data
 array following directly after it. The `data_type` and `data` repeat in 
 accordance to how many columns are there.
 
-##### Get
+###### Reply
+
+This message is sent between nodes in response to either a Get or a WaitAndGet
+message. It contains the dataframe data associated with the Key specified in
+a Get or a WaitAndGet.
+
+The values of the payload are formatted in the following order:
+```C++
+Key key
+Dataframe dataframe
+```
+
+In order to prevent redundancy and stale data, the recipient node is not
+intended to keep the data within a cache after it has finished using it.
+
+###### Get
 
 This message can be sent between nodes. It is a query message asking the
 receiving node for the dataframe value of the key specified in the payload.
@@ -341,7 +427,7 @@ The values of the payload are formatted in the following order:
 Key key
 ```
 
-##### WaitAndGet
+###### WaitAndGet
 
 This message can be sent between nodes. It is a query message asking the
 receiving node for the dataframe value of the key specified in the payload.
@@ -356,7 +442,7 @@ Key key
 struct timeval timeout
 ```
 
-##### Status
+###### Status
 
 This message can be sent directly between nodes, from registrar to node, or
 node to registrar. It is a simple ASCII message in order to notify other parts
@@ -373,7 +459,7 @@ size_t length
 char string[length + 1]
 ```
 
-##### Kill
+###### Kill
 
 This message can only be sent from a registrar to a node. It is sent when the 
 registrar wants to shut down the eau2 network, and is shutting down the clients
@@ -382,7 +468,7 @@ one-by-one.
 The Kill message contains only the header, and does not have a payload to 
 deserialize.
 
-##### Register
+###### Register
 
 This message can only be sent from a node to a registrar when a node is first
 connecting to the registrar. It contains the address that other nodes can
@@ -394,7 +480,7 @@ struct sockaddr_in client_address
 size_t port_num
 ```
 
-##### Directory
+###### Directory
 
 This message can only be sent from a registrar to a node. It is a broadcast
 message sent when a new node has registered itself to the registrar, and it
@@ -409,9 +495,163 @@ String ip_addresses[max_num_clients]
 
 ## Use cases
 
-TODO
-examples of uses of the system. This could be in the form of code
- like the one above. It is okay to leave this section mostly empty if there is nothing to say. Maybe just an example of creating a dataframe would be enough.
+### Dataframe
+
+The following code demonstrates the basics of creating a Dataframe containing
+two columns of 1,000,000 rows of integers:
+```C++
+Schema s("II");
+
+DataFrame df(s);
+Row  r(df.get_schema());
+for(size_t i = 0; i <  1000 * 1000; i++) {
+  r.set(0,(int)i);
+  r.set(1,(int)i+1);
+  df.add_row(r);
+}
+```
+
+### Serialization
+
+#### Serializer
+
+The Serializer can be used to serialize an object. For example, the following
+code is used in order to serialize the header of a Message:
+```C++
+void serialize(Serializer &serializer) override {
+  serializer.set_generic(&this->kind_, sizeof(MsgKind));
+  serializer.set_size_t(this->sender_);
+  serializer.set_size_t(this->target_);
+  serializer.set_size_t(this->id_);
+  serializer.set_size_t(this->size_);
+}
+```
+
+If the provided serializer has serialized data already, the function will append
+the newly serialized data after.
+
+#### Deserializer
+
+On the reverse side, the Deserializer can be used to deserialize an object. For
+example, the following code deserializes the header of the Message in the
+Serializer example:
+```C++
+Deserializer deserializer(buffer, num_bytes);
+
+// Build the MsgKind by pulling it byte by byte
+MsgKind type;
+unsigned char *type_bytes = reinterpret_cast<unsigned char*>(&type);
+for (size_t i = 0; i < sizeof(MsgKind); i++) {
+  type_bytes[i] = deserializer.get_byte();
+}
+
+// Now get the rest of the header
+size_t sender = deserializer.get_size_t();
+size_t target = deserializer.get_size_t();
+size_t id = deserializer.get_size_t();
+size_t len = deserializer.get_size_t();
+```
+
+### Network
+
+Because the Server and Client classes are abstract, they can be tuned to
+specific tasks by overriding specific callback functions. A simple example of
+this is an EchoServer and EchoClient, where the Client sends ASCII string 
+messages to the server, and the server sends the message back verbatim to the 
+client.
+
+The following is the code for what amounts to be the EchoServer:
+```C++
+class EchoServer : public Server {
+public:
+  EchoServer(String *ip_addr, int port_num) : Server(ip_addr, port_num, 3,
+      1024) {}
+
+  void handle_incoming_message(size_t client_id,
+                               unsigned char *buffer,
+                               size_t num_bytes) override {
+    // Print out the message to stdout
+    printf("Received message from client_id %zu: %s\n", client_id, buffer);
+
+    // Now send a message in response
+    const char * reply = "Received client message: ";
+    size_t reply_size = strlen(reply) + num_bytes;
+    char * msg = new char[reply_size];
+    strcpy(msg, reply);
+    strcat(msg, reinterpret_cast<const char *>(buffer));
+    this->send_message(client_id, reinterpret_cast<unsigned char *>(msg),
+                       reply_size);
+    printf("Sent response \"%s\".\n", msg);
+  }
+
+  void handle_incoming_connection(size_t new_client_id, String *
+    addr, int port_num) override {
+    printf("New incoming connection from client_id %zu, address %s, port "
+           "number %d\n",
+        new_client_id, addr->c_str(), port_num);
+  }
+
+  void handle_closing_connection(size_t client_id) override {
+    printf("Closed connection from client_id %zu\n", client_id);
+  }
+};
+
+int main(int argc, char **argv) {
+  // Creates a server that sends all strings
+  EchoServer * server = new EchoServer(new String("127.0.0.1"), 1234);
+
+  // Run the server on localhost with port 1234
+  server->start();
+
+  sleep(30);
+  server->close_server();
+  delete server;
+
+  return 0;
+}
+``` 
+
+The following is the code for what amounts to be the EchoClient:
+```C++
+class EchoClient : public Client {
+public:
+  EchoClient(String *server_ip_addr, int server_port_num) :
+    Client(server_ip_addr, server_port_num) {}
+
+  void handle_incoming_message(unsigned char *buffer,
+                               size_t num_bytes) override {
+    // Print out the message to stdout
+    printf("Received message from server: %s\n", buffer);
+  }
+
+  void handle_closing_connection() override {
+    printf("Server has closed the connection.\n");
+    printf("Closing the client as well.\n");
+  }
+};
+
+int main(int argc, char **argv) {
+  // Creates a server that sends all strings provided as arguments to the
+  // client that connects to it.
+  EchoClient * client = new EchoClient(new String("127.0.0.1"), 1234);
+
+  // Queue up all the messages
+  for (int i = 0; i < argc; i++) {
+    size_t message_size = strlen(argv[i]);
+    unsigned char * message = new unsigned char[message_size];
+    strcpy(reinterpret_cast<char *>(message), argv[i]);
+    client->send_message(message, message_size + 1);
+  }
+
+  client->start();
+
+  sleep(10);
+  client->close_client();
+  delete client;
+
+  return 0;
+}
+```
 
 ## Open questions
 
@@ -441,4 +681,5 @@ structure in regard to a growing buffer of large amounts of data
     - Kill
 - Make polling timeouts configurable within the server and clients
 - Create unit tests for the sorer
+- Create unit tests for the dataframe's array of arrays
  
