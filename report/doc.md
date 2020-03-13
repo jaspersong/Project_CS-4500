@@ -690,6 +690,7 @@ serializing messages and data
 unnecessary functionality, such as row and column names.
 - Paid technical debt: Improved the performance of the dataframe's data
 structure in regard to a growing buffer of large amounts of data
+- Integrated 4500ne's sorer into the project
 
 ### Technical Debt and TODOs
 
@@ -704,5 +705,4 @@ structure in regard to a growing buffer of large amounts of data
 - Make polling timeouts configurable within the server and clients
 - Create unit tests for the dataframe's array of arrays
 - Get the network code to run within Docker
-- Integrate 4500ne's sorer into the project.
  

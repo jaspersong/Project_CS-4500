@@ -11,6 +11,7 @@ test_all: build_all
 	-cd ./build; ./test_suite_dataframe
 	-cd ./build; ./test_suite_messages
 	-cd ./build; ./test_suite_network
+	-cd ./build; ./test_suite_sorer
 
 demo_echo: build_all
 	cd ./build; ./demo_echo_server & ./demo_echo_client
