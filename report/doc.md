@@ -50,7 +50,7 @@ A helper class for Column, Row and Schema in order to have a resizeable
 data structure with sort of O(1) algorithmic getting methods. This class
 primarily stores items in DataItem_, which is a union of various other
 primitives. The data type of the value stored within a DataItem must be
-determined by the class that uses the LinkedListArray_.
+determined by the class that uses the ArrayOfArrays.
 NOTE: This linked list of arrays does NOT support removing items. Only
 replacing them with different values, or adding new ones. This is because
 Row, Schema and Column APIs do not have a need for removing items.
@@ -426,6 +426,8 @@ examples of uses of the system. This could be in the form of code
 serializing messages and data
 - Paid technical debt: Simplified the dataframe implementation, stripping out
 unnecessary functionality, such as row and column names.
+- Paid technical debt: Improved the performance of the dataframe's data
+structure in regard to a growing buffer of large amounts of data
 
 ### Technical Debt and TODOs
 
@@ -438,6 +440,5 @@ unnecessary functionality, such as row and column names.
     - WaitAndGet
     - Kill
 - Make polling timeouts configurable within the server and clients
-- Optimize dataframe get methods, and write unit tests for the dataframe helper
 - Create unit tests for the sorer
  

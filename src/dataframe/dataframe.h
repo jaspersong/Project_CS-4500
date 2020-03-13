@@ -69,7 +69,7 @@ public:
   // ASSERT: This column list will always have the same data type as the
   // schema at any given 0-indexed column index within the bounds of the
   // schema width.
-  LinkedListArray_ *col_list_;
+  ArrayOfArrays *col_list_;
 
   // Cache of the number of rows
   size_t num_rows;
@@ -79,8 +79,8 @@ public:
 
   /** Create a data frame from a schema and columns. All columns are created
    * empty. */
-  DataFrame(Schema &schema) {
-    this->col_list_ = new LinkedListArray_();
+  explicit DataFrame(Schema &schema) {
+    this->col_list_ = new ArrayOfArrays();
     this->num_rows = 0;
     this->schema_ = new Schema(schema);
 
@@ -116,12 +116,8 @@ public:
     delete this->schema_;
 
     // Iterate through the column and delete the internally allocated columns
-    LinkedListArrayIter_ *iter = nullptr;
-    for (iter = new LinkedListArrayIter_(*this->col_list_); iter->has_next();
-         /* Incrementer is built into the for loop */) {
-
-      // Cast the item to a column in order to free the data
-      DataItem_ item = iter->get_next();
+    for (size_t i = 0; i < this->col_list_->size(); i++) {
+      DataItem_ item = this->col_list_->get_item(i);
       Column *column = dynamic_cast<Column *>(item.o);
       delete column;
     }

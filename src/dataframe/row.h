@@ -28,13 +28,13 @@
 class Row : public Object {
 public:
   Schema *schema_;
-  LinkedListArray_ *value_list;
+  ArrayOfArrays *value_list;
   size_t row_index;
 
   /** Build a row following a schema. */
   explicit Row(Schema &scm) {
     this->schema_ = &scm;
-    this->value_list = new LinkedListArray_();
+    this->value_list = new ArrayOfArrays();
 
     // Default the row index to 0 for now.
     this->row_index = 0;

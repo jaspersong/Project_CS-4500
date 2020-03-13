@@ -42,19 +42,15 @@ public:
 class Schema : public Object {
 public:
   // ASSERT: All items within this list is of type ColumnInfo_.
-  LinkedListArray_ *column_list_;
+  ArrayOfArrays *column_list_;
 
   /** Copying constructor */
   Schema(Schema &from) : Schema() {
     // Copy the information about the columns into this schema's column list
-    LinkedListArrayIter_ *iter = nullptr;
-    for (iter = new LinkedListArrayIter_(*from.column_list_);
-      iter->has_next();
-      /* Incrementer is built into the for loop */) {
-
+    for (size_t i = 0; i < from.column_list_->size(); i++) {
       // Cast the next item in the column list to a ColumnWithName to get the
       // data.
-      DataItem_ item = iter->get_next();
+      DataItem_ item = from.column_list_->get_item(i);
       ColumnInfo_ *col_type_name = dynamic_cast<ColumnInfo_ *>(item.o);
 
       // Now clone the ColumnNameType_ to be referenced to this schema
@@ -64,7 +60,7 @@ public:
 
   /** Create an empty schema **/
   Schema() {
-    this->column_list_ = new LinkedListArray_();
+    this->column_list_ = new ArrayOfArrays();
   }
 
   /** Create a schema from a string of types. A string that contains
@@ -89,10 +85,8 @@ public:
    */
   ~Schema() override {
     // Iterate through the column list in order to destroy the columns data
-    LinkedListArrayIter_ *iter = nullptr;
-    for (iter = new LinkedListArrayIter_(*this->column_list_); iter->has_next();
-         /* Incrementer is built into the for loop */) {
-      DataItem_ item = iter->get_next();
+    for (size_t i = 0; i < this->column_list_->size(); i++) {
+      DataItem_ item = this->column_list_->get_item(i);
 
       // Cast the item to a ColumnWithName in order to destroy
       ColumnInfo_ *col_type_name = dynamic_cast<ColumnInfo_ *>(item.o);

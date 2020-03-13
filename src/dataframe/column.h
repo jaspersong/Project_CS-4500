@@ -48,7 +48,7 @@ class Column : public Object {
 public:
   // A protected variable containing all of the data within the column. It
   // can be used by its derivative classes.
-  LinkedListArray_ *list_;
+  ArrayOfArrays *list_;
 
   // The data type of the column. All inherited columns should set this value
   // to the appropriate column data type upon construction.
@@ -56,7 +56,7 @@ public:
 
   // Constructs a column
   explicit Column(ColumnType_t column_type) {
-    this->list_ = new LinkedListArray_();
+    this->list_ = new ArrayOfArrays();
     this->data_type_ = column_type;
   }
 
@@ -152,7 +152,7 @@ public:
   // this new instance of column.
   BoolColumn(BoolColumn &column) : Column(ColumnType_Bool) {
     this->data_type_ = column.data_type_;
-    this->list_ = new LinkedListArray_(*column.list_);
+    this->list_ = new ArrayOfArrays(*column.list_);
   }
 
   bool get(size_t idx) {
@@ -199,7 +199,7 @@ public:
   // this new instance of column.
   IntColumn(IntColumn &column) : Column(ColumnType_Integer) {
       this->data_type_ = column.data_type_;
-      this->list_ = new LinkedListArray_(*column.list_);
+      this->list_ = new ArrayOfArrays(*column.list_);
   }
 
   int get(size_t idx) {
@@ -247,7 +247,7 @@ public:
   // this new instance of column.
   FloatColumn(FloatColumn &column) : Column(ColumnType_Float) {
       this->data_type_ = column.data_type_;
-      this->list_ = new LinkedListArray_(*column.list_);
+      this->list_ = new ArrayOfArrays(*column.list_);
   }
 
   float get(size_t idx) {
@@ -295,7 +295,7 @@ public:
   // this new instance of column.
   StringColumn(StringColumn &column) : Column(ColumnType_String) {
       this->data_type_ = column.data_type_;
-      this->list_ = new LinkedListArray_(*column.list_);
+      this->list_ = new ArrayOfArrays(*column.list_);
   }
 
   StringColumn *as_string() override { return this; }
