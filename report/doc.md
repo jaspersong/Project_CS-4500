@@ -598,6 +598,10 @@ unnecessary functionality, such as row and column names.
 - Paid technical debt: Improved the performance of the dataframe's data
 structure in regard to a growing buffer of large amounts of data
 - Integrated 4500ne's sorer into the project
+- Created hooks to receive put, get, reply, and wait and get message types
+- Fixed memory leaks found within the test suites
+- Implemented fromArray API functions within the DataFrame class
+- Created a trivial application that run standalone.
 
 ### Technical Debt and TODOs
 
@@ -608,9 +612,4 @@ structure in regard to a growing buffer of large amounts of data
 the direct communication between nodes
 - Message queue within the TCP message manager (AKA, using Ack and Nack). 
 Currently it's running UDP-style. 
-- Fix memory leaks in following test suites:
-    - dataframe
-    - serializer/messages
-    - network
-    - sorer integration
  

@@ -42,7 +42,7 @@ void test_size_t() {
   helper.t_true(deserializer.get_num_bytes_left() == 0);
   helper.t_false(deserializer.has_size_t());
 
-  delete buffer;
+  delete[] buffer;
 
   helper.OK("Test test_size_t passed");
 }
@@ -78,7 +78,7 @@ void test_string() {
   helper.t_true(deserializer.get_num_bytes_left() == 0);
   helper.t_false(deserializer.has_size_t());
 
-  delete buffer;
+  delete[] buffer;
   delete ret_hello;
   delete ret_world;
 
@@ -115,7 +115,7 @@ void test_int() {
   helper.t_true(deserializer.get_num_bytes_left() == 0);
   helper.t_false(deserializer.has_int());
 
-  delete buffer;
+  delete[] buffer;
 
   helper.OK("Test test_int passed");
 }
@@ -150,7 +150,7 @@ void test_double() {
   helper.t_true(deserializer.get_num_bytes_left() == 0);
   helper.t_false(deserializer.has_double());
 
-  delete buffer;
+  delete[] buffer;
 
   helper.OK("Test test_double passed");
 }
@@ -185,7 +185,7 @@ void test_bool() {
   helper.t_true(deserializer.get_num_bytes_left() == 0);
   helper.t_false(deserializer.has_bool());
 
-  delete buffer;
+  delete[] buffer;
 
   helper.OK("Test test_bool passed");
 }

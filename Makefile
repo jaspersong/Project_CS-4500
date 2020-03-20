@@ -12,12 +12,12 @@ test_all: build_all
 	-cd ./build; ./test_suite_sorer
 
 test_valgrind: build_all
-	-cd ./build; valgrind ./test_suite_map
-	-cd ./build; valgrind ./test_suite_queue
-	-cd ./build; valgrind ./test_suite_dataframe
-	-cd ./build; valgrind ./test_suite_messages
-	-cd ./build; valgrind ./test_suite_network
-	-cd ./build; valgrind ./test_suite_sorer
+	-cd ./build; valgrind --leak-check=yes ./test_suite_map
+	-cd ./build; valgrind --leak-check=yes ./test_suite_queue
+	-cd ./build; valgrind --leak-check=yes ./test_suite_dataframe
+	-cd ./build; valgrind --leak-check=yes ./test_suite_messages
+	-cd ./build; valgrind --leak-check=yes ./test_suite_network
+	-cd ./build; valgrind --leak-check=yes ./test_suite_sorer
 
 demo_distro_app: build_all
 	cd ./build; ./demo_registrar & ./demo_node hello world

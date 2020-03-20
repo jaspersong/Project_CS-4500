@@ -89,6 +89,7 @@ public:
       DF_Column *column = dynamic_cast<DF_Column *>(item.o);
       delete column;
     }
+    delete this->col_list_;
   }
 
   /** Returns the dataframe's schema. Modifying the schema after a dataframe

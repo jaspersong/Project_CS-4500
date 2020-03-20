@@ -129,6 +129,7 @@ void test1() {
 
   // Deconstruct the memory accordingly
   delete s1;
+  delete bool_column;
   delete r0;
   delete r1;
   delete r2;
@@ -190,6 +191,8 @@ void test2() {
 
   // Free the memory accordingly
   delete s1;
+  delete s2;
+  delete copy;
 
   helper.OK("Test 2 passed");
 }

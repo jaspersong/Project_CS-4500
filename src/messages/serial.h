@@ -1055,5 +1055,8 @@ Message *Message::deserialize_as_message(unsigned char *buffer,
     ret_value->set_payload_size(header->get_payload_size());
   }
 
+  // Free the memory as necessary
+  delete header;
+
   return ret_value;
 }

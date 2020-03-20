@@ -21,7 +21,10 @@ void test_default() {
   helper.t_true(df->get_int(1, 0) == 23);
   helper.t_false(df->get_bool(0, 0));
 
+  delete df->get_string(2, 0);
   delete df;
+
+  helper.OK("Test test_default passed");
 }
 
 void test_testfile() {
@@ -42,7 +45,12 @@ void test_testfile() {
   helper.t_true(df->get_string(2, 0)->equals(&hello));
   helper.t_true(df->get_string(2, 2)->equals(&ten));
 
+  delete df->get_string(2, 0);
+  delete df->get_string(2, 1);
+  delete df->get_string(2, 2);
   delete df;
+
+  helper.OK("Test test_testfile passed");
 }
 
 void test_spaces() {
@@ -56,7 +64,11 @@ void test_spaces() {
   helper.t_true(df->get_float(2, 0) == 2.2f);
   helper.t_true(df->get_schema().col_type(2) == ColumnType_Float);
 
+  delete df->get_string(1, 0);
+  delete df->get_string(3, 0);
   delete df;
+
+  helper.OK("Test test_spaces passed");
 }
 
 int main() {

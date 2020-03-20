@@ -5,7 +5,7 @@
  * Email: chen.xinu@husky.neu.edu, song.jo@husky.neu.edu
  */
 
-//lang::CwC
+// lang::CwC
 
 #pragma once
 
@@ -152,6 +152,7 @@ public:
   // this new instance of column.
   DF_BoolColumn(DF_BoolColumn &column) : DF_Column(ColumnType_Bool) {
     this->data_type_ = column.data_type_;
+    delete this->list_;
     this->list_ = new ArrayOfArrays(*column.list_);
   }
 
@@ -198,8 +199,9 @@ public:
   // Constructs a column by copying the data from the provided column into
   // this new instance of column.
   DF_IntColumn(DF_IntColumn &column) : DF_Column(ColumnType_Integer) {
-      this->data_type_ = column.data_type_;
-      this->list_ = new ArrayOfArrays(*column.list_);
+    this->data_type_ = column.data_type_;
+    delete this->list_;
+    this->list_ = new ArrayOfArrays(*column.list_);
   }
 
   int get(size_t idx) {
@@ -246,8 +248,9 @@ public:
   // Constructs a column by copying the data from the provided column into
   // this new instance of column.
   DF_FloatColumn(DF_FloatColumn &column) : DF_Column(ColumnType_Float) {
-      this->data_type_ = column.data_type_;
-      this->list_ = new ArrayOfArrays(*column.list_);
+    this->data_type_ = column.data_type_;
+    delete this->list_;
+    this->list_ = new ArrayOfArrays(*column.list_);
   }
 
   float get(size_t idx) {
@@ -294,8 +297,9 @@ public:
   // Constructs a column by copying the data from the provided column into
   // this new instance of column.
   DF_StringColumn(DF_StringColumn &column) : DF_Column(ColumnType_String) {
-      this->data_type_ = column.data_type_;
-      this->list_ = new ArrayOfArrays(*column.list_);
+    this->data_type_ = column.data_type_;
+    delete this->list_;
+    this->list_ = new ArrayOfArrays(*column.list_);
   }
 
   DF_StringColumn *as_string() override { return this; }

@@ -100,21 +100,21 @@ public:
    */
   DataFrame *convert() {
     // Create the schema from the columns
-    Schema *schema = new Schema();
+    Schema schema;
     for (size_t i = 0; i < this->set_->getLength(); i++) {
       ColumnType type = this->set_->getColumn(i)->getType();
       switch (type) {
       case ColumnType::STRING:
-        schema->add_column('S');
+        schema.add_column('S');
         break;
       case ColumnType::INTEGER:
-        schema->add_column('I');
+        schema.add_column('I');
         break;
       case ColumnType::FLOAT:
-        schema->add_column('F');
+        schema.add_column('F');
         break;
       case ColumnType::BOOL:
-        schema->add_column('B');
+        schema.add_column('B');
         break;
       case ColumnType::UNKNOWN:
       default:
@@ -124,7 +124,7 @@ public:
     }
 
     // Now create a dataframe
-    DataFrame *ret_value = new DataFrame(*schema);
+    DataFrame *ret_value = new DataFrame(schema);
 
     // Copy the values from the sorer to the dataframe
     for (size_t r = 0; r < this->set_->getColumn(0)->getLength(); r++) {

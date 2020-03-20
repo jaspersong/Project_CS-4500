@@ -40,6 +40,10 @@ public:
     this->home_id = home_id;
   }
 
+  ~Key() override {
+    delete this->name;
+  }
+
   size_t hash_me() override {
     return this->home_id + this->name->hash();
   };
