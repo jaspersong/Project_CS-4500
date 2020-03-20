@@ -7,7 +7,13 @@ bool it_returns_the_value_for_a_key() {
   String *foo_key = new String("fooKey");
   String *foo = new String("foo");
   map->put(foo_key, foo);
-  return map->get(foo_key)->equals(foo);
+
+  bool ret_value = map->get(foo_key)->equals(foo);
+  delete map;
+  delete foo_key;
+  delete foo;
+
+  return ret_value;
 }
 
 bool it_contains_the_key() {
@@ -15,13 +21,22 @@ bool it_contains_the_key() {
   String *foo_key = new String("fooKey");
   String *foo = new String("foo");
   map->put(foo_key, foo);
-  return map->contains_key(foo_key) && !map->contains_key(foo);
+
+  bool ret_value = map->contains_key(foo_key) && !map->contains_key(foo);
+  delete map;
+  delete foo_key;
+  delete foo;
+  return ret_value;
 }
 
 bool it_equals_another_empty_map() {
   Map *map1 = new Map();
   Map *map2 = new Map();
-  return map1->equals(map2);
+
+  bool ret_value = map1->equals(map2);
+  delete map1;
+  delete map2;
+  return ret_value;
 }
 
 bool it_equals_another_map() {
@@ -31,13 +46,23 @@ bool it_equals_another_map() {
   String *foo = new String("foo");
   map1->put(foo_key, foo);
   map2->put(foo_key, foo);
-  return map1->equals(map2);
+
+  bool ret_value = map1->equals(map2);
+  delete map1;
+  delete map2;
+  delete foo_key;
+  delete foo;
+  return ret_value;
 }
 
 bool it_computes_the_same_empty_hashcode() {
   Map *map1 = new Map();
   Map *map2 = new Map();
-  return map1->hash() == map2->hash();
+
+  bool ret_value = map1->hash() == map2->hash();
+  delete map1;
+  delete map2;
+  return ret_value;
 }
 
 bool it_computes_the_same_hashcode() {
@@ -47,7 +72,13 @@ bool it_computes_the_same_hashcode() {
   String *foo = new String("foo");
   map1->put(foo_key, foo);
   map2->put(foo_key, foo);
-  return map1->hash() == map2->hash();
+
+  bool ret_value = map1->hash() == map2->hash();
+  delete map1;
+  delete map2;
+  delete foo_key;
+  delete foo;
+  return ret_value;
 }
 
 bool it_computes_keyset() {
@@ -71,7 +102,14 @@ bool it_computes_keyset() {
     }
   }
 
-  return containsFoo && containsBar && map->size() == 2;
+  bool ret_value = containsFoo && containsBar && map->size() == 2;
+  delete map;
+  delete foo_key;
+  delete bar_key;
+  delete foo;
+  delete bar;
+  delete[] keys;
+  return ret_value;
 }
 
 bool it_removes_elements() {
@@ -95,7 +133,14 @@ bool it_removes_elements() {
   CustomObject *bar_removed = map->remove(bar_key);
   if (map->size() != 0)
     return false;
-  return bar->equals(bar_removed);
+
+  bool ret_value = bar->equals(bar_removed);
+  delete map;
+  delete foo_key;
+  delete bar_key;
+  delete foo;
+  delete bar;
+  return ret_value;
 }
 
 bool it_computes_size() {
@@ -105,7 +150,12 @@ bool it_computes_size() {
   String *foo_key = new String("fooKey");
   String *foo = new String("foo");
   map->put(foo_key, foo);
-  return map->size() == 1;
+
+  bool ret_value = map->size() == 1;
+  delete map;
+  delete foo_key;
+  delete foo;
+  return ret_value;
 }
 
 bool it_updates_values() {
@@ -119,7 +169,12 @@ bool it_updates_values() {
     return false;
 
   map->put(foo_key, bar);
-  return map->get(foo_key)->equals(bar);
+  bool ret_value = map->get(foo_key)->equals(bar);
+  delete map;
+  delete foo_key;
+  delete foo;
+  delete bar;
+  return ret_value;
 }
 
 int main() {

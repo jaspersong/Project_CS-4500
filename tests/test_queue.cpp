@@ -27,6 +27,10 @@ void test1() {
 
   t_true(s->equals(s1));
 
+  delete q;
+  delete s;
+  delete t;
+
   OK("1");
 }
 
@@ -46,6 +50,10 @@ void test2() {
   t_true(t->equals(q->getTop()));
 
   t_true(q->getSize() == 2);
+
+  delete q;
+  delete s;
+  delete t;
 
   OK("2");
 }
@@ -67,6 +75,10 @@ void test3() {
 
   t_true(q->isEmpty());
 
+  delete q;
+  delete s;
+  delete t;
+
   OK("3");
 }
 
@@ -83,6 +95,13 @@ void test4() {
 
   t_true(q->contains(t));
   t_false(q->contains(u));
+
+  delete q;
+  delete s;
+  delete t;
+  delete u;
+
+  OK("4");
 }
 
 void test5() {
@@ -109,6 +128,15 @@ void test5() {
 
   q->enqueue(u);
   t_false(q->equals(q2));
+
+  delete q;
+  delete s;
+  delete t;
+  delete u;
+  delete q2;
+  delete s2;
+  delete t2;
+  OK("5");
 }
 
 void test6() {
@@ -129,7 +157,12 @@ void test6() {
 
   t_true(q->getSize() == 0);
   t_true(q->isEmpty());
-  t_true(q->dequeue() == (void *)0);
+  t_true(q->dequeue() == nullptr);
+
+  delete q;
+  delete s;
+
+  OK("6");
 }
 
 int main(int argc, char *argv[]) {
