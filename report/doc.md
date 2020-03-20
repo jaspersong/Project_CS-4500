@@ -372,6 +372,9 @@ that the node had received the Directory message.
 The Ack message contains only the header, and does not have a payload to 
 deserialize.
 
+*NOTE*: This message type is currently not being used because the current eau2
+system implementation uses UDP, which does not have a use for an Ack message. 
+
 ###### Nack
 
 This message kind can be sent between nodes, from server to node, or node to
@@ -390,6 +393,9 @@ registrar to notify the registrar that it did not receive the message.
 The Nack message contains only the header, and does not have a payload to 
 deserialize.
 
+*NOTE*: This message type is currently not being used because the current eau2
+system implementation uses UDP, which does not have a use for an Nack message.
+
 ###### Put
 
 This message is sent between nodes in order to update a data chunk in its
@@ -404,7 +410,8 @@ Dataframe updated_dataframe
 
 The Key is serialized in the following C-struct binary format:
 ```C++
-size_t key_id
+size_t home_id
+String key_name
 ```
 where the `key_id` is a unique id of a key.
 
@@ -675,6 +682,36 @@ int main(int argc, char **argv) {
 }
 ```
 
+### Application
+
+Applications are essentially threads that run concurrently to the network
+layer of the eau2 system. An application will have two types: one that is
+run on the server, and one that is run on teh client.
+
+The server application is the main application, and can deploy KeyValue stores
+to the nodes that are registered and connected to it. It is the main
+application that is interfacing with the user directly.
+
+The client application is a subsection of the main application, and contains
+only the key value store that the main application had deployed to it.
+The client application runs only a portion of the main goal of the main
+application.
+
+To run an application on a node/server, it should be calling the API functions
+similar to starting, running and ending a thread:
+```C++
+#include "application.h"
+
+int main(int argc, char **argv) {
+  Application demo;
+
+  demo.start(); // Start the application
+  demo.join(); // Wait for the application to finish
+
+  return 0;
+}
+```
+
 ## Open questions
 
 - What will the official use case for the eau2 system going to be?
@@ -697,8 +734,8 @@ structure in regard to a growing buffer of large amounts of data
 - Make polling timeouts configurable within the server and clients
 - Create unit tests for the dataframe's array of arrays
 - Get the network code to run within Docker
-- Assigning enumeration of the node ids
-- Align the node ids for direct communication between nodes
-- Message queue within the TCP message manager
-- Update the message communication from UDP to TCP
+- Assigning and aligning of the node ids in order to maintain ids throughout
+the direct communication between nodes
+- Message queue within the TCP message manager (AKA, using Ack and Nack). 
+Currently it's running UDP-style. 
  
