@@ -12,97 +12,10 @@
 #include "helper.h"
 #include "custom_string.h"
 #include "dataframe.h"
-#include "summation_rower.h"
-#include "euclidean_magnitude_rower.h"
 
 #define ASSERT_T(a) ASSERT_EQ((a), true)
 #define ASSERT_F(a) ASSERT_EQ((a), false)
 #define ASSERT_EXIT_ZERO(a) ASSERT_EXIT(a(), ::testing::ExitedWithCode(0), ".*")
-
-#define ASSERT_EXIT_ONE(a) ASSERT_EXIT(a(), ::testing::ExitedWithCode(1), ".*")
-
-void test_str_accept_case() {
-  // create different string types
-  String str_homework("homework");
-  String str_hard("hard");
-
-  // create string types of schema
-  Schema schema_string("S");
-
-  // create a dataframe
-  DataFrame df(schema_string);
-  Row r(df.get_schema());
-
-  // add row to the dataframe
-  df.add_row(r);
-
-  // test the accept function and print out an error message
-  SummationFielder fielder(r);
-  fielder.accept(&str_homework);
-
-  exit(0);
-}
-
-void test_bool_accept_case() {
-  // create boolean types of schema
-  Schema schema_bool("B");
-
-  // create a dataframe
-  DataFrame df(schema_bool);
-  Row r(df.get_schema());
-
-  // add row to the dataframe
-  df.add_row(r);
-
-  // test the accept function and print out an error message
-  SummationFielder fielder(r);
-  fielder.accept(false);
-  exit(0);
-}
-
-void test_float_accept_case() {
-  // create float types of schema
-  Schema schema_float("F");
-
-  // create a dataframe
-  DataFrame df(schema_float);
-  Row r(df.get_schema());
-  double expected_summation = 0.0;
-
-  // add row to the dataframe
-  df.add_row(r);
-  r.set(0, 2.5f);
-  expected_summation = 2.5;
-
-  // test the accept function by passing in a float value
-  SummationFielder fielder(r);
-  fielder.start(r.get_idx());
-  fielder.done();
-  ASSERT_EQ(fielder.get_summation(), expected_summation);
-
-  exit(0);
-}
-
-void test_int_accept_case() {
-  // create int types of schema
-  Schema schema_int("I");
-
-  // create a dataframe
-  DataFrame df(schema_int);
-  Row r(df.get_schema());
-  double expected_summation = 0.0;
-
-  // add row to the dataframe
-  df.add_row(r);
-  r.set(0, 1);
-  expected_summation = 1;
-  // test the accept function by passing in a float value
-  SummationFielder fielder(r);
-  fielder.start(r.get_idx());
-  fielder.done();
-  ASSERT_EQ(fielder.get_summation(), expected_summation);
-  exit(0);
-}
 
 void basic() {
   Schema s("II");
@@ -551,163 +464,6 @@ void test6() {
   exit(0);
 }
 
-void test7() {
-  Schema s("IFIF");
-
-  // Create a very large dataframe
-  DataFrame df(s);
-  Row  r(df.get_schema());
-  double expected_summation = 0.0;
-  for(size_t i = 0; i <  1000 * 1000; i++) {
-    r.set(0, (int)i);
-    r.set(1, 0.5f);
-    r.set(2, 1);
-    r.set(3, 2.5f);
-
-    expected_summation += static_cast<double>(i) + 0.5 + 1.0 + 2.5;
-
-    // Add the row to the dataframe
-    df.add_row(r);
-  }
-
-  // Filter the data frame for all of the rows that sum up a value greater
-  // than 1000 * 100
-  SummationGreaterThanRower rower(1000 * 100);
-  DataFrame * result = df.filter(rower);
-
-  // Verify that the rower summation is correct
-  ASSERT_EQ(rower.get_summation(), expected_summation);
-
-  // Verify that the resulting dataframe is correct
-  ASSERT_EQ(result->get_int(0, 0), 1000 * 100 - 3);
-  ASSERT_EQ(result->nrows(), 1000 * 1000 - (1000 * 100 - 3));
-
-  // Clear the memory as necessary
-  delete result;
-
-  exit(0);
-}
-
-void test_pmap() {
-  Schema s("IFIF");
-
-  // Create a very large dataframe
-  DataFrame df(s);
-  Row  r(df.get_schema());
-  double expected_summation = 0.0;
-  for(size_t i = 0; i <  1000 * 1000; i++) {
-    r.set(0, (int)i);
-    r.set(1, 0.5f);
-    r.set(2, 1);
-    r.set(3, 2.5f);
-
-    expected_summation += static_cast<double>(i) + 0.5 + 1.0 + 2.5;
-
-    // Add the row to the dataframe
-    df.add_row(r);
-  }
-
-  // Filter the data frame for all of the rows that sum up a value greater
-  // than 1000 * 100
-  SummationGreaterThanRower rower(1000 * 100);
-  df.pmap(rower);
-
-  // Verify that the rower summation is correct
-  ASSERT_EQ(rower.get_summation(), expected_summation);
-
-  exit(0);
-}
-
-void test_euclidean() {
-  Schema s("IIII");
-
-  // Create a very large dataframe
-  DataFrame df(s);
-  Row  r(df.get_schema());
-
-  // Create 4 vectors
-  r.set(0, (int)1);
-  r.set(1, (int)1);
-  r.set(2, (int)1);
-  r.set(3, (int)1);
-  df.add_row(r);
-  r.set(0, (int)0);
-  r.set(1, (int)2);
-  r.set(2, (int)1);
-  r.set(3, (int)2);
-  df.add_row(r);
-  r.set(0, (int)2);
-  r.set(1, (int)2);
-  r.set(2, (int)2);
-  r.set(3, (int)2);
-  df.add_row(r);
-  r.set(0, (int)4);
-  r.set(1, (int)0);
-  r.set(2, (int)0);
-  r.set(3, (int)3);
-  df.add_row(r);
-
-  // Filter the data frame for all of the rows that sum up a value greater
-  // than 1000 * 100
-  EuclideanMagnitudeRower rower(df.nrows());
-  df.map(rower);
-
-  // Verify that the rower has gotten the correct results
-  ASSERT_EQ(rower.get_num_vectors(), df.nrows());
-  ASSERT_EQ(rower.get_euclidean_magnitude(0), 2.0);
-  ASSERT_EQ(rower.get_euclidean_magnitude(1), 3.0);
-  ASSERT_EQ(rower.get_euclidean_magnitude(2), 4.0);
-  ASSERT_EQ(rower.get_euclidean_magnitude(3), 5.0);
-  ASSERT_EQ(rower.get_average(), 3.5);
-
-  exit(0);
-}
-
-void test_euclidean_pmap() {
-  Schema s("IIII");
-
-  // Create a very large dataframe
-  DataFrame df(s);
-  Row  r(df.get_schema());
-
-  // Create 4 vectors
-  r.set(0, (int)1);
-  r.set(1, (int)1);
-  r.set(2, (int)1);
-  r.set(3, (int)1);
-  df.add_row(r);
-  r.set(0, (int)0);
-  r.set(1, (int)2);
-  r.set(2, (int)1);
-  r.set(3, (int)2);
-  df.add_row(r);
-  r.set(0, (int)2);
-  r.set(1, (int)2);
-  r.set(2, (int)2);
-  r.set(3, (int)2);
-  df.add_row(r);
-  r.set(0, (int)4);
-  r.set(1, (int)0);
-  r.set(2, (int)0);
-  r.set(3, (int)3);
-  df.add_row(r);
-
-  // Filter the data frame for all of the rows that sum up a value greater
-  // than 1000 * 100
-  EuclideanMagnitudeRower rower(df.nrows());
-  df.pmap(rower);
-
-  // Verify that the rower has gotten the correct results
-  ASSERT_EQ(rower.get_num_vectors(), df.nrows());
-  ASSERT_EQ(rower.get_euclidean_magnitude(0), 2.0);
-  ASSERT_EQ(rower.get_euclidean_magnitude(1), 3.0);
-  ASSERT_EQ(rower.get_euclidean_magnitude(2), 4.0);
-  ASSERT_EQ(rower.get_euclidean_magnitude(3), 5.0);
-  ASSERT_EQ(rower.get_average(), 3.5);
-
-  exit(0);
-}
-
 void test_from_array() {
   String str0("Then the fire nation attacked.");
   String str1("Hello");
@@ -799,20 +555,12 @@ void test_from_array() {
   exit(0);
 }
 
-TEST(A5, test_bool_accept_case) { ASSERT_EXIT_ONE(test_bool_accept_case); }
-TEST(A5, test_str_accept_case) { ASSERT_EXIT_ONE(test_str_accept_case); }
-TEST(A5, test_float_accept_case) { ASSERT_EXIT_ZERO(test_float_accept_case); }
-TEST(A5, test_int_accept_case) { ASSERT_EXIT_ZERO(test_int_accept_case); }
 TEST(A5, basic){ ASSERT_EXIT_ZERO(basic); }
 TEST(A5, test1) { ASSERT_EXIT_ZERO(test1); }
 TEST(A5, test2) { ASSERT_EXIT_ZERO(test2); }
 TEST(A5, test3) { ASSERT_EXIT_ZERO(test3); }
 TEST(A5, test4) { ASSERT_EXIT_ZERO(test4); }
 TEST(A5, test6) { ASSERT_EXIT_ZERO(test6); }
-TEST(A5, test7) { ASSERT_EXIT_ZERO(test7); }
-TEST(A5, test_pmap) { ASSERT_EXIT_ZERO(test_pmap); }
-TEST(A5, test_euclidean) { ASSERT_EXIT_ZERO(test_euclidean); }
-TEST(A5, test_euclidean_pmap) { ASSERT_EXIT_ZERO(test_euclidean_pmap); }
 TEST(A5, test_from_array) { ASSERT_EXIT_ZERO(test_from_array); }
 
 int main(int argc, char **argv) {

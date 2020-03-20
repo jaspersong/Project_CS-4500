@@ -23,39 +23,6 @@
 #include "rower.h"
 #include "schema.h"
 
-// Forward declaration
-class DataFrame;
-
-/**
- * An implementation of thread that will be used to concurrently iterate
- * through the rows of a dataframe. A RowerThread_ will only every other
- * RowerThread_ id row index within the DataFrame.
- */
-class RowerThread_ : public Thread {
-public:
-  DataFrame *df_;
-  Rower *rower_;
-  size_t id_;
-  unsigned inc_;
-
-  /**
-   * Constructs a rower thread where the id is the value of all of the
-   * indexes this rower thread would handle within the provided DataFrame.
-   * @param df The dataframe that the rower thread will iterate through.
-   * @param rower The rower that this thread will be rowing with. It should
-   *        be an entirely new instance of a rower from all the other threads
-   *        in order to prevent data races.
-   * @param id The id of the thread. This will be the starting row index that
-   *           the thread will start from in the dataframe.
-   * @param inc The increment of the row index this thread will be handling.
-   *            This means that starting from id, the thread will handle every
-   *            inc row index.
-   */
-  RowerThread_(DataFrame &df, Rower &rower, size_t id, unsigned inc);
-
-  void run() override;
-};
-
 /****************************************************************************
  * DataFrame::
  *
@@ -480,58 +447,6 @@ public:
     }
   }
 
-  /** This method clones the Rower and executes the map in parallel. Join is
-   * used at the end to merge the results. */
-  void pmap(Rower &r) {
-    // Get how many cores there are to determine how many threads we can create
-    unsigned num_cores = std::thread::hardware_concurrency();
-
-    // Create a pool of threads
-    RowerThread_ **threads = new RowerThread_ *[num_cores];
-    Rower **child_rowers = new Rower *[num_cores];
-    for (size_t id = 0; id < num_cores; id++) {
-      child_rowers[id] = dynamic_cast<Rower *>(r.clone());
-      threads[id] = new RowerThread_(*this, *child_rowers[id], id, num_cores);
-      threads[id]->start();
-    }
-
-    // Now wait for all of the threads to finish and then join the children
-    // rowers
-    for (size_t id = 0; id < num_cores; id++) {
-      threads[id]->join();
-      r.join_delete(child_rowers[id]);
-    }
-
-    // Delete the threads
-    delete[] threads;
-    delete[] child_rowers;
-  }
-
-  /** Create a new dataframe, constructed from rows for which the given Rower
-   * returned true from its accept method. */
-  DataFrame *filter(Rower &r) {
-    // Create a new dataframe with the same schema
-    DataFrame *ret_value = new DataFrame(*this->schema_);
-
-    // Iterate down the rows
-    for (size_t row = 0; row < this->nrows(); row++) {
-      // Create a from the row index
-      Row *new_row = this->create_row_(row);
-
-      // Put the row through the rower
-      if (r.accept(*new_row)) {
-        // The rower returns true. That means that this row can be added to
-        // the new dataframe
-        ret_value->add_row(*new_row);
-      }
-
-      // Delete the row now that we put it through the rower
-      delete new_row;
-    }
-
-    return ret_value;
-  }
-
   /** Print the dataframe in SoR format to standard output. */
   void print() {
     // Use a rower to print out the dataframe
@@ -632,27 +547,3 @@ public:
     return ret_value;
   }
 };
-
-RowerThread_::RowerThread_(DataFrame &df, Rower &rower, size_t id,
-    unsigned inc) {
-  this->df_ = &df;
-  this->rower_ = &rower;
-  this->id_ = id;
-  this->inc_ = inc;
-}
-
-/**
- * Overrides the run function of Thread class.
- */
-void RowerThread_::run() {
-  for (size_t r = this->id_; r < this->df_->nrows(); r += this->inc_) {
-    // Create a from the row index
-    Row *new_row = this->df_->create_row_(r);
-
-    // Put the row through the rower
-    this->rower_->accept(*new_row);
-
-    // Delete the row now that we put it through the rower
-    delete new_row;
-  }
-}

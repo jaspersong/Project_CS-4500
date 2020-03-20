@@ -77,8 +77,6 @@ add_executable(test_suite_dataframe
         "${CMAKE_CURRENT_SOURCE_DIR}/src/dataframe/dataframe_helper.h"
         "${CMAKE_CURRENT_SOURCE_DIR}/src/dataframe/fielder.h"
         "${CMAKE_CURRENT_SOURCE_DIR}/src/dataframe/rower.h"
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/dataframe/summation_rower.h"
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/dataframe/euclidean_magnitude_rower.h"
         src/dataframe/print_rower.h)
 target_link_libraries(test_suite_dataframe gtest)
 add_executable(test_suite_messages
@@ -87,7 +85,6 @@ add_executable(test_suite_messages
         "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/helper.h"
         "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/custom_object.h"
         "${CMAKE_CURRENT_SOURCE_DIR}/src/messages/serial.h"
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/messages/serialized_arrays.h"
         src/messages/serializer.h)
 target_link_libraries(test_suite_messages gtest)
 add_executable(test_suite_network
@@ -112,34 +109,12 @@ add_executable(test_suite_sorer
         "${CMAKE_CURRENT_SOURCE_DIR}/src/dataframe/dataframe_helper.h"
         "${CMAKE_CURRENT_SOURCE_DIR}/src/dataframe/fielder.h"
         "${CMAKE_CURRENT_SOURCE_DIR}/src/dataframe/rower.h"
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/dataframe/summation_rower.h"
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/dataframe/euclidean_magnitude_rower.h"
         src/dataframe/CS4500-A1-part1/column.h
         src/dataframe/CS4500-A1-part1/parser.h
         src/dataframe/print_rower.h
         src/dataframe/sorer_integrator.h)
 
 # Create targets to demo server/client and registrar/node functionality
-add_executable(demo_echo_server
-        "${CMAKE_CURRENT_SOURCE_DIR}/tests/echo_server.cpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/queue.h"
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/custom_string.h"
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/helper.h"
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/custom_object.h"
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/thread.h"
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/network/network.h"
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/network/echo_network.h"
-        src/messages/serializer.h)
-add_executable(demo_echo_client
-        "${CMAKE_CURRENT_SOURCE_DIR}/tests/echo_client.cpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/queue.h"
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/custom_string.h"
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/helper.h"
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/custom_object.h"
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/thread.h"
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/network/network.h"
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/network/echo_network.h"
-        src/messages/serializer.h)
 add_executable(demo_registrar
         "${CMAKE_CURRENT_SOURCE_DIR}/tests/registrar.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/queue.h"

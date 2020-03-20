@@ -39,6 +39,7 @@ int main(int argc, char **argv) {
     unsigned char *message = serialized_message.get_serialized_buffer();
     size_t message_size = serialized_message.get_size_serialized_data();
 
+    printf("Sent status message: %s\n", argv[i]);
     client1->send_direct_message(0, message, message_size);
   }
 
