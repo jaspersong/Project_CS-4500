@@ -4,40 +4,6 @@ cmake_minimum_required(VERSION 2.8.2)
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
-find_package(Threads REQUIRED)
-
-configure_file(CMakeLists.txt.in googletest-download/CMakeLists.txt)
-execute_process(
-    COMMAND ${CMAKE_COMMAND} -G "${CMAKE_GENERATOR}" .
-    RESULT_VARIABLE result
-    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/googletest-download
-    )
-
-if (result)
-    message(FATAL_ERROR "CMake step for googletest failed: ${result}")
-endif()
-
-execute_process(
-    COMMAND ${CMAKE_COMMAND} --build .
-    RESULT_VARIABLE result
-    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/googletest-download
-    )
-
-if (result)
-    message(FATAL_ERROR "Build step for googletest failed: ${result}")
-endif()
-
-# Prevent overriding the parent project's compiler/linker
-# settings on Windows
-set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
-
-# Add googletest directly to our build. This defines
-# the gtest and gtest_main targets.
-add_subdirectory(${CMAKE_CURRENT_BINARY_DIR}/googletest-src
-                 ${CMAKE_CURRENT_BINARY_DIR}/googletest-build
-                 EXCLUDE_FROM_ALL
-                 )
-
 # Set the compile flags
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -pthread")
 
@@ -78,7 +44,6 @@ add_executable(test_suite_dataframe
         "${CMAKE_CURRENT_SOURCE_DIR}/src/dataframe/fielder.h"
         "${CMAKE_CURRENT_SOURCE_DIR}/src/dataframe/rower.h"
         src/dataframe/print_rower.h)
-target_link_libraries(test_suite_dataframe gtest)
 add_executable(test_suite_messages
         "${CMAKE_CURRENT_SOURCE_DIR}/tests/test_messages.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/custom_string.h"
@@ -86,7 +51,6 @@ add_executable(test_suite_messages
         "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/custom_object.h"
         "${CMAKE_CURRENT_SOURCE_DIR}/src/messages/serial.h"
         src/messages/serializer.h)
-target_link_libraries(test_suite_messages gtest)
 add_executable(test_suite_network
         "${CMAKE_CURRENT_SOURCE_DIR}/tests/test_network.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/queue.h"
@@ -95,7 +59,6 @@ add_executable(test_suite_network
         "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/custom_object.h"
         "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/thread.h"
         "${CMAKE_CURRENT_SOURCE_DIR}/src/network/network.h")
-target_link_libraries(test_suite_network gtest)
 add_executable(test_suite_sorer
         "${CMAKE_CURRENT_SOURCE_DIR}/tests/test_sorer.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/custom_string.h"

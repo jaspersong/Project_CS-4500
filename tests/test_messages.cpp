@@ -7,13 +7,10 @@
 
 // lang::Cpp
 
-#include <gtest/gtest.h>
-
 #include "serial.h"
+#include "helper.h"
 
-#define ASSERT_T(a) ASSERT_EQ((a), true)
-#define ASSERT_F(a) ASSERT_EQ((a), false)
-#define ASSERT_EXIT_ZERO(a) ASSERT_EXIT(a(), ::testing::ExitedWithCode(0), ".*")
+Sys helper;
 
 void test_size_t() {
   Serializer serializer;
@@ -25,28 +22,29 @@ void test_size_t() {
 
   unsigned char *buffer = serializer.get_serialized_buffer();
   size_t buffer_size = serializer.get_size_serialized_data();
-  ASSERT_T(buffer_size != 0);
-  ASSERT_T(buffer != nullptr);
+  helper.t_true(buffer_size != 0);
+  helper.t_true(buffer != nullptr);
 
   // Now deserialize
   Deserializer deserializer(buffer, buffer_size);
-  ASSERT_T(deserializer.get_num_bytes_left() > 0);
-  ASSERT_T(deserializer.has_size_t());
-  ASSERT_EQ(deserializer.get_size_t(), 1);
+  helper.t_true(deserializer.get_num_bytes_left() > 0);
+  helper.t_true(deserializer.has_size_t());
+  helper.t_true(deserializer.get_size_t() == 1);
 
-  ASSERT_T(deserializer.get_num_bytes_left() > 0);
-  ASSERT_T(deserializer.has_size_t());
-  ASSERT_EQ(deserializer.get_size_t(), 2);
+  helper.t_true(deserializer.get_num_bytes_left() > 0);
+  helper.t_true(deserializer.has_size_t());
+  helper.t_true(deserializer.get_size_t() == 2);
 
-  ASSERT_T(deserializer.get_num_bytes_left() > 0);
-  ASSERT_T(deserializer.has_size_t());
-  ASSERT_EQ(deserializer.get_size_t(), 3);
+  helper.t_true(deserializer.get_num_bytes_left() > 0);
+  helper.t_true(deserializer.has_size_t());
+  helper.t_true(deserializer.get_size_t() == 3);
 
-  ASSERT_T(deserializer.get_num_bytes_left() == 0);
-  ASSERT_F(deserializer.has_size_t());
+  helper.t_true(deserializer.get_num_bytes_left() == 0);
+  helper.t_false(deserializer.has_size_t());
 
   delete buffer;
-  exit(0);
+
+  helper.OK("Test test_size_t passed");
 }
 
 void test_string() {
@@ -60,30 +58,31 @@ void test_string() {
 
   unsigned char *buffer = serializer.get_serialized_buffer();
   size_t buffer_size = serializer.get_size_serialized_data();
-  ASSERT_T(buffer_size != 0);
-  ASSERT_T(buffer != nullptr);
+  helper.t_true(buffer_size != 0);
+  helper.t_true(buffer != nullptr);
 
   // Now deserialize
   Deserializer deserializer(buffer, buffer_size);
-  ASSERT_T(deserializer.get_num_bytes_left() > 0);
-  ASSERT_T(deserializer.has_size_t());
+  helper.t_true(deserializer.get_num_bytes_left() > 0);
+  helper.t_true(deserializer.has_size_t());
   String *ret_hello = String::deserialize_as_string(deserializer);
-  ASSERT_T(ret_hello != nullptr);
-  ASSERT_T(ret_hello->equals(&hello));
+  helper.t_true(ret_hello != nullptr);
+  helper.t_true(ret_hello->equals(&hello));
 
-  ASSERT_T(deserializer.get_num_bytes_left() > 0);
-  ASSERT_T(deserializer.has_size_t());
+  helper.t_true(deserializer.get_num_bytes_left() > 0);
+  helper.t_true(deserializer.has_size_t());
   String *ret_world = String::deserialize_as_string(deserializer);
-  ASSERT_T(ret_world != nullptr);
-  ASSERT_T(ret_world->equals(&world));
+  helper.t_true(ret_world != nullptr);
+  helper.t_true(ret_world->equals(&world));
 
-  ASSERT_T(deserializer.get_num_bytes_left() == 0);
-  ASSERT_F(deserializer.has_size_t());
+  helper.t_true(deserializer.get_num_bytes_left() == 0);
+  helper.t_false(deserializer.has_size_t());
 
   delete buffer;
   delete ret_hello;
   delete ret_world;
-  exit(0);
+
+  helper.OK("Test test_string passed");
 }
 
 void test_int() {
@@ -96,28 +95,29 @@ void test_int() {
 
   unsigned char *buffer = serializer.get_serialized_buffer();
   size_t buffer_size = serializer.get_size_serialized_data();
-  ASSERT_T(buffer_size != 0);
-  ASSERT_T(buffer != nullptr);
+  helper.t_true(buffer_size != 0);
+  helper.t_true(buffer != nullptr);
 
   // Now deserialize
   Deserializer deserializer(buffer, buffer_size);
-  ASSERT_T(deserializer.get_num_bytes_left() > 0);
-  ASSERT_T(deserializer.has_int());
-  ASSERT_EQ(deserializer.get_int(), 4);
+  helper.t_true(deserializer.get_num_bytes_left() > 0);
+  helper.t_true(deserializer.has_int());
+  helper.t_true(deserializer.get_int() == 4);
 
-  ASSERT_T(deserializer.get_num_bytes_left() > 0);
-  ASSERT_T(deserializer.has_int());
-  ASSERT_EQ(deserializer.get_int(), 5);
+  helper.t_true(deserializer.get_num_bytes_left() > 0);
+  helper.t_true(deserializer.has_int());
+  helper.t_true(deserializer.get_int() == 5);
 
-  ASSERT_T(deserializer.get_num_bytes_left() > 0);
-  ASSERT_T(deserializer.has_int());
-  ASSERT_EQ(deserializer.get_int(), 6);
+  helper.t_true(deserializer.get_num_bytes_left() > 0);
+  helper.t_true(deserializer.has_int());
+  helper.t_true(deserializer.get_int() == 6);
 
-  ASSERT_T(deserializer.get_num_bytes_left() == 0);
-  ASSERT_F(deserializer.has_int());
+  helper.t_true(deserializer.get_num_bytes_left() == 0);
+  helper.t_false(deserializer.has_int());
 
   delete buffer;
-  exit(0);
+
+  helper.OK("Test test_int passed");
 }
 
 void test_double() {
@@ -130,28 +130,29 @@ void test_double() {
 
   unsigned char *buffer = serializer.get_serialized_buffer();
   size_t buffer_size = serializer.get_size_serialized_data();
-  ASSERT_T(buffer_size != 0);
-  ASSERT_T(buffer != nullptr);
+  helper.t_true(buffer_size != 0);
+  helper.t_true(buffer != nullptr);
 
   // Now deserialize
   Deserializer deserializer(buffer, buffer_size);
-  ASSERT_T(deserializer.get_num_bytes_left() > 0);
-  ASSERT_T(deserializer.has_double());
-  ASSERT_EQ(deserializer.get_double(), 4.2);
+  helper.t_true(deserializer.get_num_bytes_left() > 0);
+  helper.t_true(deserializer.has_double());
+  helper.t_true(deserializer.get_double() == 4.2);
 
-  ASSERT_T(deserializer.get_num_bytes_left() > 0);
-  ASSERT_T(deserializer.has_int());
-  ASSERT_EQ(deserializer.get_int(), 5);
+  helper.t_true(deserializer.get_num_bytes_left() > 0);
+  helper.t_true(deserializer.has_int());
+  helper.t_true(deserializer.get_int() == 5);
 
-  ASSERT_T(deserializer.get_num_bytes_left() > 0);
-  ASSERT_T(deserializer.has_double());
-  ASSERT_EQ(deserializer.get_double(), 6.3);
+  helper.t_true(deserializer.get_num_bytes_left() > 0);
+  helper.t_true(deserializer.has_double());
+  helper.t_true(deserializer.get_double() == 6.3);
 
-  ASSERT_T(deserializer.get_num_bytes_left() == 0);
-  ASSERT_F(deserializer.has_double());
+  helper.t_true(deserializer.get_num_bytes_left() == 0);
+  helper.t_false(deserializer.has_double());
 
   delete buffer;
-  exit(0);
+
+  helper.OK("Test test_double passed");
 }
 
 void test_bool() {
@@ -164,28 +165,29 @@ void test_bool() {
 
   unsigned char *buffer = serializer.get_serialized_buffer();
   size_t buffer_size = serializer.get_size_serialized_data();
-  ASSERT_T(buffer_size != 0);
-  ASSERT_T(buffer != nullptr);
+  helper.t_true(buffer_size != 0);
+  helper.t_true(buffer != nullptr);
 
   // Now deserialize
   Deserializer deserializer(buffer, buffer_size);
-  ASSERT_T(deserializer.get_num_bytes_left() > 0);
-  ASSERT_T(deserializer.has_bool());
-  ASSERT_T(deserializer.get_bool());
+  helper.t_true(deserializer.get_num_bytes_left() > 0);
+  helper.t_true(deserializer.has_bool());
+  helper.t_true(deserializer.get_bool());
 
-  ASSERT_T(deserializer.get_num_bytes_left() > 0);
-  ASSERT_T(deserializer.has_int());
-  ASSERT_EQ(deserializer.get_int(), 5);
+  helper.t_true(deserializer.get_num_bytes_left() > 0);
+  helper.t_true(deserializer.has_int());
+  helper.t_true(deserializer.get_int() == 5);
 
-  ASSERT_T(deserializer.get_num_bytes_left() > 0);
-  ASSERT_T(deserializer.has_bool());
-  ASSERT_F(deserializer.get_bool());
+  helper.t_true(deserializer.get_num_bytes_left() > 0);
+  helper.t_true(deserializer.has_bool());
+  helper.t_false(deserializer.get_bool());
 
-  ASSERT_T(deserializer.get_num_bytes_left() == 0);
-  ASSERT_F(deserializer.has_bool());
+  helper.t_true(deserializer.get_num_bytes_left() == 0);
+  helper.t_false(deserializer.has_bool());
 
   delete buffer;
-  exit(0);
+
+  helper.OK("Test test_bool passed");
 }
 
 void status_round_trip() {
@@ -207,22 +209,22 @@ void status_round_trip() {
 
   // Validate the values
   Status *status_received_msg = received_msg->as_status();
-  ASSERT_T(status_received_msg != nullptr);
-  ASSERT_T(status_received_msg->get_target_id() == 1);
-  ASSERT_F(status_received_msg->get_target_id() == 0);
-  ASSERT_T(status_received_msg->get_sender_id() == 2);
-  ASSERT_F(status_received_msg->get_sender_id() == 0);
-  ASSERT_T(status_received_msg->get_id() == 3);
-  ASSERT_F(status_received_msg->get_id() == 0);
+  helper.t_true(status_received_msg != nullptr);
+  helper.t_true(status_received_msg->get_target_id() == 1);
+  helper.t_false(status_received_msg->get_target_id() == 0);
+  helper.t_true(status_received_msg->get_sender_id() == 2);
+  helper.t_false(status_received_msg->get_sender_id() == 0);
+  helper.t_true(status_received_msg->get_id() == 3);
+  helper.t_false(status_received_msg->get_id() == 0);
   String *received_status = status_received_msg->get_message();
-  ASSERT_T(received_status->equals(&status_msg));
+  helper.t_true(received_status->equals(&status_msg));
 
   // Free the memory as appropriate
   delete[] buffer;
   delete received_msg;
   delete received_status;
 
-  exit(0);
+  helper.OK("Test status_round_trip passed");
 }
 
 void status_funcs() {
@@ -231,17 +233,17 @@ void status_funcs() {
   Status status0(status_msg0);
 
   String *recv_msg0 = status0.get_message();
-  ASSERT_T(recv_msg0->equals(&status_msg0));
+  helper.t_true(recv_msg0->equals(&status_msg0));
 
   status0.set_message(status_msg1);
   String *recv_msg1 = status0.get_message();
-  ASSERT_T(recv_msg1->equals(&status_msg1));
+  helper.t_true(recv_msg1->equals(&status_msg1));
 
   // Free memory as appropriate
   delete recv_msg0;
   delete recv_msg1;
 
- exit(0);
+  helper.OK("Test status_funcs passed");
 }
 
 // Add ack use case
@@ -263,16 +265,16 @@ void ack_case() {
 
   // test
   Ack *ack_received_message = received_msg->as_ack();
-  ASSERT_T(ack_received_message != nullptr);
-  ASSERT_EQ(ack_received_message->get_target_id(), 1);
-  ASSERT_EQ(ack_received_message->get_sender_id(), 2);
-  ASSERT_EQ(ack_received_message->get_id(), 3);
+  helper.t_true(ack_received_message != nullptr);
+  helper.t_true(ack_received_message->get_target_id() == 1);
+  helper.t_true(ack_received_message->get_sender_id() == 2);
+  helper.t_true(ack_received_message->get_id() == 3);
 
   // Free the memory
   delete[] buffer;
   delete received_msg;
 
-  exit(0);
+  helper.OK("Test ack_case passed");
 }
 
 void nack_case() {
@@ -293,19 +295,19 @@ void nack_case() {
 
   // test
   Nack *nack_received = received_msg->as_nack();
-  ASSERT_T(nack_received != nullptr);
-  ASSERT_T(nack_received->get_target_id() == 1);
-  ASSERT_F(nack_received->get_target_id() == 0);
-  ASSERT_T(nack_received->get_sender_id() == 2);
-  ASSERT_F(nack_received->get_sender_id() == 0);
-  ASSERT_T(nack_received->get_id() == 3);
-  ASSERT_F(nack_received->get_id() == 0);
+  helper.t_true(nack_received != nullptr);
+  helper.t_true(nack_received->get_target_id() == 1);
+  helper.t_false(nack_received->get_target_id() == 0);
+  helper.t_true(nack_received->get_sender_id() == 2);
+  helper.t_false(nack_received->get_sender_id() == 0);
+  helper.t_true(nack_received->get_id() == 3);
+  helper.t_false(nack_received->get_id() == 0);
 
   // Free the memory
   delete[] buffer;
   delete received_msg;
 
-  exit(0);
+  helper.OK("Test nack_case passed");
 }
 
 void put_case() {
@@ -326,19 +328,19 @@ void put_case() {
 
   // test
   Put *put_received = received_msg->as_put();
-  ASSERT_T(put_received != nullptr);
-  ASSERT_T(put_received->get_target_id() == 1);
-  ASSERT_F(put_received->get_target_id() == 0);
-  ASSERT_T(put_received->get_sender_id() == 2);
-  ASSERT_F(put_received->get_sender_id() == 0);
-  ASSERT_T(put_received->get_id() == 3);
-  ASSERT_F(put_received->get_id() == 0);
+  helper.t_true(put_received != nullptr);
+  helper.t_true(put_received->get_target_id() == 1);
+  helper.t_false(put_received->get_target_id() == 0);
+  helper.t_true(put_received->get_sender_id() == 2);
+  helper.t_false(put_received->get_sender_id() == 0);
+  helper.t_true(put_received->get_id() == 3);
+  helper.t_false(put_received->get_id() == 0);
 
   // Free the memory
   delete[] buffer;
   delete received_msg;
 
-  exit(0);
+  helper.OK("Test put_case passed");
 }
 
 void reply_case() {
@@ -359,19 +361,19 @@ void reply_case() {
 
   // test
   Reply *reply_received = received_msg->as_reply();
-  ASSERT_T(reply_received != nullptr);
-  ASSERT_T(reply_received->get_target_id() == 1);
-  ASSERT_F(reply_received->get_target_id() == 0);
-  ASSERT_T(reply_received->get_sender_id() == 2);
-  ASSERT_F(reply_received->get_sender_id() == 0);
-  ASSERT_T(reply_received->get_id() == 3);
-  ASSERT_F(reply_received->get_id() == 0);
+  helper.t_true(reply_received != nullptr);
+  helper.t_true(reply_received->get_target_id() == 1);
+  helper.t_false(reply_received->get_target_id() == 0);
+  helper.t_true(reply_received->get_sender_id() == 2);
+  helper.t_false(reply_received->get_sender_id() == 0);
+  helper.t_true(reply_received->get_id() == 3);
+  helper.t_false(reply_received->get_id() == 0);
 
   // Free the memory
   delete[] buffer;
   delete received_msg;
 
-  exit(0);
+  helper.OK("Test reply_case passed");
 }
 
 void get_case() {
@@ -392,19 +394,19 @@ void get_case() {
 
   // test
   Get *get_received = received_msg->as_get();
-  ASSERT_T(get_received != nullptr);
-  ASSERT_T(get_received->get_target_id() == 1);
-  ASSERT_F(get_received->get_target_id() == 0);
-  ASSERT_T(get_received->get_sender_id() == 2);
-  ASSERT_F(get_received->get_sender_id() == 0);
-  ASSERT_T(get_received->get_id() == 3);
-  ASSERT_F(get_received->get_id() == 0);
+  helper.t_true(get_received != nullptr);
+  helper.t_true(get_received->get_target_id() == 1);
+  helper.t_false(get_received->get_target_id() == 0);
+  helper.t_true(get_received->get_sender_id() == 2);
+  helper.t_false(get_received->get_sender_id() == 0);
+  helper.t_true(get_received->get_id() == 3);
+  helper.t_false(get_received->get_id() == 0);
 
   // Free the memory
   delete[] buffer;
   delete received_msg;
 
-  exit(0);
+  helper.OK("Test get_case passed");
 }
 
 void waitAget_case() {
@@ -425,19 +427,19 @@ void waitAget_case() {
 
   // test
   WaitAndGet *wag_received = received_msg->as_waitandget();
-  ASSERT_T(wag_received != nullptr);
-  ASSERT_T(wag_received->get_target_id() == 1);
-  ASSERT_F(wag_received->get_target_id() == 0);
-  ASSERT_T(wag_received->get_sender_id() == 2);
-  ASSERT_F(wag_received->get_sender_id() == 0);
-  ASSERT_T(wag_received->get_id() == 3);
-  ASSERT_F(wag_received->get_id() == 0);
+  helper.t_true(wag_received != nullptr);
+  helper.t_true(wag_received->get_target_id() == 1);
+  helper.t_false(wag_received->get_target_id() == 0);
+  helper.t_true(wag_received->get_sender_id() == 2);
+  helper.t_false(wag_received->get_sender_id() == 0);
+  helper.t_true(wag_received->get_id() == 3);
+  helper.t_false(wag_received->get_id() == 0);
 
   // Free the memory
   delete[] buffer;
   delete received_msg;
 
-  exit(0);
+  helper.OK("Test waitAget_case passed");
 }
 
 void kill_case() {
@@ -458,19 +460,19 @@ void kill_case() {
 
   // test
   Kill *kill_received = received_msg->as_kill();
-  ASSERT_T(kill_received != nullptr);
-  ASSERT_T(kill_received->get_target_id() == 1);
-  ASSERT_F(kill_received->get_target_id() == 0);
-  ASSERT_T(kill_received->get_sender_id() == 2);
-  ASSERT_F(kill_received->get_sender_id() == 0);
-  ASSERT_T(kill_received->get_id() == 3);
-  ASSERT_F(kill_received->get_id() == 0);
+  helper.t_true(kill_received != nullptr);
+  helper.t_true(kill_received->get_target_id() == 1);
+  helper.t_false(kill_received->get_target_id() == 0);
+  helper.t_true(kill_received->get_sender_id() == 2);
+  helper.t_false(kill_received->get_sender_id() == 0);
+  helper.t_true(kill_received->get_id() == 3);
+  helper.t_false(kill_received->get_id() == 0);
 
   // Free the memory
   delete[] buffer;
   delete received_msg;
 
-  exit(0);
+  helper.OK("Test kill_case passed");
 }
 
 void register_case() {
@@ -492,16 +494,16 @@ void register_case() {
 
   // test
   Register *register_received_msg = received_msg->as_register();
-  ASSERT_T(register_received_msg != nullptr);
-  ASSERT_T(register_received_msg->get_target_id() == 1);
-  ASSERT_F(register_received_msg->get_target_id() == 0);
-  ASSERT_T(register_received_msg->get_sender_id() == 2);
-  ASSERT_F(register_received_msg->get_sender_id() == 0);
-  ASSERT_T(register_received_msg->get_id() == 3);
-  ASSERT_F(register_received_msg->get_id() == 0);
+  helper.t_true(register_received_msg != nullptr);
+  helper.t_true(register_received_msg->get_target_id() == 1);
+  helper.t_false(register_received_msg->get_target_id() == 0);
+  helper.t_true(register_received_msg->get_sender_id() == 2);
+  helper.t_false(register_received_msg->get_sender_id() == 0);
+  helper.t_true(register_received_msg->get_id() == 3);
+  helper.t_false(register_received_msg->get_id() == 0);
   String *received_ip = register_received_msg->get_ip_addr();
-  ASSERT_T(received_ip->equals(ip_addr));
-  ASSERT_EQ(register_received_msg->get_port_num(), 4);
+  helper.t_true(received_ip->equals(ip_addr));
+  helper.t_true(register_received_msg->get_port_num() == 4);
 
   // Free the memory
   delete[] buffer;
@@ -509,7 +511,7 @@ void register_case() {
   delete ip_addr;
   delete received_ip;
 
-  exit(0);
+  helper.OK("Test register_case passed");
 }
 
 void directory_case() {
@@ -535,29 +537,29 @@ void directory_case() {
 
   // Test
   Directory *dir_received = received_msg->as_directory();
-  ASSERT_T(dir_received != nullptr);
-  ASSERT_T(dir_received->get_target_id() == 1);
-  ASSERT_F(dir_received->get_target_id() == 0);
-  ASSERT_T(dir_received->get_sender_id() == 2);
-  ASSERT_F(dir_received->get_sender_id() == 0);
-  ASSERT_T(dir_received->get_id() == 3);
-  ASSERT_F(dir_received->get_id() == 0);
+  helper.t_true(dir_received != nullptr);
+  helper.t_true(dir_received->get_target_id() == 1);
+  helper.t_false(dir_received->get_target_id() == 0);
+  helper.t_true(dir_received->get_sender_id() == 2);
+  helper.t_false(dir_received->get_sender_id() == 0);
+  helper.t_true(dir_received->get_id() == 3);
+  helper.t_false(dir_received->get_id() == 0);
 
-  ASSERT_EQ(dir_received->get_max_num_clients(), 5);
-  ASSERT_T(dir_received->is_client_connected(0));
-  ASSERT_F(dir_received->is_client_connected(1));
-  ASSERT_T(dir_received->is_client_connected(2));
-  ASSERT_T(dir_received->is_client_connected(3));
-  ASSERT_F(dir_received->is_client_connected(4));
-  ASSERT_EQ(dir_received->get_client_port_num(0), 1);
-  ASSERT_EQ(dir_received->get_client_port_num(2), 4);
-  ASSERT_EQ(dir_received->get_client_port_num(3), 5);
+  helper.t_true(dir_received->get_max_num_clients() == 5);
+  helper.t_true(dir_received->is_client_connected(0));
+  helper.t_false(dir_received->is_client_connected(1));
+  helper.t_true(dir_received->is_client_connected(2));
+  helper.t_true(dir_received->is_client_connected(3));
+  helper.t_false(dir_received->is_client_connected(4));
+  helper.t_true(dir_received->get_client_port_num(0) == 1);
+  helper.t_true(dir_received->get_client_port_num(2) == 4);
+  helper.t_true(dir_received->get_client_port_num(3) == 5);
   String *recv_ip_addr_0 = dir_received->get_client_ip_addr(0);
   String *recv_ip_addr_2 = dir_received->get_client_ip_addr(2);
   String *recv_ip_addr_3 = dir_received->get_client_ip_addr(3);
-  ASSERT_T(recv_ip_addr_0->equals(ip_addr));
-  ASSERT_T(recv_ip_addr_2->equals(ip_addr));
-  ASSERT_T(recv_ip_addr_3->equals(ip_addr));
+  helper.t_true(recv_ip_addr_0->equals(ip_addr));
+  helper.t_true(recv_ip_addr_2->equals(ip_addr));
+  helper.t_true(recv_ip_addr_3->equals(ip_addr));
 
   // free the memory
   delete[] buffer;
@@ -567,27 +569,24 @@ void directory_case() {
   delete recv_ip_addr_2;
   delete recv_ip_addr_3;
 
-  exit(0);
+  helper.OK("Test directory_case passed");
 }
 
-TEST(serializer, test_int) { ASSERT_EXIT_ZERO(test_int); }
-TEST(serializer, test_string) { ASSERT_EXIT_ZERO(test_string); }
-TEST(serializer, test_size_t) { ASSERT_EXIT_ZERO(test_size_t); }
-TEST(serializer, test_bool) { ASSERT_EXIT_ZERO(test_bool); }
-TEST(serializer, test_double) { ASSERT_EXIT_ZERO(test_double); }
-TEST(messages, status_round_trip) { ASSERT_EXIT_ZERO(status_round_trip); }
-TEST(messages, status_funcs) { ASSERT_EXIT_ZERO(status_funcs); }
-TEST(messages, ack_case) { ASSERT_EXIT_ZERO(ack_case); }
-TEST(messages, nack_case) { ASSERT_EXIT_ZERO(nack_case); }
-TEST(messages, puck_case) { ASSERT_EXIT_ZERO(put_case); }
-TEST(messages, reply_case) { ASSERT_EXIT_ZERO(reply_case); }
-TEST(messages, get_case) { ASSERT_EXIT_ZERO(get_case); }
-TEST(messages, waitAget_case) { ASSERT_EXIT_ZERO(waitAget_case); }
-TEST(messages, kill_case) { ASSERT_EXIT_ZERO(kill_case); }
-TEST(messages, register_case) { ASSERT_EXIT_ZERO(register_case); }
-TEST(messages, directory_case) { ASSERT_EXIT_ZERO(directory_case); }
-
 int main(int argc, char **argv) {
-  testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
+  test_int();
+  test_string();
+  test_size_t();
+  test_bool();
+  test_double();
+  status_round_trip();
+  status_funcs();
+  ack_case();
+  nack_case();
+  put_case();
+  reply_case();
+  get_case();
+  waitAget_case();
+  kill_case();
+  register_case();
+  directory_case();
 }

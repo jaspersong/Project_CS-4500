@@ -7,15 +7,11 @@
 
 // lang::Cpp
 
-#include <gtest/gtest.h>
-
 #include "helper.h"
 #include "custom_string.h"
 #include "dataframe.h"
 
-#define ASSERT_T(a) ASSERT_EQ((a), true)
-#define ASSERT_F(a) ASSERT_EQ((a), false)
-#define ASSERT_EXIT_ZERO(a) ASSERT_EXIT(a(), ::testing::ExitedWithCode(0), ".*")
+Sys helper;
 
 void basic() {
   Schema s("II");
@@ -27,8 +23,10 @@ void basic() {
     r.set(1,(int)i+1);
     df.add_row(r);
   }
-  ASSERT_EQ(df.get_int((size_t)0,1), 1);
-  exit(0);
+
+  helper.t_true(df.get_int((size_t)0,1) == 1);
+
+  helper.OK("Test 0 passed");
 }
 
 void test1() {
@@ -79,55 +77,55 @@ void test1() {
   df0->add_row(*r3);
 
   // Test the get/set values functions
-  ASSERT_F(df0->get_bool(0, 0));
-  ASSERT_EQ(df0->get_int(1, 0), 3);
-  ASSERT_EQ(df0->get_float(2, 0), 4.2f);
-  ASSERT_T(df0->get_string(4, 0)->equals(&str_avatar));
-  ASSERT_F(df0->get_bool(5, 0));
-  ASSERT_T(df0->get_bool(0, 1));
-  ASSERT_EQ(df0->get_int(1, 1), 4);
-  ASSERT_EQ(df0->get_float(2, 1), 5.3f);
-  ASSERT_T(df0->get_string(3, 1)->equals(&str_hello));
-  ASSERT_T(df0->get_string(4, 1)->equals(&str_world));
-  ASSERT_F(df0->get_bool(5, 1));
-  ASSERT_T(df0->get_string(3, 3)->equals(&str_software));
-  ASSERT_T(df0->get_string(4, 3)->equals(&str_dev));
+  helper.t_false(df0->get_bool(0, 0));
+  helper.t_true(df0->get_int(1, 0) == 3);
+  helper.t_true(df0->get_float(2, 0) == 4.2f);
+  helper.t_true(df0->get_string(4, 0)->equals(&str_avatar));
+  helper.t_false(df0->get_bool(5, 0));
+  helper.t_true(df0->get_bool(0, 1));
+  helper.t_true(df0->get_int(1, 1) == 4);
+  helper.t_true(df0->get_float(2, 1) == 5.3f);
+  helper.t_true(df0->get_string(3, 1)->equals(&str_hello));
+  helper.t_true(df0->get_string(4, 1)->equals(&str_world));
+  helper.t_false(df0->get_bool(5, 1));
+  helper.t_true(df0->get_string(3, 3)->equals(&str_software));
+  helper.t_true(df0->get_string(4, 3)->equals(&str_dev));
   df0->set(0, 0, true);
   df0->set(1, 0, 4);
   df0->set(2, 1, 3.3f);
   df0->set(4, 3, &str_avatar);
-  ASSERT_T(df0->get_bool(0, 0));
-  ASSERT_EQ(df0->get_int(1, 0), 4);
-  ASSERT_EQ(df0->get_float(2, 1), 3.3f);
-  ASSERT_T(df0->get_string(4, 3)->equals(&str_avatar));
+  helper.t_true(df0->get_bool(0, 0));
+  helper.t_true(df0->get_int(1, 0) == 4);
+  helper.t_true(df0->get_float(2, 1) == 3.3f);
+  helper.t_true(df0->get_string(4, 3)->equals(&str_avatar));
   df0->set(0, 2, false);
   df0->set(1, 2, 20);
   df0->set(2, 2, 80.9f);
   df0->set(4, 2, &str_world);
-  ASSERT_F(df0->get_bool(0, 2));
-  ASSERT_EQ(df0->get_int(1, 2), 20);
-  ASSERT_EQ(df0->get_float(2, 2), 80.9f);
-  ASSERT_T(df0->get_string(4, 2)->equals(&str_world));
+  helper.t_false(df0->get_bool(0, 2));
+  helper.t_true(df0->get_int(1, 2) == 20);
+  helper.t_true(df0->get_float(2, 2) == 80.9f);
+  helper.t_true(df0->get_string(4, 2)->equals(&str_world));
 
   // Test adding row information in bulk
-  ASSERT_EQ(df0->nrows(), 4);
+  helper.t_true(df0->nrows() == 4);
   df0->add_row(*r3);
-  ASSERT_EQ(df0->nrows(), 5);
-  ASSERT_T(df0->get_string(3, 4)->equals(&str_software));
-  ASSERT_T(df0->get_string(4, 4)->equals(&str_dev));
+  helper.t_true(df0->nrows() == 5);
+  helper.t_true(df0->get_string(3, 4)->equals(&str_software));
+  helper.t_true(df0->get_string(4, 4)->equals(&str_dev));
   df0->fill_row(0, *r3);
-  ASSERT_T(df0->get_string(3, 0)->equals(&str_software));
-  ASSERT_T(df0->get_string(4, 0)->equals(&str_dev));
+  helper.t_true(df0->get_string(3, 0)->equals(&str_software));
+  helper.t_true(df0->get_string(4, 0)->equals(&str_dev));
 
   // Test adding new columns
-  ASSERT_EQ(df0->ncols(), 6);
+  helper.t_true(df0->ncols() == 6);
   df0->add_column(bool_column);
   df0->add_column(bool_column);
-  ASSERT_EQ(df0->ncols(), 8);
-  ASSERT_F(df0->get_bool(6, 0));
-  ASSERT_T(df0->get_bool(6, 1));
-  ASSERT_F(df0->get_bool(7, 0));
-  ASSERT_T(df0->get_bool(7, 1));
+  helper.t_true(df0->ncols() == 8);
+  helper.t_false(df0->get_bool(6, 0));
+  helper.t_true(df0->get_bool(6, 1));
+  helper.t_false(df0->get_bool(7, 0));
+  helper.t_true(df0->get_bool(7, 1));
 
   // Deconstruct the memory accordingly
   delete s1;
@@ -137,7 +135,7 @@ void test1() {
   delete r3;
   delete df0;
 
-  exit(0);
+  helper.OK("Test 1 passed");
 }
 
 // Tests the functionality of the API functions for Schema
@@ -151,7 +149,7 @@ void test2() {
   Schema * s1 = new Schema();
 
   // Add some columns
-  ASSERT_EQ(s1->width(), 0);
+  helper.t_true(s1->width() == 0);
   s1->add_column('B');
   s1->add_column('I');
   s1->add_column('F');
@@ -160,40 +158,40 @@ void test2() {
   s1->add_column('B');
 
   // Test the getter functions for columns
-  ASSERT_EQ(s1->col_type(0), 'B');
-  ASSERT_EQ(s1->col_type(1), 'I');
-  ASSERT_EQ(s1->col_type(2), 'F');
-  ASSERT_EQ(s1->col_type(3), 'S');
-  ASSERT_EQ(s1->col_type(4), 'S');
-  ASSERT_EQ(s1->col_type(5), 'B');
-  ASSERT_EQ(s1->width(), 6);
+  helper.t_true(s1->col_type(0) == 'B');
+  helper.t_true(s1->col_type(1) == 'I');
+  helper.t_true(s1->col_type(2) == 'F');
+  helper.t_true(s1->col_type(3) == 'S');
+  helper.t_true(s1->col_type(4) == 'S');
+  helper.t_true(s1->col_type(5) == 'B');
+  helper.t_true(s1->width() == 6);
 
   // Test the copy constructor
   Schema * copy = new Schema(*s1);
-  ASSERT_EQ(copy->col_type(0), 'B');
-  ASSERT_EQ(copy->col_type(1), 'I');
-  ASSERT_EQ(copy->col_type(2), 'F');
-  ASSERT_EQ(copy->col_type(3), 'S');
-  ASSERT_EQ(copy->col_type(4), 'S');
-  ASSERT_EQ(copy->col_type(5), 'B');
-  ASSERT_EQ(copy->width(), 6);
-  ASSERT_EQ(s1->width(), 6);
+  helper.t_true(copy->col_type(0) == 'B');
+  helper.t_true(copy->col_type(1) == 'I');
+  helper.t_true(copy->col_type(2) == 'F');
+  helper.t_true(copy->col_type(3) == 'S');
+  helper.t_true(copy->col_type(4) == 'S');
+  helper.t_true(copy->col_type(5) == 'B');
+  helper.t_true(copy->width() == 6);
+  helper.t_true(s1->width() == 6);
   copy->add_column('F');
-  ASSERT_EQ(copy->width(), 7);
-  ASSERT_EQ(s1->width(), 6);
+  helper.t_true(copy->width() == 7);
+  helper.t_true(s1->width() == 6);
 
   // Test the string of types constructor
   Schema * s2 = new Schema("IFSS");
-  ASSERT_EQ(s2->col_type(0), 'I');
-  ASSERT_EQ(s2->col_type(1), 'F');
-  ASSERT_EQ(s2->col_type(2), 'S');
-  ASSERT_EQ(s2->col_type(3), 'S');
-  ASSERT_EQ(s2->width(), 4);
+  helper.t_true(s2->col_type(0) == 'I');
+  helper.t_true(s2->col_type(1) == 'F');
+  helper.t_true(s2->col_type(2) == 'S');
+  helper.t_true(s2->col_type(3) == 'S');
+  helper.t_true(s2->width() == 4);
 
   // Free the memory accordingly
   delete s1;
 
-  exit(0);
+  helper.OK("Test 2 passed");
 }
 
 // Test the functionality of the Column API functions
@@ -212,10 +210,10 @@ void test3() {
   DF_Column *string_column = new DF_StringColumn();
 
   // Test the get column type
-  ASSERT_EQ(bool_column->get_type(), 'B');
-  ASSERT_EQ(int_column->get_type(), 'I');
-  ASSERT_EQ(float_column->get_type(), 'F');
-  ASSERT_EQ(string_column->get_type(), 'S');
+  helper.t_true(bool_column->get_type() == 'B');
+  helper.t_true(int_column->get_type() == 'I');
+  helper.t_true(float_column->get_type() == 'F');
+  helper.t_true(string_column->get_type() == 'S');
 
   // Add values to the column
   bool_column->push_back(true);
@@ -234,24 +232,24 @@ void test3() {
   string_column->push_back(&str_avatar);
 
   // Verify the sizes of each of the column
-  ASSERT_EQ(bool_column->size(), 2);
-  ASSERT_EQ(int_column->size(), 3);
-  ASSERT_EQ(float_column->size(), 4);
-  ASSERT_EQ(string_column->size(), 5);
+  helper.t_true(bool_column->size() == 2);
+  helper.t_true(int_column->size() == 3);
+  helper.t_true(float_column->size() == 4);
+  helper.t_true(string_column->size() == 5);
 
   // Verify that we get the same column under its correct type
-  ASSERT_T(bool_column->equals(bool_column->as_bool()));
-  ASSERT_EQ(bool_column->as_int(), nullptr);
-  ASSERT_EQ(bool_column->as_float(), nullptr);
-  ASSERT_EQ(bool_column->as_string(), nullptr);
-  ASSERT_EQ(int_column->as_bool(), nullptr);
-  ASSERT_T(int_column->equals(int_column->as_int()));
-  ASSERT_EQ(int_column->as_float(), nullptr);
-  ASSERT_EQ(int_column->as_string(), nullptr);
-  ASSERT_EQ(string_column->as_bool(), nullptr);
-  ASSERT_EQ(string_column->as_int(), nullptr);
-  ASSERT_EQ(string_column->as_float(), nullptr);
-  ASSERT_T(string_column->equals(string_column->as_string()));
+  helper.t_true(bool_column->equals(bool_column->as_bool()));
+  helper.t_true(bool_column->as_int() == nullptr);
+  helper.t_true(bool_column->as_float() == nullptr);
+  helper.t_true(bool_column->as_string() == nullptr);
+  helper.t_true(int_column->as_bool() == nullptr);
+  helper.t_true(int_column->equals(int_column->as_int()));
+  helper.t_true(int_column->as_float() == nullptr);
+  helper.t_true(int_column->as_string() == nullptr);
+  helper.t_true(string_column->as_bool() == nullptr);
+  helper.t_true(string_column->as_int() == nullptr);
+  helper.t_true(string_column->as_float() == nullptr);
+  helper.t_true(string_column->equals(string_column->as_string()));
 
   // Now get the column under its actual type to start testing primitive
   // functions
@@ -261,46 +259,46 @@ void test3() {
   DF_StringColumn * conv_string_colunmn = string_column->as_string();
 
   // Test the boolean column
-  ASSERT_T(conv_bool_column->get(0));
-  ASSERT_F(conv_bool_column->get(1));
+  helper.t_true(conv_bool_column->get(0));
+  helper.t_false(conv_bool_column->get(1));
   conv_bool_column->set(1, true);
-  ASSERT_T(conv_bool_column->get(1));
+  helper.t_true(conv_bool_column->get(1));
   conv_bool_column->push_back(false);
-  ASSERT_F(conv_bool_column->get(2));
-  ASSERT_EQ(conv_bool_column->size(), 3);
+  helper.t_false(conv_bool_column->get(2));
+  helper.t_true(conv_bool_column->size() == 3);
 
   // Test the int column
-  ASSERT_EQ(conv_int_column->get(0), 0);
-  ASSERT_EQ(conv_int_column->get(1), 10);
-  ASSERT_EQ(conv_int_column->get(2), 20);
+  helper.t_true(conv_int_column->get(0) == 0);
+  helper.t_true(conv_int_column->get(1) == 10);
+  helper.t_true(conv_int_column->get(2) == 20);
   conv_int_column->set(0, 40);
-  ASSERT_EQ(conv_int_column->get(0), 40);
+  helper.t_true(conv_int_column->get(0) == 40);
   conv_int_column->push_back(74);
-  ASSERT_EQ(conv_int_column->get(3), 74);
-  ASSERT_EQ(conv_int_column->size(), 4);
+  helper.t_true(conv_int_column->get(3) == 74);
+  helper.t_true(conv_int_column->size() == 4);
 
   // Test the float column
-  ASSERT_EQ(conv_float_column->get(0), 10.0f);
-  ASSERT_EQ(conv_float_column->get(1), 20.5f);
-  ASSERT_EQ(conv_float_column->get(2), 46.2f);
-  ASSERT_EQ(conv_float_column->get(3), 0.0f);
+  helper.t_true(conv_float_column->get(0) == 10.0f);
+  helper.t_true(conv_float_column->get(1) == 20.5f);
+  helper.t_true(conv_float_column->get(2) == 46.2f);
+  helper.t_true(conv_float_column->get(3) == 0.0f);
   conv_float_column->set(3, 0.01f);
-  ASSERT_EQ(conv_float_column->get(3), 0.01f);
+  helper.t_true(conv_float_column->get(3) == 0.01f);
   conv_float_column->push_back(4.2f);
-  ASSERT_EQ(conv_float_column->get(4), 4.2f);
-  ASSERT_EQ(conv_float_column->size(), 5);
+  helper.t_true(conv_float_column->get(4) == 4.2f);
+  helper.t_true(conv_float_column->size() == 5);
 
   // Test the string column
-  ASSERT_T(conv_string_colunmn->get(0)->equals(&str_hello));
-  ASSERT_T(conv_string_colunmn->get(1)->equals(&str_world));
-  ASSERT_T(conv_string_colunmn->get(2)->equals(&str_software));
-  ASSERT_T(conv_string_colunmn->get(3)->equals(&str_dev));
-  ASSERT_T(conv_string_colunmn->get(4)->equals(&str_avatar));
+  helper.t_true(conv_string_colunmn->get(0)->equals(&str_hello));
+  helper.t_true(conv_string_colunmn->get(1)->equals(&str_world));
+  helper.t_true(conv_string_colunmn->get(2)->equals(&str_software));
+  helper.t_true(conv_string_colunmn->get(3)->equals(&str_dev));
+  helper.t_true(conv_string_colunmn->get(4)->equals(&str_avatar));
   conv_string_colunmn->set(0, &str_avatar);
-  ASSERT_T(conv_string_colunmn->get(0)->equals(&str_avatar));
+  helper.t_true(conv_string_colunmn->get(0)->equals(&str_avatar));
   conv_string_colunmn->push_back(&str_hello);
-  ASSERT_T(conv_string_colunmn->get(5)->equals(&str_hello));
-  ASSERT_EQ(conv_string_colunmn->size(), 6);
+  helper.t_true(conv_string_colunmn->get(5)->equals(&str_hello));
+  helper.t_true(conv_string_colunmn->size() == 6);
 
   // Test the constructors
   DF_BoolColumn * cons_bool_column = new DF_BoolColumn(2, false, true);
@@ -308,30 +306,30 @@ void test3() {
   DF_FloatColumn * cons_float_column = new DF_FloatColumn(4, 0.1f, 0.2f, 0.3f, 0.4f);
   DF_StringColumn * cons_string_column = new DF_StringColumn(3, &str_hello,
       &str_world, &str_avatar);
-  ASSERT_T(cons_bool_column->get(1));
-  ASSERT_F((cons_bool_column->get(0)));
+  helper.t_true(cons_bool_column->get(1));
+  helper.t_false((cons_bool_column->get(0)));
   cons_bool_column->push_back(false);
-  ASSERT_EQ(cons_bool_column->size(), 3);
-  ASSERT_F(cons_bool_column->get(2));
-  ASSERT_EQ(cons_int_column->get(0), 0);
-  ASSERT_EQ(cons_int_column->get(1), 1);
-  ASSERT_EQ(cons_int_column->get(2), 2);
+  helper.t_true(cons_bool_column->size() == 3);
+  helper.t_false(cons_bool_column->get(2));
+  helper.t_true(cons_int_column->get(0) == 0);
+  helper.t_true(cons_int_column->get(1) == 1);
+  helper.t_true(cons_int_column->get(2) == 2);
   cons_int_column->push_back(100);
-  ASSERT_EQ(cons_int_column->get(3), 100);
-  ASSERT_EQ(cons_int_column->size(), 4);
-  ASSERT_EQ(cons_float_column->get(0), 0.1f);
-  ASSERT_EQ(cons_float_column->get(1), 0.2f);
-  ASSERT_EQ(cons_float_column->get(2), 0.3f);
-  ASSERT_EQ(cons_float_column->get(3), 0.4f);
+  helper.t_true(cons_int_column->get(3) == 100);
+  helper.t_true(cons_int_column->size() == 4);
+  helper.t_true(cons_float_column->get(0) == 0.1f);
+  helper.t_true(cons_float_column->get(1) == 0.2f);
+  helper.t_true(cons_float_column->get(2) == 0.3f);
+  helper.t_true(cons_float_column->get(3) == 0.4f);
   cons_float_column->push_back(0.5f);
-  ASSERT_EQ(cons_float_column->get(4), 0.5f);
-  ASSERT_EQ(cons_float_column->size(), 5);
-  ASSERT_T(cons_string_column->get(0)->equals(&str_hello));
-  ASSERT_T(cons_string_column->get(1)->equals(&str_world));
-  ASSERT_T((cons_string_column->get(2)->equals(&str_avatar)));
+  helper.t_true(cons_float_column->get(4) == 0.5f);
+  helper.t_true(cons_float_column->size() == 5);
+  helper.t_true(cons_string_column->get(0)->equals(&str_hello));
+  helper.t_true(cons_string_column->get(1)->equals(&str_world));
+  helper.t_true((cons_string_column->get(2)->equals(&str_avatar)));
   cons_string_column->push_back(&str_software);
-  ASSERT_T(cons_string_column->get(3)->equals(&str_software));
-  ASSERT_EQ(cons_string_column->size(), 4);
+  helper.t_true(cons_string_column->get(3)->equals(&str_software));
+  helper.t_true(cons_string_column->size() == 4);
 
   // Free memory accordingly
   delete bool_column;
@@ -343,7 +341,7 @@ void test3() {
   delete cons_float_column;
   delete cons_string_column;
 
-  exit(0);
+  helper.OK("Test 3 passed");
 }
 
 // Tests the API functions of the Rows
@@ -373,31 +371,31 @@ void test4() {
   r1->set(3, &str_hello);
   r1->set(4, &str_world);
   r1->set(5, false);
-  ASSERT_T(r1->get_bool(0));
-  ASSERT_EQ(r1->get_int(1), 4);
-  ASSERT_EQ(r1->get_float(2), 5.3f);
-  ASSERT_T(r1->get_string(3)->equals(&str_hello));
-  ASSERT_T(r1->get_string(4)->equals(&str_world));
-  ASSERT_F(r1->get_bool(5));
+  helper.t_true(r1->get_bool(0));
+  helper.t_true(r1->get_int(1) == 4);
+  helper.t_true(r1->get_float(2) == 5.3f);
+  helper.t_true(r1->get_string(3)->equals(&str_hello));
+  helper.t_true(r1->get_string(4)->equals(&str_world));
+  helper.t_false(r1->get_bool(5));
 
   // Row schema tests
-  ASSERT_EQ(r1->col_type(0), 'B');
-  ASSERT_EQ(r1->col_type(1), 'I');
-  ASSERT_EQ(r1->col_type(2), 'F');
-  ASSERT_EQ(r1->col_type(3), 'S');
-  ASSERT_EQ(r1->col_type(4), 'S');
-  ASSERT_EQ(r1->col_type(5), 'B');
-  ASSERT_EQ(r1->width(), 6);
+  helper.t_true(r1->col_type(0) == 'B');
+  helper.t_true(r1->col_type(1) == 'I');
+  helper.t_true(r1->col_type(2) == 'F');
+  helper.t_true(r1->col_type(3) == 'S');
+  helper.t_true(r1->col_type(4) == 'S');
+  helper.t_true(r1->col_type(5) == 'B');
+  helper.t_true(r1->width() == 6);
 
   // Test the set/get index of the row
   r1->set_idx(1);
-  ASSERT_EQ(r1->get_idx(), 1);
+  helper.t_true(r1->get_idx() == 1);
 
   // Free the memory accordingly
   delete s1;
   delete r1;
 
-  exit(0);
+  helper.OK("Test 4 passed");
 }
 
 void test6() {
@@ -421,7 +419,7 @@ void test6() {
     c.push_back(static_cast<int>(i + 3));
 
     // Check to make sure it was added correctly
-    ASSERT_EQ(c.get(i), static_cast<int>(i + 3));
+    helper.t_true(c.get(i) == static_cast<int>(i + 3));
   }
 
   // Now add the column 4 times to the dataframe
@@ -430,19 +428,19 @@ void test6() {
   df.add_column(&c);
   df.add_column(&c);
 
-  ASSERT_EQ(df.ncols(), 6);
-  ASSERT_EQ(df.nrows(), 100);
+  helper.t_true(df.ncols() == 6);
+  helper.t_true(df.nrows() == 100);
 
   // Ensure that the values are correct
   for (size_t i = 0; i < 100; i++) {
-    ASSERT_EQ(df.get_int(0, i), static_cast<int>(i));
-    ASSERT_EQ(df.get_int(1, i), static_cast<int>(i + 1));
-    ASSERT_EQ(df.get_int(2, i), static_cast<int>(i + 3));
-    ASSERT_EQ(df.get_int(3, i), static_cast<int>(i + 3));
-    ASSERT_EQ(df.get_int(4, i), static_cast<int>(i + 3));
-    ASSERT_EQ(df.get_int(5, i), static_cast<int>(i + 3));
+    helper.t_true(df.get_int(0, i) == static_cast<int>(i));
+    helper.t_true(df.get_int(1, i) == static_cast<int>(i + 1));
+    helper.t_true(df.get_int(2, i) == static_cast<int>(i + 3));
+    helper.t_true(df.get_int(3, i) == static_cast<int>(i + 3));
+    helper.t_true(df.get_int(4, i) == static_cast<int>(i + 3));
+    helper.t_true(df.get_int(5, i) == static_cast<int>(i + 3));
 
-    ASSERT_EQ(c.get(i), static_cast<int>(i + 3));
+    helper.t_true(c.get(i) == static_cast<int>(i + 3));
   }
 
   // Change some of the values of the last column of the dataframe
@@ -453,15 +451,15 @@ void test6() {
 
   // Verify that the values were changed appropriately
   for (size_t i = 0; i < 4; i++) {
-    ASSERT_EQ(df.get_int(0, i), static_cast<int>(i));
-    ASSERT_EQ(df.get_int(1, i), static_cast<int>(i + 1));
-    ASSERT_EQ(df.get_int(2, i), static_cast<int>(i + 3));
-    ASSERT_EQ(df.get_int(3, i), static_cast<int>(i + 3));
-    ASSERT_EQ(df.get_int(4, i), static_cast<int>(i + 3));
-    ASSERT_EQ(df.get_int(5, i), static_cast<int>(42));
+    helper.t_true(df.get_int(0, i) == static_cast<int>(i));
+    helper.t_true(df.get_int(1, i) == static_cast<int>(i + 1));
+    helper.t_true(df.get_int(2, i) == static_cast<int>(i + 3));
+    helper.t_true(df.get_int(3, i) == static_cast<int>(i + 3));
+    helper.t_true(df.get_int(4, i) == static_cast<int>(i + 3));
+    helper.t_true(df.get_int(5, i) == static_cast<int>(42));
   }
 
-  exit(0);
+  helper.OK("Test 6 passed");
 }
 
 void test_from_array() {
@@ -505,35 +503,35 @@ void test_from_array() {
   DataFrame *df2 = DataFrame::fromArray(&key2, &map, SZ, float_vals);
   DataFrame *df3 = DataFrame::fromArray(&key3, &map, SZ, str_vals);
 
-  ASSERT_EQ(df0->get_schema().width(), 1);
-  ASSERT_EQ(df1->get_schema().width(), 1);
-  ASSERT_EQ(df2->get_schema().width(), 1);
-  ASSERT_EQ(df3->get_schema().width(), 1);
-  ASSERT_EQ(df0->get_schema().col_type(0), ColumnType_Bool);
-  ASSERT_EQ(df1->get_schema().col_type(0), ColumnType_Integer);
-  ASSERT_EQ(df2->get_schema().col_type(0), ColumnType_Float);
-  ASSERT_EQ(df3->get_schema().col_type(0), ColumnType_String);
+  helper.t_true(df0->get_schema().width() == 1);
+  helper.t_true(df1->get_schema().width() == 1);
+  helper.t_true(df2->get_schema().width() == 1);
+  helper.t_true(df3->get_schema().width() == 1);
+  helper.t_true(df0->get_schema().col_type(0) == ColumnType_Bool);
+  helper.t_true(df1->get_schema().col_type(0) == ColumnType_Integer);
+  helper.t_true(df2->get_schema().col_type(0) == ColumnType_Float);
+  helper.t_true(df3->get_schema().col_type(0) == ColumnType_String);
   for (size_t i = 0; i < SZ; i++) {
-    ASSERT_EQ(df0->get_bool(0, i), (i % 2 == 0));
-    ASSERT_EQ(df1->get_int(0, i), static_cast<int>(i));
-    ASSERT_EQ(df2->get_float(0, i), static_cast<float>(i + 1));
+    helper.t_true(df0->get_bool(0, i) == (i % 2 == 0));
+    helper.t_true(df1->get_int(0, i) == static_cast<int>(i));
+    helper.t_true(df2->get_float(0, i) == static_cast<float>(i + 1));
   }
-  ASSERT_T(df3->get_string(0, 0)->equals(&str0));
-  ASSERT_T(df3->get_string(0, 1)->equals(&str1));
-  ASSERT_T(df3->get_string(0, 2)->equals(&str2));
-  ASSERT_T(df3->get_string(0, 3)->equals(&str3));
-  ASSERT_T(df3->get_string(0, 4)->equals(&str4));
-  ASSERT_EQ(df3->get_string(0, 5), nullptr);
-  ASSERT_EQ(df3->get_string(0, 6), nullptr);
-  ASSERT_EQ(df3->get_string(0, 7), nullptr);
-  ASSERT_EQ(df3->get_string(0, 8), nullptr);
-  ASSERT_T(df3->get_string(0, 9)->equals(&str0));
+  helper.t_true(df3->get_string(0, 0)->equals(&str0));
+  helper.t_true(df3->get_string(0, 1)->equals(&str1));
+  helper.t_true(df3->get_string(0, 2)->equals(&str2));
+  helper.t_true(df3->get_string(0, 3)->equals(&str3));
+  helper.t_true(df3->get_string(0, 4)->equals(&str4));
+  helper.t_true(df3->get_string(0, 5) == nullptr);
+  helper.t_true(df3->get_string(0, 6) == nullptr);
+  helper.t_true(df3->get_string(0, 7) == nullptr);
+  helper.t_true(df3->get_string(0, 8) == nullptr);
+  helper.t_true(df3->get_string(0, 9)->equals(&str0));
 
-  ASSERT_T(map.contains_key(&key0));
-  ASSERT_T(map.contains_key(&key1));
-  ASSERT_T(map.contains_key(&key2));
-  ASSERT_T(map.contains_key(&key3));
-  ASSERT_F(map.contains_key(&key4));
+  helper.t_true(map.contains_key(&key0));
+  helper.t_true(map.contains_key(&key1));
+  helper.t_true(map.contains_key(&key2));
+  helper.t_true(map.contains_key(&key3));
+  helper.t_false(map.contains_key(&key4));
 
   DataFrame *exp_df0 = reinterpret_cast<DataFrame *>(map.get(&key0));
   DataFrame *exp_df1 = reinterpret_cast<DataFrame *>(map.get(&key1));
@@ -542,28 +540,25 @@ void test_from_array() {
 
   // Should be true with pointer equality, since they should be pointing to
   // the same exact objects.
-  ASSERT_T(exp_df0->equals(df0));
-  ASSERT_T(exp_df1->equals(df1));
-  ASSERT_T(exp_df2->equals(df2));
-  ASSERT_T(exp_df3->equals(df3));
+  helper.t_true(exp_df0->equals(df0));
+  helper.t_true(exp_df1->equals(df1));
+  helper.t_true(exp_df2->equals(df2));
+  helper.t_true(exp_df3->equals(df3));
 
   delete df0;
   delete df1;
   delete df2;
   delete df3;
 
-  exit(0);
+  helper.OK("Test 5 passed");
 }
 
-TEST(A5, basic){ ASSERT_EXIT_ZERO(basic); }
-TEST(A5, test1) { ASSERT_EXIT_ZERO(test1); }
-TEST(A5, test2) { ASSERT_EXIT_ZERO(test2); }
-TEST(A5, test3) { ASSERT_EXIT_ZERO(test3); }
-TEST(A5, test4) { ASSERT_EXIT_ZERO(test4); }
-TEST(A5, test6) { ASSERT_EXIT_ZERO(test6); }
-TEST(A5, test_from_array) { ASSERT_EXIT_ZERO(test_from_array); }
-
 int main(int argc, char **argv) {
-  testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
+  basic();
+  test1();
+  test2();
+  test3();
+  test4();
+  test_from_array();
+  test6();
 }
