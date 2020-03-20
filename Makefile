@@ -11,6 +11,14 @@ test_all: build_all
 	-cd ./build; ./test_suite_network
 	-cd ./build; ./test_suite_sorer
 
+test_valgrind: build_all
+	-cd ./build; valgrind ./test_suite_map
+	-cd ./build; valgrind ./test_suite_queue
+	-cd ./build; valgrind ./test_suite_dataframe
+	-cd ./build; valgrind ./test_suite_messages
+	-cd ./build; valgrind ./test_suite_network
+	-cd ./build; valgrind ./test_suite_sorer
+
 demo_echo: build_all
 	cd ./build; ./demo_echo_server & ./demo_echo_client
 
@@ -26,3 +34,6 @@ docker_build_all:
 
 docker_test_all: docker_build_all
 	docker run -ti -v `pwd`:/test snowy_song:0.1 bash -c "cd /test; make test_all"
+
+docker_test_valgrind: docker_build_all
+	docker run -ti -v `pwd`:/test snowy_song:0.1 bash -c "cd /test; make test_valgrind"

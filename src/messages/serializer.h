@@ -11,6 +11,8 @@
 
 #include <arpa/inet.h>
 #include <netinet/in.h>
+#include <stdlib.h>
+#include <assert.h>
 
 /**
  * A helper class that assists with serializing data. It is meant to assist
