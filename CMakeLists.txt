@@ -52,12 +52,6 @@ include_directories(
         "${CMAKE_CURRENT_SOURCE_DIR}/src/dataframe/CS4500-A1-part1")
 
 # Create targets for the test suites
-add_executable(test_suite_array
-        "${CMAKE_CURRENT_SOURCE_DIR}/tests/test_array.cpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/array.h"
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/custom_string.h"
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/helper.h"
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/custom_object.h")
 add_executable(test_suite_map
         "${CMAKE_CURRENT_SOURCE_DIR}/tests/test_map.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/map.h"

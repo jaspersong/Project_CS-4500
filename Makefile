@@ -4,8 +4,6 @@ build_all:
 	cd ./build; make
 
 test_all: build_all
-	-cd ./build; ./test_suite_array
-	-cd ./build; ./test_suite_map
 	-cd ./build; ./test_suite_queue
 	-cd ./build; ./test_suite_map
 	-cd ./build; ./test_suite_dataframe
