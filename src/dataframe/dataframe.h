@@ -568,6 +568,69 @@ public:
 
     return ret_value;
   }
+
+  static DataFrame *fromArray(Key *key, Map *map, size_t num_values,
+                              int *values) {
+    assert(key != nullptr);
+    assert(map != nullptr);
+    assert(values != nullptr);
+
+    // Create the dataframe
+    Schema schema("I");
+    DataFrame *ret_value = new DataFrame(schema);
+
+    for (size_t i = 0; i < num_values; i++) {
+      Row r(ret_value->get_schema());
+      r.set(0, values[i]);
+      ret_value->add_row(r);
+    }
+
+    map->put(key, ret_value);
+
+    return ret_value;
+  }
+
+  static DataFrame *fromArray(Key *key, Map *map, size_t num_values,
+                              bool *values) {
+    assert(key != nullptr);
+    assert(map != nullptr);
+    assert(values != nullptr);
+
+    // Create the dataframe
+    Schema schema("B");
+    DataFrame *ret_value = new DataFrame(schema);
+
+    for (size_t i = 0; i < num_values; i++) {
+      Row r(ret_value->get_schema());
+      r.set(0, values[i]);
+      ret_value->add_row(r);
+    }
+
+    map->put(key, ret_value);
+
+    return ret_value;
+  }
+
+  static DataFrame *fromArray(Key *key, Map *map, size_t num_values,
+                              String **values) {
+    assert(key != nullptr);
+    assert(map != nullptr);
+    assert(values != nullptr);
+
+    // Create the dataframe
+    Schema schema("S");
+    DataFrame *ret_value = new DataFrame(schema);
+
+    for (size_t i = 0; i < num_values; i++) {
+      Row r(ret_value->get_schema());
+      r.set(0, values[i]);
+      ret_value->add_row(r);
+    }
+
+    map->put(key, ret_value);
+
+    return ret_value;
+  }
 };
 
 RowerThread_::RowerThread_(DataFrame &df, Rower &rower, size_t id,

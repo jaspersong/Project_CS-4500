@@ -708,6 +708,97 @@ void test_euclidean_pmap() {
   exit(0);
 }
 
+void test_from_array() {
+  String str0("Then the fire nation attacked.");
+  String str1("Hello");
+  String str2("World");
+  String str3(":(");
+  String str4(":)");
+
+  Key key0("0", 0);
+  Key key1("1", 1);
+  Key key2("2", 2);
+  Key key3("3", 3);
+  Key key4("4", 4);
+
+  Map map;
+
+  size_t SZ = 10;
+  bool bool_vals[SZ];
+  int int_vals[SZ];
+  float float_vals[SZ];
+  String *str_vals[SZ];
+
+  // Populate the arrays
+  for (size_t i = 0; i < SZ; i++) {
+    bool_vals[i] = (i % 2 == 0);
+    int_vals[i] = static_cast<int>(i);
+    float_vals[i] = static_cast<float>(i + 1);
+    str_vals[i] = nullptr;
+  }
+  str_vals[0] = &str0;
+  str_vals[1] = &str1;
+  str_vals[2] = &str2;
+  str_vals[3] = &str3;
+  str_vals[4] = &str4;
+  str_vals[9] = &str0;
+
+  // Make the dataframes and put them into the map
+  DataFrame *df0 = DataFrame::fromArray(&key0, &map, SZ, bool_vals);
+  DataFrame *df1 = DataFrame::fromArray(&key1, &map, SZ, int_vals);
+  DataFrame *df2 = DataFrame::fromArray(&key2, &map, SZ, float_vals);
+  DataFrame *df3 = DataFrame::fromArray(&key3, &map, SZ, str_vals);
+
+  ASSERT_EQ(df0->get_schema().width(), 1);
+  ASSERT_EQ(df1->get_schema().width(), 1);
+  ASSERT_EQ(df2->get_schema().width(), 1);
+  ASSERT_EQ(df3->get_schema().width(), 1);
+  ASSERT_EQ(df0->get_schema().col_type(0), ColumnType_Bool);
+  ASSERT_EQ(df1->get_schema().col_type(0), ColumnType_Integer);
+  ASSERT_EQ(df2->get_schema().col_type(0), ColumnType_Float);
+  ASSERT_EQ(df3->get_schema().col_type(0), ColumnType_String);
+  for (size_t i = 0; i < SZ; i++) {
+    ASSERT_EQ(df0->get_bool(0, i), (i % 2 == 0));
+    ASSERT_EQ(df1->get_int(0, i), static_cast<int>(i));
+    ASSERT_EQ(df2->get_float(0, i), static_cast<float>(i + 1));
+  }
+  ASSERT_T(df3->get_string(0, 0)->equals(&str0));
+  ASSERT_T(df3->get_string(0, 1)->equals(&str1));
+  ASSERT_T(df3->get_string(0, 2)->equals(&str2));
+  ASSERT_T(df3->get_string(0, 3)->equals(&str3));
+  ASSERT_T(df3->get_string(0, 4)->equals(&str4));
+  ASSERT_EQ(df3->get_string(0, 5), nullptr);
+  ASSERT_EQ(df3->get_string(0, 6), nullptr);
+  ASSERT_EQ(df3->get_string(0, 7), nullptr);
+  ASSERT_EQ(df3->get_string(0, 8), nullptr);
+  ASSERT_T(df3->get_string(0, 9)->equals(&str0));
+
+  ASSERT_T(map.contains_key(&key0));
+  ASSERT_T(map.contains_key(&key1));
+  ASSERT_T(map.contains_key(&key2));
+  ASSERT_T(map.contains_key(&key3));
+  ASSERT_F(map.contains_key(&key4));
+
+  DataFrame *exp_df0 = reinterpret_cast<DataFrame *>(map.get(&key0));
+  DataFrame *exp_df1 = reinterpret_cast<DataFrame *>(map.get(&key1));
+  DataFrame *exp_df2 = reinterpret_cast<DataFrame *>(map.get(&key2));
+  DataFrame *exp_df3 = reinterpret_cast<DataFrame *>(map.get(&key3));
+
+  // Should be true with pointer equality, since they should be pointing to
+  // the same exact objects.
+  ASSERT_T(exp_df0->equals(df0));
+  ASSERT_T(exp_df1->equals(df1));
+  ASSERT_T(exp_df2->equals(df2));
+  ASSERT_T(exp_df3->equals(df3));
+
+  delete df0;
+  delete df1;
+  delete df2;
+  delete df3;
+
+  exit(0);
+}
+
 TEST(A5, test_bool_accept_case) { ASSERT_EXIT_ONE(test_bool_accept_case); }
 TEST(A5, test_str_accept_case) { ASSERT_EXIT_ONE(test_str_accept_case); }
 TEST(A5, test_float_accept_case) { ASSERT_EXIT_ZERO(test_float_accept_case); }
@@ -722,6 +813,7 @@ TEST(A5, test7) { ASSERT_EXIT_ZERO(test7); }
 TEST(A5, test_pmap) { ASSERT_EXIT_ZERO(test_pmap); }
 TEST(A5, test_euclidean) { ASSERT_EXIT_ZERO(test_euclidean); }
 TEST(A5, test_euclidean_pmap) { ASSERT_EXIT_ZERO(test_euclidean_pmap); }
+TEST(A5, test_from_array) { ASSERT_EXIT_ZERO(test_from_array); }
 
 int main(int argc, char **argv) {
   testing::InitGoogleTest(&argc, argv);
