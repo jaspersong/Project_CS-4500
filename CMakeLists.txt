@@ -172,3 +172,17 @@ add_executable(demo_node
         src/messages/serializer.h
         src/network/recv_msg_manager.h
         src/application/stdout_msg_manager.h)
+add_executable(demo_trivial_app_nonet
+        tests/trivial_app_nonet.cpp
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/custom_string.h"
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/helper.h"
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/custom_object.h"
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/thread.h"
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/dataframe/dataframe_column.h"
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/dataframe/row.h"
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/dataframe/schema.h"
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/dataframe/dataframe.h"
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/dataframe/dataframe_helper.h"
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/dataframe/fielder.h"
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/dataframe/rower.h"
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/application/application.h" src/application/trivial_app.h)
