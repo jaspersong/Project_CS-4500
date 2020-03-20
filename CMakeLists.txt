@@ -117,7 +117,7 @@ add_executable(test_suite_sorer
         src/dataframe/CS4500-A1-part1/column.h
         src/dataframe/CS4500-A1-part1/parser.h
         src/dataframe/print_rower.h
-        src/dataframe/SorerIntegrator.h)
+        src/dataframe/sorer_integrator.h)
 
 # Create targets to demo server/client and registrar/node functionality
 add_executable(demo_echo_server
