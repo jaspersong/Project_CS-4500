@@ -694,15 +694,11 @@ structure in regard to a growing buffer of large amounts of data
 
 ### Technical Debt and TODOs
 
-- Implement the use cases for the following message types:
-    - Ack
-    - Nack
-    - Put
-    - Reply
-    - Get
-    - WaitAndGet
-    - Kill
 - Make polling timeouts configurable within the server and clients
 - Create unit tests for the dataframe's array of arrays
 - Get the network code to run within Docker
+- Assigning enumeration of the node ids
+- Align the node ids for direct communication between nodes
+- Message queue within the TCP message manager
+- Update the message communication from UDP to TCP
  

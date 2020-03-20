@@ -43,6 +43,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -pthread")
 
 include_directories(
         "${CMAKE_CURRENT_SOURCE_DIR}/src"
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/application"
         "${CMAKE_CURRENT_SOURCE_DIR}/src/dataframe"
         "${CMAKE_CURRENT_SOURCE_DIR}/src/messages"
         "${CMAKE_CURRENT_SOURCE_DIR}/src/network"
@@ -83,7 +84,8 @@ add_executable(test_suite_dataframe
         "${CMAKE_CURRENT_SOURCE_DIR}/src/dataframe/fielder.h"
         "${CMAKE_CURRENT_SOURCE_DIR}/src/dataframe/rower.h"
         "${CMAKE_CURRENT_SOURCE_DIR}/src/dataframe/summation_rower.h"
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/dataframe/euclidean_magnitude_rower.h" src/dataframe/print_rower.h)
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/dataframe/euclidean_magnitude_rower.h"
+        src/dataframe/print_rower.h)
 target_link_libraries(test_suite_dataframe gtest)
 add_executable(test_suite_messages
         "${CMAKE_CURRENT_SOURCE_DIR}/tests/test_messages.cpp"
@@ -91,7 +93,8 @@ add_executable(test_suite_messages
         "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/helper.h"
         "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/custom_object.h"
         "${CMAKE_CURRENT_SOURCE_DIR}/src/messages/serial.h"
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/messages/serialized_arrays.h" src/messages/serializer.h)
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/messages/serialized_arrays.h"
+        src/messages/serializer.h)
 target_link_libraries(test_suite_messages gtest)
 add_executable(test_suite_network
         "${CMAKE_CURRENT_SOURCE_DIR}/tests/test_network.cpp"
@@ -131,7 +134,8 @@ add_executable(demo_echo_server
         "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/custom_object.h"
         "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/thread.h"
         "${CMAKE_CURRENT_SOURCE_DIR}/src/network/network.h"
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/network/echo_network.h" src/messages/serializer.h)
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/network/echo_network.h"
+        src/messages/serializer.h)
 add_executable(demo_echo_client
         "${CMAKE_CURRENT_SOURCE_DIR}/tests/echo_client.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/queue.h"
@@ -140,7 +144,8 @@ add_executable(demo_echo_client
         "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/custom_object.h"
         "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/thread.h"
         "${CMAKE_CURRENT_SOURCE_DIR}/src/network/network.h"
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/network/echo_network.h" src/messages/serializer.h)
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/network/echo_network.h"
+        src/messages/serializer.h)
 add_executable(demo_registrar
         "${CMAKE_CURRENT_SOURCE_DIR}/tests/registrar.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/queue.h"
@@ -150,7 +155,10 @@ add_executable(demo_registrar
         "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/thread.h"
         "${CMAKE_CURRENT_SOURCE_DIR}/src/network/network.h"
         "${CMAKE_CURRENT_SOURCE_DIR}/src/network/distributed_app.h"
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/messages/serial.h" src/messages/serializer.h)
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/messages/serial.h"
+        src/messages/serializer.h
+        src/network/recv_msg_manager.h
+        src/application/stdout_msg_manager.h)
 add_executable(demo_node
         "${CMAKE_CURRENT_SOURCE_DIR}/tests/node.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/queue.h"
@@ -160,4 +168,7 @@ add_executable(demo_node
         "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/thread.h"
         "${CMAKE_CURRENT_SOURCE_DIR}/src/network/network.h"
         "${CMAKE_CURRENT_SOURCE_DIR}/src/network/distributed_app.h"
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/messages/serial.h" src/messages/serializer.h)
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/messages/serial.h"
+        src/messages/serializer.h
+        src/network/recv_msg_manager.h
+        src/application/stdout_msg_manager.h)

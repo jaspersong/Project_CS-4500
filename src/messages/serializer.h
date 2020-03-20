@@ -219,6 +219,46 @@ public:
   size_t num_bytes;
   size_t offset_;
 
+  bool own_buffer;
+
+  /**
+   * A copy constructor of a deserializer. It does not use the same buffer as
+   * the buffer used in the provided deserializer, so it will own the buffer
+   * the resulting deserializer holds. The deserializer will also start from
+   * the beginning of the buffer when reading.
+   * @param deserializer The deserializer to copy from.
+   */
+  Deserializer(Deserializer& deserializer) :
+    Deserializer(deserializer.buffer, deserializer.num_bytes, false) {}
+
+  /**
+   * A constructor of a deserializer.
+   * @param buffer The buffer to deserialize_as_message from.
+   * @param num_bytes The number of bytes of the buffer.
+   * @param steal True if this buffer be owned by the deserializer, or
+   *        False if the buffer should be copied in order for the buffer
+   *        remain external.
+   */
+  Deserializer(unsigned char *buffer, size_t num_bytes, bool steal) {
+    assert(buffer != nullptr);
+
+    if (steal) {
+      this->buffer = buffer;
+      this->num_bytes = num_bytes;
+      this->offset_ = 0;
+    }
+    else {
+      this->num_bytes = num_bytes;
+      this->offset_ = 0;
+      this->buffer = new unsigned char[this->num_bytes];
+      memcpy(this->buffer,
+             reinterpret_cast<const void *>(buffer),
+             this->num_bytes);
+    }
+
+    this->own_buffer = true;
+  }
+
   /**
    * Constructs a deserializer.
    * @param buffer The buffer to deserialize_as_message from. It will not be
@@ -232,12 +272,17 @@ public:
     this->buffer = buffer;
     this->num_bytes = num_bytes;
     this->offset_ = 0;
+
+    this->own_buffer = false;
   }
 
   /**
    * Deconstructs a deserializer.
    */
   ~Deserializer() {
+    if (this->own_buffer) {
+      delete[] this->buffer;
+    }
     this->buffer = nullptr;
     this->num_bytes = 0;
     this->offset_ = 0;
@@ -405,5 +450,23 @@ public:
     this->offset_ += sizeof(double);
 
     return ret_value;
+  }
+
+  /**
+   * Returns the buffer that the deserializer is pointing to.
+   * @return Pointer to the buffer. The buffer is still owned by the
+   *        deserializer, or whoever had created the deserializer. So this
+   *        buffer should not be modified.
+   */
+  unsigned char *get_buffer() {
+    return this->buffer;
+  }
+
+  /**
+   * The number of bytes that the buffer is.
+   * @return The size of the buffer.
+   */
+  size_t get_buffer_size() {
+    return this->num_bytes;
   }
 };

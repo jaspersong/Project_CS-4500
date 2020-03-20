@@ -250,6 +250,13 @@ public:
   virtual void handle_closing_connection(size_t client_id) { return; }
 
   /**
+   * An abstract function that the server implementation should implement.
+   * This function will handle when the server is shutting down. This will be
+   * called before the server has closed all of the sockets.
+   */
+  virtual void handle_shutdown() {}
+
+  /**
    * Runs the server in an infinite loop. The server should be started by
    * calling the thread's start() function.
    * @throws If the server cannot start up properly, it will terminate the
@@ -342,6 +349,7 @@ public:
     }
 
     // Close the servers and the clients and then clean up
+    this->handle_shutdown();
     for (size_t i = 0; i < this->max_clients_; i++) {
       if (this->client_sockets_[i] != 0) {
         close(this->client_sockets_[i]);
@@ -739,6 +747,13 @@ public:
   virtual void handle_closing_connection() {}
 
   /**
+   * An abstract function that the client implementation should implement.
+   * This function will handle when the client is shutting down. This will be
+   * called before the client has closed its connection to the server.
+   */
+  virtual void handle_shutdown() {}
+
+  /**
    * Starts the client. It will run on an infinite loop, calling the
    * abstracted function run(), which should be implemented by children
    * classes, upon each loop iteration, until the function close_client() gets
@@ -820,6 +835,7 @@ public:
     }
 
     // Close the client
+    this->handle_shutdown();
     close(this->server_fd_);
     this->server_fd_ = 0;
 
@@ -827,16 +843,23 @@ public:
   }
 
   /**
-   * Closes the client. This function can be called by other processes, or it
-   * can be called within the same class itself.
-   *
-   * NOTE: This function will not immediately close the server. It will
-   * finish one iteration of its run loop before it fully closes.
+   * Closes the client. This function can be called by other processes, but
+   * not within the class itself. It will wait for the client to fully close.
    */
   void close_client() {
     if (this->is_running()) {
       this->continue_running_ = false;
       this->join();
+    }
+  }
+
+  /**
+   * Closes the client. This function sends a signal to close the client, but
+   * it does not wait for the client to spin down.
+   */
+  void close_client_no_wait() {
+    if (this->is_running()) {
+      this->continue_running_ = false;
     }
   }
 

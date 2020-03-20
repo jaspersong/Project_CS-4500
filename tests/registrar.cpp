@@ -8,11 +8,14 @@
 // Lang::CwC
 
 #include "distributed_app.h"
+#include "stdout_msg_manager.h"
 
 int main(int argc, char **argv) {
   // Creates a server that sends all strings provided as arguments to the
   // client that connects to it.
-  Registrar * server = new Registrar(new String("127.0.0.1"), 1234, 4);
+  StdoutMessageManager msg_manager(0);
+  Registrar * server = new Registrar(new String("127.0.0.1"), 1234, 4,
+      msg_manager);
 
   // Run the server on localhost with port 1234
   server->start();

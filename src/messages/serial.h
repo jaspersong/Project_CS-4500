@@ -142,10 +142,11 @@ public:
    * @param buffer The buffer containing the message to deserialize_as_message.
    * @param num_bytes The number of bytes the buffer is.
    * @return A new instance of Message (cannot call any as_* functions) that
-   * the caller will now acquire. If it failed to deserialize_as_message, it will return
-   * with nullptr.
+   * the caller will now acquire. If it failed to deserialize_as_message, it
+   * will return with nullptr.
    */
-  static Message *deserialize_as_message_header(unsigned char *buffer, size_t num_bytes);
+  static Message *deserialize_as_message_header(unsigned char *buffer,
+                                                size_t num_bytes);
 
   /**
    * Takes the buffer provided and deserializes it into a new message instance.
@@ -154,7 +155,8 @@ public:
    * @return A new instance of the message with its contents deserialized. If
    *        it failed to deserialize_as_message, it will return with nullptr.
    */
-  static Message *deserialize_as_message(unsigned char *buffer, size_t num_bytes);
+  static Message *deserialize_as_message(unsigned char *buffer,
+                                         size_t num_bytes);
 
   /**
    * Casts the message to an Ack message, if the message is an Ack message.
@@ -308,15 +310,29 @@ public:
   Nack *as_nack() override { return this; }
 };
 
-class Put : public Message {
+/**
+ * An abstract class implementing a message that employs
+ * serializer/deserializers as the payload to facilitate more generic message
+ * payloads.
+ */
+class SerializerMessage_ : public Message {
 public:
-  /**
-   * Constructs a Put message.
-   */
-  Put() : Message(MsgKind::Put) {}
+  Deserializer *deserializer_;
+  bool owned_ = true;
 
   /**
-   * Constructs a Put message from a serialized buffer payload through
+   * Constructs a serializer message with the specified deserializer. The
+   * class will now own the provided deserializer.
+   * @param type The message type.
+   * @param deserializer The deserializer to be used as the payload for the
+   *        message.
+   */
+  SerializerMessage_(MsgKind type, Deserializer *deserializer) : Message(type) {
+    this->deserializer_ = deserializer;
+  }
+
+  /**
+   * Constructs a message from a serialized buffer payload through
    * deserialization
    * @param buffer A pointer to the start of the payload containing the
    *        status message.
@@ -325,110 +341,107 @@ public:
    *         terminate the program. A payload not of the correct message type
    *         will result in undefined behavior.
    */
-  Put(unsigned char *payload, size_t num_bytes) : Message(MsgKind::Put) {
-    // There is no payload
-    assert(num_bytes == 0);
+  SerializerMessage_(MsgKind type, unsigned char *payload, size_t num_bytes)
+      : Message(type) {
+    this->deserializer_ = new Deserializer(payload, num_bytes, false);
+  }
+
+  /**
+   * Constructs a message with a serializer.
+   * @param serializer Construct a put message with a serializer. This
+   *        serializer will be used afterwards, as it will take the resulting
+   *        buffer.
+   */
+  explicit SerializerMessage_(MsgKind type, Serializer &serializer)
+    : Message(type) {
+    this->deserializer_ =
+        new Deserializer(serializer.get_serialized_buffer(),
+                         serializer.get_size_serialized_data(), true);
+  }
+
+  /**
+   * Deconstructs the put message.
+   */
+  ~SerializerMessage_() override {
+    if (this->owned_ && this->deserializer_ != nullptr) {
+      delete this->deserializer_;
+    }
   }
 
   void serialize(Serializer &serializer) override {
-    // Just prepare the message header since it has no payload
-    this->set_payload_size(0);
-    return Message::serialize(serializer);
+    if (this->deserializer_ == nullptr) {
+      // Just prepare the message header since it has no payload
+      this->set_payload_size(0);
+      return Message::serialize(serializer);
+    } else {
+      this->set_payload_size(this->deserializer_->get_buffer_size());
+      Message::serialize(serializer);
+      serializer.set_generic(this->deserializer_->get_buffer(),
+                             this->deserializer_->get_buffer_size());
+    }
   }
+
+  /**
+   * Gets the deserializer associated with the message's payload. Once this
+   * function gets called, the deserializer is no longer owned by this
+   * object, and instead is owned by the caller.
+   * @return The deserializer. Nullptr if there is no payload associated with
+   * the message.
+   */
+  Deserializer *steal_deserializer() {
+    this->owned_ = false;
+    return this->deserializer_;
+  }
+};
+
+class Put : public SerializerMessage_ {
+public:
+  Put() : SerializerMessage_(MsgKind::Put, nullptr) {}
+
+  Put(unsigned char *payload, size_t num_bytes)
+      : SerializerMessage_(MsgKind::Put, payload, num_bytes) {}
+
+  explicit Put(Serializer &serializer)
+    : SerializerMessage_(MsgKind::Put, serializer) {}
 
   Put *as_put() override { return this; }
 };
 
-class Reply : public Message {
+class Reply : public SerializerMessage_ {
 public:
-  /**
-   * Constructs a Reply message.
-   */
-  Reply() : Message(MsgKind::Reply) {}
+  Reply() : SerializerMessage_(MsgKind::Reply, nullptr) {}
 
-  /**
-   * Constructs a Reply message from a serialized buffer payload through
-   * deserialization.
-   * @param buffer A pointer to the start of the payload containing the
-   *        status message.
-   * @param num_bytes The number of bytes the payload is.
-   * @throws If the provided payload does not have the expected size, it will
-   *         terminate the program. A payload not of the correct message type
-   *         will result in undefined behavior.
-   */
-  Reply(unsigned char *payload, size_t num_bytes) : Message(MsgKind::Reply) {
-    // There is no payload
-    assert(num_bytes == 0);
-  }
+  Reply(unsigned char *payload, size_t num_bytes)
+      : SerializerMessage_(MsgKind::Reply, payload, num_bytes) {}
 
-  void serialize(Serializer &serializer) override {
-    // Just prepare the message header since it has no payload
-    this->set_payload_size(0);
-    return Message::serialize(serializer);
-  }
+  explicit Reply(Serializer &serializer)
+    : SerializerMessage_(MsgKind::Reply, serializer) {}
 
   Reply *as_reply() override { return this; }
 };
 
-class Get : public Message {
+class Get : public SerializerMessage_ {
 public:
-  /**
-   * Constructs a Get message.
-   */
-  Get() : Message(MsgKind::Get) {}
+  Get() : SerializerMessage_(MsgKind::Get, nullptr) {}
 
-  /**
-   * Constructs a Get message from a serialized buffer payload through
-   * deserialization.
-   * @param buffer A pointer to the start of the payload containing the
-   *        status message.
-   * @param num_bytes The number of bytes the payload is.
-   * @throws If the provided payload does not have the expected size, it will
-   *         terminate the program. A payload not of the correct message type
-   *         will result in undefined behavior.
-   */
-  Get(unsigned char *payload, size_t num_bytes) : Message(MsgKind::Get) {
-    // There is no payload
-    assert(num_bytes == 0);
-  }
+  Get(unsigned char *payload, size_t num_bytes)
+      : SerializerMessage_(MsgKind::Get, payload, num_bytes) {}
 
-  void serialize(Serializer &serializer) override {
-    // Just prepare the message header since it has no payload
-    this->set_payload_size(0);
-    return Message::serialize(serializer);
-  }
+  explicit Get(Serializer &serializer)
+    : SerializerMessage_(MsgKind::Get, serializer) {}
 
   Get *as_get() override { return this; }
 };
 
-class WaitAndGet : public Message {
+class WaitAndGet : public SerializerMessage_ {
 public:
-  /**
-   * Constructs a WaitAndGet message.
-   */
-  WaitAndGet() : Message(MsgKind::WaitAndGet) {}
+  WaitAndGet() : SerializerMessage_(MsgKind::WaitAndGet, nullptr) {}
 
-  /**
-   * Constructs a WaitAndGet message from a serialized buffer payload through
-   * deserialization.
-   * @param buffer A pointer to the start of the payload containing the
-   *        status message.
-   * @param num_bytes The number of bytes the payload is.
-   * @throws If the provided payload does not have the expected size, it will
-   *         terminate the program. A payload not of the correct message type
-   *         will result in undefined behavior.
-   */
   WaitAndGet(unsigned char *payload, size_t num_bytes)
-      : Message(MsgKind::WaitAndGet) {
-    // There is no payload
-    assert(num_bytes == 0);
-  }
+      : SerializerMessage_(MsgKind::WaitAndGet, payload, num_bytes) {}
 
-  void serialize(Serializer &serializer) override {
-    // Just prepare the message header since it has no payload
-    this->set_payload_size(0);
-    return Message::serialize(serializer);
-  }
+  explicit WaitAndGet(Serializer &serializer)
+    : SerializerMessage_(MsgKind::WaitAndGet, serializer) {}
 
   WaitAndGet *as_waitandget() override { return this; }
 };
@@ -607,8 +620,8 @@ public:
 
   void serialize(Serializer &serializer) override {
     // Prepare the header
-    size_t payload_size = sizeof(this->client) +
-        Serializer::get_required_bytes(this->port);
+    size_t payload_size =
+        sizeof(this->client) + Serializer::get_required_bytes(this->port);
     this->set_payload_size(payload_size);
     Message::serialize(serializer);
 
@@ -696,6 +709,30 @@ public:
     for (size_t i = 0; i < this->clients; i++) {
       this->ports[i] = 0;
       this->addresses[i] = nullptr;
+    }
+  }
+
+  /**
+   * Copy constructor.
+   * @param director Directory to copy from
+   */
+  Directory(Directory &directory) : Message(MsgKind::Directory) {
+    this->clients = directory.clients;
+
+    this->ports = new size_t[this->clients];
+    for (size_t i = 0; i < this->clients; i++) {
+      this->ports[i] = directory.ports[i];
+    }
+
+    // Get the addresses
+    this->addresses = new String *[this->clients];
+    for (size_t i = 0; i < this->clients; i++) {
+      if (directory.addresses[i] != nullptr) {
+        this->addresses[i] = new String(directory.addresses[i]->c_str());
+      }
+      else {
+        this->addresses[i] = nullptr;
+      }
     }
   }
 
@@ -925,19 +962,19 @@ public:
   }
 };
 
-Message *Message::deserialize_as_message_header(unsigned char *buffer, size_t num_bytes) {
+Message *Message::deserialize_as_message_header(unsigned char *buffer,
+                                                size_t num_bytes) {
   if (num_bytes < Message::HEADER_SIZE) {
     // A valid message buffer should always have a header. A message
     // smaller than that is invalid.
     return nullptr;
-  }
-  else {
+  } else {
     // Begin deserializing the header
     Deserializer deserializer(buffer, num_bytes);
 
     // Build the MsgKind by pulling it byte by byte
     MsgKind type;
-    unsigned char *type_bytes = reinterpret_cast<unsigned char*>(&type);
+    unsigned char *type_bytes = reinterpret_cast<unsigned char *>(&type);
     for (size_t i = 0; i < sizeof(MsgKind); i++) {
       type_bytes[i] = deserializer.get_byte();
     }
@@ -958,7 +995,8 @@ Message *Message::deserialize_as_message_header(unsigned char *buffer, size_t nu
   }
 }
 
-Message *Message::deserialize_as_message(unsigned char *buffer, size_t num_bytes) {
+Message *Message::deserialize_as_message(unsigned char *buffer,
+                                         size_t num_bytes) {
   if (num_bytes < Message::HEADER_SIZE) {
     // A valid message buffer should always have a header. A message
     // smaller than that is invalid.

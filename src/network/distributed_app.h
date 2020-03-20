@@ -13,6 +13,7 @@
 
 #include "serial.h"
 #include "network.h"
+#include "recv_msg_manager.h"
 
 /**
  * A helper class that takes in serial data and waits until the data has
@@ -45,7 +46,7 @@ public:
    * will return a message if it constructs a full message, and the caller
    * will acquire the memory.
    */
-  Message *receive_data(unsigned char *receive, size_t num_bytes) {
+  Message *receive_data(const unsigned char *receive, size_t num_bytes) {
     // Added the provided data chunk into the buffer we are building.
     Message *ret_value = nullptr;
 
@@ -99,6 +100,7 @@ public:
   Directory *client_dir_;
 
   MessageReceiver_ *message_receiver_;
+  ReceivedMessageManager *tcp_msg_manager_;
 
   /**
    * Constructs a server with a fixed number of maximum number of clients.
@@ -106,8 +108,11 @@ public:
    * @param port_num The port number of the server.
    * @param max_num_clients The fixed number of maximum number of clients
    *        that the server can register at any given time.
+   * @param tcp_manager The TCP message manager that will handle receiving
+   *        the messages
    */
-  Registrar(String *ip_addr, int port_num, size_t max_num_clients)
+  Registrar(String *ip_addr, int port_num, size_t max_num_clients,
+            ReceivedMessageManager &tcp_manager)
       : Server(ip_addr, port_num, max_num_clients,
                Server::DEFAULT_MAX_RECEIVE_SIZE) {
     // Initialize the client directory
@@ -116,6 +121,7 @@ public:
     this->client_dir_->set_sender_id(-1);
 
     this->message_receiver_ = new MessageReceiver_();
+    this->tcp_msg_manager_ = &tcp_manager;
   }
 
   /**
@@ -136,7 +142,11 @@ public:
   }
 
   void run_server() override {
-    // NOthing special is required to run_server().
+    // Nothing special is required to run_server().
+  }
+
+  void handle_shutdown() override {
+    // Nothing special is required.
   }
 
   void handle_incoming_message(size_t client_id, unsigned char *buffer,
@@ -149,51 +159,39 @@ public:
     }
     switch (message->get_message_kind()) {
     case MsgKind::Ack: {
-      // TODO: What to do with this message? Ignoring it for now
-      printf("Received Ack message from client id %zu\n", client_id);
-      delete message;
+      this->tcp_msg_manager_->handle_ack(*message->as_ack());
       break;
     }
     case MsgKind::Nack: {
-      // TODO: What to do with this message? Ignoring it for now
-      printf("Received Nack message from client id %zu\n", client_id);
-      delete message;
+      this->tcp_msg_manager_->handle_nack(*message->as_nack());
       break;
     }
     case MsgKind::Put: {
-      // TODO: What to do with this message? Ignoring it for now
-      printf("Received Put message from client id %zu\n", client_id);
-      delete message;
+      this->tcp_msg_manager_->handle_put(*message->as_put());
       break;
     }
     case MsgKind::Get: {
-      // TODO: What to do with this message? Ignoring it for now
-      printf("Received Get message from client id %zu\n", client_id);
-      delete message;
+      this->tcp_msg_manager_->handle_get(*message->as_get());
       break;
     }
     case MsgKind::WaitAndGet: {
-      // TODO: What to do with this message? Ignoring it for now
-      printf("Received WaitAndGet message from client id %zu\n", client_id);
-      delete message;
+      this->tcp_msg_manager_->handle_waitandget(*message->as_waitandget());
       break;
     }
     case MsgKind::Status: {
-      // TODO: What to do with this message? Ignoring it for now
-      printf("Received Status message from client id %zu\n", client_id);
-      delete message;
+      this->tcp_msg_manager_->handle_status(*message->as_status());
       break;
     }
     case MsgKind::Kill: {
-      // TODO: What to do with this message? Ignoring it for now
       printf("Received Kill message from client id %zu\n", client_id);
-      delete message;
+      printf("Server cannot be killed. Ignoring command.\n");
       break;
     }
     case MsgKind::Register: {
       // Add this client to the directory
       printf("Received Register message from client id %zu\n", client_id);
 
+      // Register the client id to the directory
       Register *reg_message = message->as_register();
       String *ip_addr = reg_message->get_ip_addr();
       printf("Registered IP address %s, port number %d\n", ip_addr->c_str(),
@@ -205,7 +203,6 @@ public:
       // are connected.
       this->broadcast_client_directory_();
 
-      delete reg_message;
       delete ip_addr;
       break;
     }
@@ -213,17 +210,19 @@ public:
       // Do nothing with a directory message because this is the registration
       // server. The server should be the only one sending these sort of
       // messages.
-      printf("Received Directory message from client id %zu\n", client_id);
-      delete message;
+      printf("Received Directory message from client id %zu. Ignoring "
+             "command\n", client_id);
       break;
     }
     default: {
       // Invalid message type. Do nothing and just ignore it.
-      printf("Received invalid message from client id %zu\n", client_id);
-      delete message;
+      printf("Received invalid message from client id %zu. Ignoring.\n",
+          client_id);
       break;
     }
     }
+
+    delete message;
   }
 
   void handle_incoming_connection(size_t new_client_id, String *addr,
@@ -275,19 +274,30 @@ public:
   Lock *directory_lock_;
 
   MessageReceiver_ *message_receiver_;
+  ReceivedMessageManager *tcp_msg_manager_;
 
-  ClientDMManager_(String *ip_addr, int port_num, size_t max_clients)
+  ClientDMManager_(String *ip_addr, int port_num, size_t max_clients,
+                   ReceivedMessageManager &tcp_manager)
       : Server(ip_addr, port_num, max_clients, 1024) {
     this->directory_ = new Directory(max_clients);
     this->directory_lock_ = new Lock();
 
     this->message_receiver_ = new MessageReceiver_();
+    this->tcp_msg_manager_ = &tcp_manager;
   }
 
   ~ClientDMManager_() override {
     this->close_server();
     delete this->directory_;
     delete this->directory_lock_;
+  }
+
+  void init() override {
+    // Nothing special required
+  }
+
+  void handle_shutdown() override {
+    // NOthing special required
   }
 
   void handle_incoming_message(size_t client_id, unsigned char *buffer,
@@ -299,69 +309,52 @@ public:
     }
     switch (message->get_message_kind()) {
     case MsgKind::Ack: {
-      // TODO: What to do with this message? Ignoring it for now
-      printf("Received Ack message from client id %zu\n", client_id);
-      delete message;
+      this->tcp_msg_manager_->handle_ack(*message->as_ack());
       break;
     }
     case MsgKind::Nack: {
-      // TODO: What to do with this message? Ignoring it for now
-      printf("Received Nack message from client id %zu\n", client_id);
-      delete message;
+      this->tcp_msg_manager_->handle_nack(*message->as_nack());
       break;
     }
     case MsgKind::Put: {
-      // TODO: What to do with this message? Ignoring it for now
-      printf("Received Put message from client id %zu\n", client_id);
-      delete message;
+      this->tcp_msg_manager_->handle_put(*message->as_put());
       break;
     }
     case MsgKind::Get: {
-      // TODO: What to do with this message? Ignoring it for now
-      printf("Received Get message from client id %zu\n", client_id);
-      delete message;
+      this->tcp_msg_manager_->handle_get(*message->as_get());
       break;
     }
     case MsgKind::WaitAndGet: {
-      // TODO: What to do with this message? Ignoring it for now
-      printf("Received WaitAndGet message from client id %zu\n", client_id);
-      delete message;
+      this->tcp_msg_manager_->handle_waitandget(*message->as_waitandget());
       break;
     }
     case MsgKind::Status: {
-      // TODO: What to do with this message? Ignoring it for now
-      String *status_message = message->as_status()->get_message();
-      printf("Received Status message from client id %zu\n", client_id);
-      printf("Status message: %s\n", status_message->c_str());
-      delete message;
-      delete status_message;
+      this->tcp_msg_manager_->handle_status(*message->as_status());
       break;
     }
     case MsgKind::Kill: {
-      // TODO: What to do with this message? Ignoring it for now
-      printf("Received Kill message from client id %zu\n", client_id);
-      delete message;
+      printf("Received Kill message from client id %zu. Ignoring command.\n",
+          client_id);
       break;
     }
     case MsgKind::Register: {
-      // TODO: What to do with this message? Ignoring it for now
-      printf("Received Register message from client id %zu\n", client_id);
-      delete message;
+      printf("Received Register message from client id %zu. Ignoring "
+             "command.\n", client_id);
       break;
     }
     case MsgKind::Directory: {
-      // TODO: What to do with this message? Ignoring it for now
-      printf("Received Directory message from client id %zu\n", client_id);
-      delete message;
+      printf("Received Directory message from client id %zu. Ignoring "
+             "command.\n", client_id);
       break;
     }
     default: {
       // Invalid message type. Do nothing and just ignore it.
       printf("Received invalid message from client id %zu\n", client_id);
-      delete message;
       break;
     }
     }
+
+    delete message;
   }
 
   void handle_incoming_connection(size_t new_client_id, String *addr,
@@ -422,7 +415,7 @@ public:
    * passed into the function, this function will take ownership.
    * @param bytes The number of bytes of this message.
    * @return True if the message has successfully been queued. False if
-   * otehrwise.
+   * otherwise.
    */
   bool send_direct_message(size_t client_id, unsigned char *message,
                            size_t bytes) {
@@ -470,6 +463,7 @@ public:
   ClientDMManager_ *dm_manager_;
 
   MessageReceiver_ *message_receiver_;
+  ReceivedMessageManager *tcp_msg_manager_;
 
   /**
    * Constructs a client.
@@ -480,15 +474,21 @@ public:
    * @param fixed_num_clients The fixed number of clients that the client can
    *        directly communicate with after receiving the addresses from the
    *        server.
-   * @param port_num The port number the client will be listening in on.
+   * @param tcp_manager The TCP message manager that will handle receiving
+   *        the messages from server and node.
+   * @param dm_tcp_manager The TCP message manager that will handle receiving
+   *        the messages going directly between nodes
    */
   Node(String *server_ip_addr, int server_port_num, String *ip_addr,
-       int port_num, size_t fixed_num_clients)
+       int port_num, size_t fixed_num_clients,
+       ReceivedMessageManager &tcp_manager,
+       ReceivedMessageManager &dm_tcp_manager)
       : Client(server_ip_addr, server_port_num, fixed_num_clients) {
     this->dm_manager_ =
-        new ClientDMManager_(ip_addr, port_num, fixed_num_clients);
+        new ClientDMManager_(ip_addr, port_num, fixed_num_clients, dm_tcp_manager);
 
     this->message_receiver_ = new MessageReceiver_();
+    this->tcp_msg_manager_ = &tcp_manager;
   }
 
   /**
@@ -519,6 +519,10 @@ public:
     this->send_message(msg, num_bytes);
   }
 
+  void handle_shutdown() override {
+    this->dm_manager_->close_server();
+  }
+
   void run_client() override {}
 
   void handle_incoming_message(unsigned char *buffer,
@@ -530,51 +534,45 @@ public:
     }
     switch (message->get_message_kind()) {
     case MsgKind::Ack: {
-      // TODO: What to do with this message? Ignoring it for now
-      printf("Received Ack from server\n");
+      this->tcp_msg_manager_->handle_ack(*message->as_ack());
       delete message;
       break;
     }
     case MsgKind::Nack: {
-      // TODO: What to do with this message? Ignoring it for now
-      printf("Received Nack from server\n");
+      this->tcp_msg_manager_->handle_nack(*message->as_nack());
       delete message;
       break;
     }
     case MsgKind::Put: {
-      // TODO: What to do with this message? Ignoring it for now
-      printf("Received Put from server\n");
+      this->tcp_msg_manager_->handle_put(*message->as_put());
       delete message;
       break;
     }
     case MsgKind::Get: {
-      // TODO: What to do with this message? Ignoring it for now
-      printf("Received Get from server\n");
+      this->tcp_msg_manager_->handle_get(*message->as_get());
       delete message;
       break;
     }
     case MsgKind::WaitAndGet: {
-      // TODO: What to do with this message? Ignoring it for now
-      printf("Received WaitAndGet from server\n");
+      this->tcp_msg_manager_->handle_waitandget(*message->as_waitandget());
       delete message;
       break;
     }
     case MsgKind::Status: {
-      // TODO: What to do with this message? Ignoring it for now
-      printf("Received Status from server\n");
+      this->tcp_msg_manager_->handle_status(*message->as_status());
       delete message;
       break;
     }
     case MsgKind::Kill: {
-      // TODO: What to do with this message? Ignoring it for now
-      printf("Received Kill from server\n");
+      printf("Received a kill message from the server. Initiating client "
+             "spin-down.\n");
+      this->close_client_no_wait();
       delete message;
       break;
     }
     case MsgKind::Register: {
-      // Do nothing with a register message, since this is just a client who
-      // doesn't handle registration.
-      printf("Received Register from server\n");
+      printf("Received a register message from the server. Ignoring message"
+             ".\n");
       delete message;
       break;
     }
@@ -591,11 +589,6 @@ public:
       break;
     }
     }
-  }
-
-  void handle_closing_connection() override {
-    // Close the DM manager
-    this->dm_manager_->close_server();
   }
 
   /**
@@ -626,7 +619,7 @@ public:
    * passed into the function, this function will take ownership.
    * @param bytes The number of bytes of this message.
    * @return True if the message has successfully been queued. False if
-   * otehrwise.
+   * otherwise.
    */
   bool send_direct_message(size_t client_id, unsigned char *message,
                            size_t bytes) {
