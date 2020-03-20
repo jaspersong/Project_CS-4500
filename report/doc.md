@@ -61,7 +61,7 @@ WaitAndGet message to the node id associated to that Key.
 
 ## Implementation
 
-###dataframe Folder
+### Dataframe Folder
 * `dataframe.h`
 An implementation of thread that will be used to concurrently iterate
 through the rows of a dataframe. A RowerThread_ will only every other
@@ -540,146 +540,16 @@ for(size_t i = 0; i <  1000 * 1000; i++) {
 }
 ```
 
-### Serialization
+In addition, a DataFrame can be read from a `*.sor` file using the
+SorerIntegrator class, which is the API interface that integrates the code
+provided by the 4500ne team's Sorer implementation with the rest of the code
+base. 
 
-#### Serializer
-
-The Serializer can be used to serialize an object. For example, the following
-code is used in order to serialize the header of a Message:
+An example of a sor file being read into a Dataframe is as follows:
 ```C++
-void serialize(Serializer &serializer) override {
-  serializer.set_generic(&this->kind_, sizeof(MsgKind));
-  serializer.set_size_t(this->sender_);
-  serializer.set_size_t(this->target_);
-  serializer.set_size_t(this->id_);
-  serializer.set_size_t(this->size_);
-}
-```
-
-If the provided serializer has serialized data already, the function will append
-the newly serialized data after.
-
-#### Deserializer
-
-On the reverse side, the Deserializer can be used to deserialize an object. For
-example, the following code deserializes the header of the Message in the
-Serializer example:
-```C++
-Deserializer deserializer(buffer, num_bytes);
-
-// Build the MsgKind by pulling it byte by byte
-MsgKind type;
-unsigned char *type_bytes = reinterpret_cast<unsigned char*>(&type);
-for (size_t i = 0; i < sizeof(MsgKind); i++) {
-  type_bytes[i] = deserializer.get_byte();
-}
-
-// Now get the rest of the header
-size_t sender = deserializer.get_size_t();
-size_t target = deserializer.get_size_t();
-size_t id = deserializer.get_size_t();
-size_t len = deserializer.get_size_t();
-```
-
-### Network
-
-Because the Server and Client classes are abstract, they can be tuned to
-specific tasks by overriding specific callback functions. A simple example of
-this is an EchoServer and EchoClient, where the Client sends ASCII string 
-messages to the server, and the server sends the message back verbatim to the 
-client.
-
-The following is the code for what amounts to be the EchoServer:
-```C++
-class EchoServer : public Server {
-public:
-  EchoServer(String *ip_addr, int port_num) : Server(ip_addr, port_num, 3,
-      1024) {}
-
-  void handle_incoming_message(size_t client_id,
-                               unsigned char *buffer,
-                               size_t num_bytes) override {
-    // Print out the message to stdout
-    printf("Received message from client_id %zu: %s\n", client_id, buffer);
-
-    // Now send a message in response
-    const char * reply = "Received client message: ";
-    size_t reply_size = strlen(reply) + num_bytes;
-    char * msg = new char[reply_size];
-    strcpy(msg, reply);
-    strcat(msg, reinterpret_cast<const char *>(buffer));
-    this->send_message(client_id, reinterpret_cast<unsigned char *>(msg),
-                       reply_size);
-    printf("Sent response \"%s\".\n", msg);
-  }
-
-  void handle_incoming_connection(size_t new_client_id, String *
-    addr, int port_num) override {
-    printf("New incoming connection from client_id %zu, address %s, port "
-           "number %d\n",
-        new_client_id, addr->c_str(), port_num);
-  }
-
-  void handle_closing_connection(size_t client_id) override {
-    printf("Closed connection from client_id %zu\n", client_id);
-  }
-};
-
-int main(int argc, char **argv) {
-  // Creates a server that sends all strings
-  EchoServer * server = new EchoServer(new String("127.0.0.1"), 1234);
-
-  // Run the server on localhost with port 1234
-  server->start();
-
-  sleep(30);
-  server->close_server();
-  delete server;
-
-  return 0;
-}
-``` 
-
-The following is the code for what amounts to be the EchoClient:
-```C++
-class EchoClient : public Client {
-public:
-  EchoClient(String *server_ip_addr, int server_port_num) :
-    Client(server_ip_addr, server_port_num) {}
-
-  void handle_incoming_message(unsigned char *buffer,
-                               size_t num_bytes) override {
-    // Print out the message to stdout
-    printf("Received message from server: %s\n", buffer);
-  }
-
-  void handle_closing_connection() override {
-    printf("Server has closed the connection.\n");
-    printf("Closing the client as well.\n");
-  }
-};
-
-int main(int argc, char **argv) {
-  // Creates a server that sends all strings provided as arguments to the
-  // client that connects to it.
-  EchoClient * client = new EchoClient(new String("127.0.0.1"), 1234);
-
-  // Queue up all the messages
-  for (int i = 0; i < argc; i++) {
-    size_t message_size = strlen(argv[i]);
-    unsigned char * message = new unsigned char[message_size];
-    strcpy(reinterpret_cast<char *>(message), argv[i]);
-    client->send_message(message, message_size + 1);
-  }
-
-  client->start();
-
-  sleep(10);
-  client->close_client();
-  delete client;
-
-  return 0;
-}
+SorerIntegrator integrator("../data/spacey.sor");
+integrator.parse();
+DataFrame *df = integrator.convert();
 ```
 
 ### Application
@@ -714,7 +584,7 @@ int main(int argc, char **argv) {
 
 ## Open questions
 
-- What will the official use case for the eau2 system going to be?
+None thus far.
 
 ## Status
 
@@ -738,4 +608,9 @@ structure in regard to a growing buffer of large amounts of data
 the direct communication between nodes
 - Message queue within the TCP message manager (AKA, using Ack and Nack). 
 Currently it's running UDP-style. 
+- Fix memory leaks in following test suites:
+    - dataframe
+    - serializer/messages
+    - network
+    - sorer integration
  
