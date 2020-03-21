@@ -28,8 +28,8 @@ public:
       sum += i;
     }
 
-    Key key("triv",0);
-    DataFrame* df = DataFrame::fromArray(&key, &this->kv, SZ, vals);
+    Key key("triv", 0);
+    DataFrame* df = KeyValueStore::fromArray(&key, this->kv, SZ, vals);
     assert(df->get_float(0,1) == 1);
 
     DataFrame* df2 = reinterpret_cast<DataFrame *>(this->kv.get(&key));

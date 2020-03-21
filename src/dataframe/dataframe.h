@@ -9,7 +9,7 @@
 
 #pragma once
 
-#include <application/application.h>
+#include <application.h>
 #include <stdlib.h>
 
 #include "custom_object.h"
@@ -453,98 +453,5 @@ public:
     // Use a rower to print out the dataframe
     PrintRower rower;
     this->map(rower);
-  }
-
-  /**
-   * Generates a Dataframe out of the provided array, and then stores it
-   * within the map at the specified key.
-   * @param key The key associated with the new dataframe.
-   * @param map The map that will store the dataframe at the specified key.
-   * @param num_values The number of values of the provided array.
-   * @param values The array of valuas that will be used to create a dataframe
-   * @return The newly created dataframe
-   */
-  static DataFrame *fromArray(Key *key, Map *map, size_t num_values,
-      float *values) {
-    assert(key != nullptr);
-    assert(map != nullptr);
-    assert(values != nullptr);
-
-    // Create the dataframe
-    Schema schema("F");
-    DataFrame *ret_value = new DataFrame(schema);
-
-    for (size_t i = 0; i < num_values; i++) {
-      Row r(ret_value->get_schema());
-      r.set(0, values[i]);
-      ret_value->add_row(r);
-    }
-
-    map->put(key, ret_value);
-
-    return ret_value;
-  }
-
-  static DataFrame *fromArray(Key *key, Map *map, size_t num_values,
-                              int *values) {
-    assert(key != nullptr);
-    assert(map != nullptr);
-    assert(values != nullptr);
-
-    // Create the dataframe
-    Schema schema("I");
-    DataFrame *ret_value = new DataFrame(schema);
-
-    for (size_t i = 0; i < num_values; i++) {
-      Row r(ret_value->get_schema());
-      r.set(0, values[i]);
-      ret_value->add_row(r);
-    }
-
-    map->put(key, ret_value);
-
-    return ret_value;
-  }
-
-  static DataFrame *fromArray(Key *key, Map *map, size_t num_values,
-                              bool *values) {
-    assert(key != nullptr);
-    assert(map != nullptr);
-    assert(values != nullptr);
-
-    // Create the dataframe
-    Schema schema("B");
-    DataFrame *ret_value = new DataFrame(schema);
-
-    for (size_t i = 0; i < num_values; i++) {
-      Row r(ret_value->get_schema());
-      r.set(0, values[i]);
-      ret_value->add_row(r);
-    }
-
-    map->put(key, ret_value);
-
-    return ret_value;
-  }
-
-  static DataFrame *fromArray(Key *key, Map *map, size_t num_values,
-                              String **values) {
-    assert(key != nullptr);
-    assert(map != nullptr);
-    assert(values != nullptr);
-
-    // Create the dataframe
-    Schema schema("S");
-    DataFrame *ret_value = new DataFrame(schema);
-
-    for (size_t i = 0; i < num_values; i++) {
-      Row r(ret_value->get_schema());
-      r.set(0, values[i]);
-      ret_value->add_row(r);
-    }
-
-    map->put(key, ret_value);
-
-    return ret_value;
   }
 };

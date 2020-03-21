@@ -12,6 +12,7 @@
 #include "custom_object.h"
 #include "map.h"
 #include "thread.h"
+#include "key_value_store.h"
 
 /**
  * An interface that details the API functions needed for an application that
@@ -19,12 +20,22 @@
  */
 class Application : public Thread {
 public:
-  Map kv;
+  KeyValueStore *kv;
+
+  Application(size_t node_id) {
+    this->kv = new KeyValueStore(node_id);
+  }
 
   /**
    * The main function of the application.
    */
   void run() override { assert(false); }
+
+  /**
+   * Gets the node id that the application is running on.
+   * @return The node id that the application is running on. -1 if it is running on the server.
+   */
+  size_t get_node_id() { return -1; }
 };
 
 /**
