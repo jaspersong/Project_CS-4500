@@ -5,7 +5,7 @@
  * Email: chen.xinu@husky.neu.edu, song.jo@husky.neu.edu
  */
 
-//lang::CwC
+// lang::CwC
 
 #pragma once
 

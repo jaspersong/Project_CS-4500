@@ -17,9 +17,7 @@ class StdoutMessageManager : public ReceivedMessageManager {
 public:
   size_t std_id;
 
-  explicit StdoutMessageManager(size_t std_id) {
-    this->std_id = std_id;
-  }
+  explicit StdoutMessageManager(size_t std_id) { this->std_id = std_id; }
 
   void handle_ack(Ack &msg) override {
     printf("%zu: Received ack message.\n", this->std_id);
@@ -46,8 +44,8 @@ public:
 
   bool handle_status(Status &msg) override {
     String *status_message = msg.get_message();
-    printf("%zu: Received a status message: %s\n",
-        this->std_id, status_message->c_str());
+    printf("%zu: Received a status message: %s\n", this->std_id,
+           status_message->c_str());
     delete status_message;
 
     return true;

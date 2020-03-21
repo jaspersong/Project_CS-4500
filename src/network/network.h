@@ -85,7 +85,7 @@ public:
                         // if it is not used
   fd_set socket_set_;   // A socket set selector to manage multiple clients
   int max_socket_descriptor_; // The current maximum file descriptor.
-  Lock *loop_lock_; // Locks whenever a server loop is running
+  Lock *loop_lock_;           // Locks whenever a server loop is running
 
   unsigned char *receive_buffer_;
   Queue *outgoing_message_queue_;
@@ -210,8 +210,7 @@ public:
    *        external to the server implementation.
    * @param num_bytes The number of bytes of the message.
    */
-  virtual void handle_incoming_message(size_t client_id,
-                                       unsigned char *buffer,
+  virtual void handle_incoming_message(size_t client_id, unsigned char *buffer,
                                        size_t num_bytes) {
     return;
   }
@@ -424,8 +423,7 @@ public:
   bool is_client_connected(size_t client_id) {
     if ((client_id < 0) || (client_id > this->max_clients_)) {
       return false;
-    }
-    else {
+    } else {
       return (this->client_sockets_[client_id] != 0);
     }
   }
@@ -456,10 +454,9 @@ public:
     // Initiate the connection
     int new_socket = 0;
     assert((new_socket = socket(AF_INET, SOCK_STREAM, 0)) >= 0);
-    assert(inet_pton(AF_INET, ip_addr->c_str(), &connection.sin_addr) >
-           0);
+    assert(inet_pton(AF_INET, ip_addr->c_str(), &connection.sin_addr) > 0);
     assert(connect(new_socket, (struct sockaddr *)&connection,
-        sizeof(connection)) >= 0);
+                   sizeof(connection)) >= 0);
 
     // Add the new socket
     this->loop_lock_->lock();

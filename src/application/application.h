@@ -10,9 +10,9 @@
 #pragma once
 
 #include "custom_object.h"
+#include "key_value_store.h"
 #include "map.h"
 #include "thread.h"
-#include "key_value_store.h"
 
 /**
  * An interface that details the API functions needed for an application that
@@ -22,9 +22,7 @@ class Application : public Thread {
 public:
   KeyValueStore *kv;
 
-  Application(size_t node_id) {
-    this->kv = new KeyValueStore(node_id);
-  }
+  Application(size_t node_id) { this->kv = new KeyValueStore(node_id); }
 
   /**
    * The main function of the application.
@@ -33,7 +31,8 @@ public:
 
   /**
    * Gets the node id that the application is running on.
-   * @return The node id that the application is running on. -1 if it is running on the server.
+   * @return The node id that the application is running on. -1 if it is running
+   * on the server.
    */
   size_t get_node_id() { return -1; }
 };
@@ -51,13 +50,9 @@ public:
     this->home_id = home_id;
   }
 
-  ~Key() override {
-    delete this->name;
-  }
+  ~Key() override { delete this->name; }
 
-  size_t hash_me() override {
-    return this->home_id + this->name->hash();
-  };
+  size_t hash_me() override { return this->home_id + this->name->hash(); };
 
   bool equals(CustomObject *other) override {
     if (other == this)
@@ -74,7 +69,7 @@ public:
   }
 
   size_t serialization_required_bytes() override {
-    return Serializer::get_required_bytes(this->home_id)
-      + this->name->serialization_required_bytes();
+    return Serializer::get_required_bytes(this->home_id) +
+           this->name->serialization_required_bytes();
   }
 };

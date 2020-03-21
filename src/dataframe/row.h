@@ -5,7 +5,7 @@
  * Email: chen.xinu@husky.neu.edu, song.jo@husky.neu.edu
  */
 
-//lang::CwC
+// lang::CwC
 
 #pragma once
 
@@ -41,7 +41,8 @@ public:
 
     // Initialize the values to all 0s
     while (this->value_list->size() < this->schema_->width()) {
-      // Fill the value list until it has the same number of columns as the schema
+      // Fill the value list until it has the same number of columns as the
+      // schema
       DataItem_ data_item;
       data_item.o = nullptr;
       while (this->value_list->size() < this->schema_->width()) {
@@ -108,13 +109,9 @@ public:
 
   /** Set/get the index of this row (ie. its position in the dataframe. This is
    *  only used for informational purposes, unused otherwise */
-  void set_idx(size_t idx) {
-    this->row_index = idx;
-  }
+  void set_idx(size_t idx) { this->row_index = idx; }
 
-  size_t get_idx() {
-    return this->row_index;
-  }
+  size_t get_idx() { return this->row_index; }
 
   /** Getters: get the value at the given column. If the column is not
    * of the requested type, the result is undefined. */
@@ -170,9 +167,7 @@ public:
   }
 
   /** Type of the field at the given position. An idx >= width is  undefined. */
-  char col_type(size_t idx) {
-    return this->schema_->col_type(idx);
-  }
+  char col_type(size_t idx) { return this->schema_->col_type(idx); }
 
   /** Given a Fielder, visit every field of this row.
    * Calling this method before the row's fields have been set is undefined. */

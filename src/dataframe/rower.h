@@ -5,7 +5,7 @@
  * Email: chen.xinu@husky.neu.edu, song.jo@husky.neu.edu
  */
 
-//lang::CwC
+// lang::CwC
 
 #pragma once
 
@@ -34,7 +34,5 @@ public:
       split off will be joined.  There will be one join per split. The
       original object will be the last to be called join on. The join method
       is reponsible for cleaning up memory. */
-  virtual void join_delete(Rower *other) {
-    delete other;
-  }
+  virtual void join_delete(Rower *other) { delete other; }
 };

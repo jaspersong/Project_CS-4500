@@ -5,7 +5,7 @@
  * Email: chen.xinu@husky.neu.edu, song.jo@husky.neu.edu
  */
 
-//lang::CwC
+// lang::CwC
 
 #pragma once
 
@@ -31,7 +31,7 @@ public:
    * @param row  The row that this fielder will be iterating through. The row
    *        passed remains external.
    */
-  explicit PrintFielder(Row& row) {
+  explicit PrintFielder(Row &row) {
     this->row_ = &row;
     this->completed_ = false;
   }
@@ -43,30 +43,21 @@ public:
     }
   }
 
-  void accept(bool b) override {
-    printf("<%d> ", b);
-  }
+  void accept(bool b) override { printf("<%d> ", b); }
 
-  void accept(float f) override {
-    printf("<%f> ", f);
-  }
+  void accept(float f) override { printf("<%f> ", f); }
 
-  void accept(int i) override {
-    printf("<%d> ", i);
-  }
+  void accept(int i) override { printf("<%d> ", i); }
 
-  void accept(String* s) override {
+  void accept(String *s) override {
     if (s != nullptr) {
       printf("<%s> ", s->c_str());
-    }
-    else {
+    } else {
       printf("<> ");
     }
   }
 
-  void done() override {
-    this->completed_ = true;
-  }
+  void done() override { this->completed_ = true; }
 };
 
 /**
@@ -77,7 +68,7 @@ class PrintRower : public Rower {
 public:
   bool accept(Row &r) override {
     // Use a fielder to print out this row.
-    PrintFielder * fielder = new PrintFielder(r);
+    PrintFielder *fielder = new PrintFielder(r);
     fielder->start(r.get_idx());
     fielder->done();
 

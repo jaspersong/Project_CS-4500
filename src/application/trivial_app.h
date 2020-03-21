@@ -19,8 +19,8 @@
 class Trivial : public Application {
 public:
   void run() override {
-    size_t SZ = 1000*1000;
-    float* vals = new float[SZ];
+    size_t SZ = 1000 * 1000;
+    float *vals = new float[SZ];
 
     double sum = 0;
     for (size_t i = 0; i < SZ; ++i) {
@@ -29,12 +29,13 @@ public:
     }
 
     Key key("triv", 0);
-    DataFrame* df = KeyValueStore::fromArray(&key, this->kv, SZ, vals);
-    assert(df->get_float(0,1) == 1);
+    DataFrame *df = KeyValueStore::fromArray(&key, this->kv, SZ, vals);
+    assert(df->get_float(0, 1) == 1);
 
-    DataFrame* df2 = reinterpret_cast<DataFrame *>(this->kv.get(&key));
-    for (size_t i = 0; i < SZ; ++i) sum -= df2->get_float(0,i);
-    assert(sum==0);
+    DataFrame *df2 = reinterpret_cast<DataFrame *>(this->kv.get(&key));
+    for (size_t i = 0; i < SZ; ++i)
+      sum -= df2->get_float(0, i);
+    assert(sum == 0);
 
     delete df;
   }

@@ -353,7 +353,7 @@ public:
    *        buffer.
    */
   explicit SerializerMessage_(MsgKind type, Serializer &serializer)
-    : Message(type) {
+      : Message(type) {
     this->deserializer_ =
         new Deserializer(serializer.get_serialized_buffer(),
                          serializer.get_size_serialized_data(), true);
@@ -402,7 +402,7 @@ public:
       : SerializerMessage_(MsgKind::Put, payload, num_bytes) {}
 
   explicit Put(Serializer &serializer)
-    : SerializerMessage_(MsgKind::Put, serializer) {}
+      : SerializerMessage_(MsgKind::Put, serializer) {}
 
   Put *as_put() override { return this; }
 };
@@ -415,7 +415,7 @@ public:
       : SerializerMessage_(MsgKind::Reply, payload, num_bytes) {}
 
   explicit Reply(Serializer &serializer)
-    : SerializerMessage_(MsgKind::Reply, serializer) {}
+      : SerializerMessage_(MsgKind::Reply, serializer) {}
 
   Reply *as_reply() override { return this; }
 };
@@ -428,7 +428,7 @@ public:
       : SerializerMessage_(MsgKind::Get, payload, num_bytes) {}
 
   explicit Get(Serializer &serializer)
-    : SerializerMessage_(MsgKind::Get, serializer) {}
+      : SerializerMessage_(MsgKind::Get, serializer) {}
 
   Get *as_get() override { return this; }
 };
@@ -441,7 +441,7 @@ public:
       : SerializerMessage_(MsgKind::WaitAndGet, payload, num_bytes) {}
 
   explicit WaitAndGet(Serializer &serializer)
-    : SerializerMessage_(MsgKind::WaitAndGet, serializer) {}
+      : SerializerMessage_(MsgKind::WaitAndGet, serializer) {}
 
   WaitAndGet *as_waitandget() override { return this; }
 };
@@ -729,8 +729,7 @@ public:
     for (size_t i = 0; i < this->clients; i++) {
       if (directory.addresses[i] != nullptr) {
         this->addresses[i] = new String(directory.addresses[i]->c_str());
-      }
-      else {
+      } else {
         this->addresses[i] = nullptr;
       }
     }

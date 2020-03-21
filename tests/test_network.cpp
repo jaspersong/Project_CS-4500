@@ -7,8 +7,8 @@
 
 // lang::Cpp
 
-#include "network.h"
 #include "helper.h"
+#include "network.h"
 
 Sys helper;
 
@@ -16,8 +16,8 @@ void test_server() {
   // Simply create the abstract server class in order to test the basic
   // functionality of the server that do not involve the
   // interaction between the client and server
-  Server * dummy_server0 = new Server(new String("127.0.0.1"), 1234);
-  Server * dummy_server1 = new Server(new String("127.0.0.1"), 1234, 30, 200);
+  Server *dummy_server0 = new Server(new String("127.0.0.1"), 1234);
+  Server *dummy_server1 = new Server(new String("127.0.0.1"), 1234, 30, 200);
 
   helper.t_false(dummy_server0->is_running());
   helper.t_true(dummy_server0->get_max_clients() == 1);
@@ -35,8 +35,8 @@ void test_client() {
   // Simply create the abstract client class in order to test the basic
   // functionality of the client that do not involve the interaction between
   // client and server
-  Client * dummy_client0 = new Client(new String("127.0.0.1"), 1234);
-  Client * dummy_client1 = new Client(new String("127.0.0.1"), 1234, 100);
+  Client *dummy_client0 = new Client(new String("127.0.0.1"), 1234);
+  Client *dummy_client1 = new Client(new String("127.0.0.1"), 1234, 100);
 
   helper.t_false(dummy_client0->is_running());
   helper.t_true(dummy_client0->get_max_receive_size() == 1024);

@@ -9,9 +9,9 @@
 
 #pragma once
 
-#include "thread.h"
-#include "serial.h"
 #include "network.h"
+#include "serial.h"
+#include "thread.h"
 
 /**
  * An abstract class that manages the messages received by the particular

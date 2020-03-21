@@ -10,9 +10,9 @@
 #pragma once
 
 #include <arpa/inet.h>
+#include <assert.h>
 #include <netinet/in.h>
 #include <stdlib.h>
-#include <assert.h>
 
 /**
  * A helper class that assists with serializing data. It is meant to assist
@@ -230,8 +230,8 @@ public:
    * the beginning of the buffer when reading.
    * @param deserializer The deserializer to copy from.
    */
-  Deserializer(Deserializer& deserializer) :
-    Deserializer(deserializer.buffer, deserializer.num_bytes, false) {}
+  Deserializer(Deserializer &deserializer)
+      : Deserializer(deserializer.buffer, deserializer.num_bytes, false) {}
 
   /**
    * A constructor of a deserializer.
@@ -248,13 +248,11 @@ public:
       this->buffer = buffer;
       this->num_bytes = num_bytes;
       this->offset_ = 0;
-    }
-    else {
+    } else {
       this->num_bytes = num_bytes;
       this->offset_ = 0;
       this->buffer = new unsigned char[this->num_bytes];
-      memcpy(this->buffer,
-             reinterpret_cast<const void *>(buffer),
+      memcpy(this->buffer, reinterpret_cast<const void *>(buffer),
              this->num_bytes);
     }
 
@@ -460,15 +458,11 @@ public:
    *        deserializer, or whoever had created the deserializer. So this
    *        buffer should not be modified.
    */
-  unsigned char *get_buffer() {
-    return this->buffer;
-  }
+  unsigned char *get_buffer() { return this->buffer; }
 
   /**
    * The number of bytes that the buffer is.
    * @return The size of the buffer.
    */
-  size_t get_buffer_size() {
-    return this->num_bytes;
-  }
+  size_t get_buffer_size() { return this->num_bytes; }
 };

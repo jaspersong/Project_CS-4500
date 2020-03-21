@@ -2,8 +2,8 @@
 
 #include "custom_object.h"
 #include "custom_string.h"
-#include "queue.h"
 #include "helper.h"
+#include "queue.h"
 
 Sys helper;
 

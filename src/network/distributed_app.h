@@ -11,9 +11,9 @@
 
 #include "queue.h"
 
-#include "serial.h"
 #include "network.h"
 #include "recv_msg_manager.h"
+#include "serial.h"
 
 /**
  * A helper class that takes in serial data and waits until the data has
@@ -32,9 +32,7 @@ public:
     this->buffer_index = 0;
   }
 
-  ~MessageReceiver_() {
-    delete[] this->buffer;
-  }
+  ~MessageReceiver_() { delete[] this->buffer; }
 
   /**
    * Takes in a serial data chunk and determines if it constructs a full
@@ -74,8 +72,8 @@ public:
             Message::deserialize_as_message(this->buffer, this->buffer_index);
 
         // Move the left over to the beginning
-        size_t prev_message_size = header->get_payload_size() -
-            Message::HEADER_SIZE;
+        size_t prev_message_size =
+            header->get_payload_size() - Message::HEADER_SIZE;
         for (size_t i = 0; i < this->buffer_index - prev_message_size; i++) {
           this->buffer[i] = this->buffer[i + prev_message_size];
         }
@@ -211,13 +209,14 @@ public:
       // server. The server should be the only one sending these sort of
       // messages.
       printf("Received Directory message from client id %zu. Ignoring "
-             "command\n", client_id);
+             "command\n",
+             client_id);
       break;
     }
     default: {
       // Invalid message type. Do nothing and just ignore it.
       printf("Received invalid message from client id %zu. Ignoring.\n",
-          client_id);
+             client_id);
       break;
     }
     }
@@ -258,7 +257,7 @@ public:
         // Send the data
         this->send_message(i, broadcast, broadcast_size);
         printf("Sent directory message, size %zu to client id %zu\n",
-            broadcast_size, i);
+               broadcast_size, i);
       }
     }
   }
@@ -334,17 +333,19 @@ public:
     }
     case MsgKind::Kill: {
       printf("Received Kill message from client id %zu. Ignoring command.\n",
-          client_id);
+             client_id);
       break;
     }
     case MsgKind::Register: {
       printf("Received Register message from client id %zu. Ignoring "
-             "command.\n", client_id);
+             "command.\n",
+             client_id);
       break;
     }
     case MsgKind::Directory: {
       printf("Received Directory message from client id %zu. Ignoring "
-             "command.\n", client_id);
+             "command.\n",
+             client_id);
       break;
     }
     default: {
@@ -381,13 +382,12 @@ public:
       if (this->directory_->is_client_connected(client_id)) {
         String *ip_addr = this->directory_->get_client_ip_addr(client_id);
         int port_num = this->directory_->get_client_port_num(client_id);
-        bool ret_value = this->initiate_connection(client_id, ip_addr,
-            port_num);
+        bool ret_value =
+            this->initiate_connection(client_id, ip_addr, port_num);
 
         delete ip_addr;
         return ret_value;
-      }
-      else {
+      } else {
         return false;
       }
     } else {
@@ -484,8 +484,8 @@ public:
        ReceivedMessageManager &tcp_manager,
        ReceivedMessageManager &dm_tcp_manager)
       : Client(server_ip_addr, server_port_num, fixed_num_clients) {
-    this->dm_manager_ =
-        new ClientDMManager_(ip_addr, port_num, fixed_num_clients, dm_tcp_manager);
+    this->dm_manager_ = new ClientDMManager_(ip_addr, port_num,
+                                             fixed_num_clients, dm_tcp_manager);
 
     this->message_receiver_ = new MessageReceiver_();
     this->tcp_msg_manager_ = &tcp_manager;
@@ -519,9 +519,7 @@ public:
     this->send_message(msg, num_bytes);
   }
 
-  void handle_shutdown() override {
-    this->dm_manager_->close_server();
-  }
+  void handle_shutdown() override { this->dm_manager_->close_server(); }
 
   void run_client() override {}
 

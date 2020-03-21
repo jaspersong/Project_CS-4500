@@ -120,7 +120,7 @@ public:
       if (deserializer.get_num_bytes_left() >= length + 1) {
         // Build the string by grabbing the bytes in from the deserializer
         char *str = new char[length + 1];
-        for (size_t i = 0; i < length + 1; i ++) {
+        for (size_t i = 0; i < length + 1; i++) {
           str[i] = static_cast<char>(deserializer.get_byte());
         }
 

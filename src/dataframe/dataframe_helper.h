@@ -5,13 +5,13 @@
  * Email: chen.xinu@husky.neu.edu, song.jo@husky.neu.edu
  */
 
-//lang::CwC
+// lang::CwC
 
 #pragma once
 
+#include <math.h>
 #include <stdarg.h>
 #include <stdlib.h>
-#include <math.h>
 
 #include "custom_object.h"
 #include "custom_string.h"
@@ -83,12 +83,12 @@ public:
   ArrayNode_ **nodes_;
   size_t num_nodes_;
   size_t offset_;
-  
+
   /**
    * Constructs an array of arrays.
    */
   ArrayOfArrays() {
-    this->nodes_ = new ArrayNode_*[1];
+    this->nodes_ = new ArrayNode_ *[1];
     this->nodes_[0] = new ArrayNode_(2);
     this->num_nodes_ = 1;
     this->offset_ = 0;
@@ -123,7 +123,7 @@ public:
    * @param index The index of the desired item.
    */
   static void get_node_index_offset(size_t index, size_t &node_index,
-      size_t &node_offset) {
+                                    size_t &node_offset) {
     size_t num_items_thus_far = 0;
     node_index = 0;
 
@@ -152,8 +152,7 @@ public:
       for (size_t i = 0; i < new_num_nodes; i++) {
         if (i < this->num_nodes_) {
           new_array_[i] = this->nodes_[i];
-        }
-        else {
+        } else {
           new_array_[i] = new ArrayNode_(pow(2, i + 1));
         }
       }
@@ -174,7 +173,7 @@ public:
     size_t node_index;
     size_t node_offset;
     ArrayOfArrays::get_node_index_offset(this->offset_, node_index,
-        node_offset);
+                                         node_offset);
 
     // Grow the array if necessary
     this->grow_(node_index + 1);
@@ -205,8 +204,7 @@ public:
     // Calculate the node index and the node offset
     size_t node_index;
     size_t node_offset;
-    ArrayOfArrays::get_node_index_offset(index, node_index,
-                                         node_offset);
+    ArrayOfArrays::get_node_index_offset(index, node_index, node_offset);
 
     // Store the item at the offset index
     this->nodes_[node_index]->array[node_offset] = item;
@@ -232,8 +230,7 @@ public:
     // Calculate the node index and the node offset
     size_t node_index;
     size_t node_offset;
-    ArrayOfArrays::get_node_index_offset(index, node_index,
-                                         node_offset);
+    ArrayOfArrays::get_node_index_offset(index, node_index, node_offset);
 
     // Get the value
     return this->nodes_[node_index]->array[node_offset];

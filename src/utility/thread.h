@@ -4,12 +4,12 @@
 // Code was borrowed from the Concurrency lecture provided on Piazza.
 
 #include <atomic>
+#include <chrono>
 #include <condition_variable>
 #include <cstdlib>
 #include <mutex>
 #include <sstream>
 #include <thread>
-#include <chrono>
 
 #include "custom_object.h"
 #include "custom_string.h"
@@ -84,8 +84,8 @@ public:
    * needs released by an explicit invocation of unlock().
    */
   bool wait_timeout(size_t ms) {
-    return (cv_.wait_for(mtx_, std::chrono::milliseconds(ms))
-      == std::cv_status::no_timeout);
+    return (cv_.wait_for(mtx_, std::chrono::milliseconds(ms)) ==
+            std::cv_status::no_timeout);
   }
 
   // Notify all threads waiting on this lock

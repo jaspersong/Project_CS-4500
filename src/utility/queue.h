@@ -21,11 +21,11 @@ public:
 
   unsigned long curr_capacity_; // The current maximum of items this queue can
                                 // store.
-  unsigned long size_; // The current number of items in this queue
+  unsigned long size_;          // The current number of items in this queue
 
   CustomObject **buffer_; // The buffer to store the data.
-  size_t curr_head_; // Index of the current head of the queue
-  size_t curr_tail_; // Index of the current tail of the queue
+  size_t curr_head_;      // Index of the current head of the queue
+  size_t curr_tail_;      // Index of the current tail of the queue
 
   /**
    * Constructs a new Queue object with a default initial capacity.
@@ -104,8 +104,7 @@ public:
   virtual CustomObject *dequeue() {
     if (this->size_ == 0) {
       return nullptr;
-    }
-    else {
+    } else {
       // Get the object from the queue
       CustomObject *ret_value = this->buffer_[this->curr_head_];
       this->size_ -= 1;
@@ -133,8 +132,7 @@ public:
         // This is the beginning of the buffer. The last item will be at the
         // other end of the buffer.
         return this->buffer_[this->curr_capacity_ - 1];
-      }
-      else {
+      } else {
         return this->buffer_[this->curr_tail_ - 1];
       }
     }

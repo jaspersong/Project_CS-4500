@@ -83,8 +83,9 @@ public:
   void parse() {
     // No need to parse if this was already parsed
     if (this->set_ == nullptr) {
-      this->parser_ = new SorParser(this->file_, this->start_, this->start_ +
-                            this->len_, this->file_size_);
+      this->parser_ =
+          new SorParser(this->file_, this->start_, this->start_ + this->len_,
+                        this->file_size_);
       this->parser_->guessSchema();
       this->parser_->parseFile();
       this->set_ = this->parser_->getColumnSet();
@@ -139,8 +140,7 @@ public:
           StringColumn *str_col = (StringColumn *)col;
           if (str_col->isEntryPresent(r)) {
             row.set(c, new String(str_col->getEntry(r)));
-          }
-          else {
+          } else {
             row.set(c, nullptr);
           }
           break;
@@ -149,8 +149,7 @@ public:
           IntegerColumn *int_col = (IntegerColumn *)col;
           if (int_col->isEntryPresent(r)) {
             row.set(c, int_col->getEntry(r));
-          }
-          else {
+          } else {
             row.set(c, (int)0);
           }
           break;
@@ -159,8 +158,7 @@ public:
           FloatColumn *float_col = (FloatColumn *)col;
           if (float_col->isEntryPresent(r)) {
             row.set(c, float_col->getEntry(r));
-          }
-          else {
+          } else {
             row.set(c, 0.0f);
           }
           break;
@@ -169,8 +167,7 @@ public:
           BoolColumn *bool_col = (BoolColumn *)col;
           if (bool_col->isEntryPresent(r)) {
             row.set(c, bool_col->getEntry(r));
-          }
-          else {
+          } else {
             row.set(c, false);
           }
           break;

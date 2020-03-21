@@ -35,9 +35,7 @@ public:
    * Calculates the number of bytes is needed in order to serialize this object.
    * @return The number of bytes needed to serialize this object.
    */
-  virtual size_t serialization_required_bytes() {
-    return 0;
-  }
+  virtual size_t serialization_required_bytes() { return 0; }
 
   /**
    * Takes in a serializer and appends the objects serialized data to an

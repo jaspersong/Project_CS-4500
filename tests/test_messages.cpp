@@ -7,8 +7,8 @@
 
 // lang::Cpp
 
-#include "serial.h"
 #include "helper.h"
+#include "serial.h"
 
 Sys helper;
 

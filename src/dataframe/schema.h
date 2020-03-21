@@ -5,7 +5,7 @@
  * Email: chen.xinu@husky.neu.edu, song.jo@husky.neu.edu
  */
 
-//lang::CwC
+// lang::CwC
 
 #pragma once
 
@@ -27,9 +27,7 @@ public:
    * column.
    * @param type The data type of the column stored.
    */
-  explicit ColumnInfo_(ColumnType_t type) {
-    this->type_ = type;
-  }
+  explicit ColumnInfo_(ColumnType_t type) { this->type_ = type; }
 };
 
 /*************************************************************************
@@ -59,9 +57,7 @@ public:
   }
 
   /** Create an empty schema **/
-  Schema() {
-    this->column_list_ = new ArrayOfArrays();
-  }
+  Schema() { this->column_list_ = new ArrayOfArrays(); }
 
   /** Create a schema from a string of types. A string that contains
    * characters other than those identifying the four type results in
@@ -106,14 +102,13 @@ public:
   void add_column(char typ) {
     // Get the desired column type and create a new column to add to the
     // list
-    if ((typ != static_cast<char>(ColumnType_Bool))
-      &&  (typ != static_cast<char>(ColumnType_Integer))
-          &&  (typ != static_cast<char>(ColumnType_Float))
-              &&  (typ != static_cast<char>(ColumnType_String))) {
+    if ((typ != static_cast<char>(ColumnType_Bool)) &&
+        (typ != static_cast<char>(ColumnType_Integer)) &&
+        (typ != static_cast<char>(ColumnType_Float)) &&
+        (typ != static_cast<char>(ColumnType_String))) {
       printf("Unrecognized column data type %c.\n", typ);
       exit(1);
-    }
-    else {
+    } else {
       // Valid column type
       ColumnInfo_ *new_col_name =
           new ColumnInfo_(static_cast<ColumnType_t>(typ));
@@ -130,8 +125,7 @@ public:
     // Refer the returned item as an object ColumnNameType_, because we
     // already know that all items added to this list are always going to be
     // ColumnNameType_
-    ColumnInfo_ *col_name =
-        dynamic_cast<ColumnInfo_ *>(col_name_item.o);
+    ColumnInfo_ *col_name = dynamic_cast<ColumnInfo_ *>(col_name_item.o);
     return col_name->type_;
   }
 

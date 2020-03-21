@@ -7,9 +7,9 @@
 
 // lang::Cpp
 
-#include "helper.h"
 #include "custom_string.h"
 #include "dataframe.h"
+#include "helper.h"
 
 Sys helper;
 
@@ -17,14 +17,14 @@ void basic() {
   Schema s("II");
 
   DataFrame df(s);
-  Row  r(df.get_schema());
-  for(size_t i = 0; i <  1000 * 1000; i++) {
-    r.set(0,(int)i);
-    r.set(1,(int)i+1);
+  Row r(df.get_schema());
+  for (size_t i = 0; i < 1000 * 1000; i++) {
+    r.set(0, (int)i);
+    r.set(1, (int)i + 1);
     df.add_row(r);
   }
 
-  helper.t_true(df.get_int((size_t)0,1) == 1);
+  helper.t_true(df.get_int((size_t)0, 1) == 1);
 
   helper.OK("Test 0 passed");
 }
@@ -37,7 +37,7 @@ void test1() {
   String str_avatar("Then the fire nation attacked.");
 
   // Create a schema for the rows
-  Schema * s1 = new Schema();
+  Schema *s1 = new Schema();
   s1->add_column('B');
   s1->add_column('I');
   s1->add_column('F');
@@ -46,13 +46,13 @@ void test1() {
   s1->add_column('B');
 
   // Construct a dummy column
-  DF_Column * bool_column = new DF_BoolColumn(2, false, true);
+  DF_Column *bool_column = new DF_BoolColumn(2, false, true);
 
   // Construct the row
-  Row * r0 = new Row(*s1);
-  Row * r1 = new Row(*s1);
-  Row * r2 = new Row(*s1);
-  Row * r3 = new Row(*s1);
+  Row *r0 = new Row(*s1);
+  Row *r1 = new Row(*s1);
+  Row *r2 = new Row(*s1);
+  Row *r3 = new Row(*s1);
   r0->set(0, false);
   r0->set(1, 3);
   r0->set(2, 4.2f);
@@ -68,7 +68,7 @@ void test1() {
   r3->set(4, &str_dev);
 
   // Construct the dataframe
-  DataFrame * df0 = new DataFrame(*s1);
+  DataFrame *df0 = new DataFrame(*s1);
 
   // Add the rows
   df0->add_row(*r0);
@@ -147,7 +147,7 @@ void test2() {
   String str_dev("Development");
   String str_avatar("Then the fire nation attacked.");
 
-  Schema * s1 = new Schema();
+  Schema *s1 = new Schema();
 
   // Add some columns
   helper.t_true(s1->width() == 0);
@@ -168,7 +168,7 @@ void test2() {
   helper.t_true(s1->width() == 6);
 
   // Test the copy constructor
-  Schema * copy = new Schema(*s1);
+  Schema *copy = new Schema(*s1);
   helper.t_true(copy->col_type(0) == 'B');
   helper.t_true(copy->col_type(1) == 'I');
   helper.t_true(copy->col_type(2) == 'F');
@@ -182,7 +182,7 @@ void test2() {
   helper.t_true(s1->width() == 6);
 
   // Test the string of types constructor
-  Schema * s2 = new Schema("IFSS");
+  Schema *s2 = new Schema("IFSS");
   helper.t_true(s2->col_type(0) == 'I');
   helper.t_true(s2->col_type(1) == 'F');
   helper.t_true(s2->col_type(2) == 'S');
@@ -207,9 +207,9 @@ void test3() {
   String str_avatar("Then the fire nation attacked.");
 
   // Create all the column types
-  DF_Column * bool_column = new DF_BoolColumn();
-  DF_Column * int_column = new DF_IntColumn();
-  DF_Column * float_column = new DF_FloatColumn();
+  DF_Column *bool_column = new DF_BoolColumn();
+  DF_Column *int_column = new DF_IntColumn();
+  DF_Column *float_column = new DF_FloatColumn();
   DF_Column *string_column = new DF_StringColumn();
 
   // Test the get column type
@@ -256,10 +256,10 @@ void test3() {
 
   // Now get the column under its actual type to start testing primitive
   // functions
-  DF_BoolColumn * conv_bool_column = bool_column->as_bool();
-  DF_IntColumn * conv_int_column = int_column->as_int();
-  DF_FloatColumn * conv_float_column = float_column->as_float();
-  DF_StringColumn * conv_string_colunmn = string_column->as_string();
+  DF_BoolColumn *conv_bool_column = bool_column->as_bool();
+  DF_IntColumn *conv_int_column = int_column->as_int();
+  DF_FloatColumn *conv_float_column = float_column->as_float();
+  DF_StringColumn *conv_string_colunmn = string_column->as_string();
 
   // Test the boolean column
   helper.t_true(conv_bool_column->get(0));
@@ -304,11 +304,12 @@ void test3() {
   helper.t_true(conv_string_colunmn->size() == 6);
 
   // Test the constructors
-  DF_BoolColumn * cons_bool_column = new DF_BoolColumn(2, false, true);
-  DF_IntColumn * cons_int_column = new DF_IntColumn(3, 0, 1, 2);
-  DF_FloatColumn * cons_float_column = new DF_FloatColumn(4, 0.1f, 0.2f, 0.3f, 0.4f);
-  DF_StringColumn * cons_string_column = new DF_StringColumn(3, &str_hello,
-      &str_world, &str_avatar);
+  DF_BoolColumn *cons_bool_column = new DF_BoolColumn(2, false, true);
+  DF_IntColumn *cons_int_column = new DF_IntColumn(3, 0, 1, 2);
+  DF_FloatColumn *cons_float_column =
+      new DF_FloatColumn(4, 0.1f, 0.2f, 0.3f, 0.4f);
+  DF_StringColumn *cons_string_column =
+      new DF_StringColumn(3, &str_hello, &str_world, &str_avatar);
   helper.t_true(cons_bool_column->get(1));
   helper.t_false((cons_bool_column->get(0)));
   cons_bool_column->push_back(false);
@@ -356,7 +357,7 @@ void test4() {
   String str_avatar("Then the fire nation attacked.");
 
   // Create a schema for the rows
-  Schema * s1 = new Schema();
+  Schema *s1 = new Schema();
   s1->add_column('B');
   s1->add_column('I');
   s1->add_column('F');
@@ -365,7 +366,7 @@ void test4() {
   s1->add_column('B');
 
   // Construct the row
-  Row * r1 = new Row(*s1);
+  Row *r1 = new Row(*s1);
 
   // Test the setter/getter functions
   r1->set(0, true);
@@ -408,7 +409,7 @@ void test6() {
 
   // Add a few items into the dataframe
   Row r(df.get_schema());
-  for(size_t i = 0; i < 100; i++) {
+  for (size_t i = 0; i < 100; i++) {
     r.set(0, static_cast<int>(i));
     r.set(1, static_cast<int>(i + 1));
 
