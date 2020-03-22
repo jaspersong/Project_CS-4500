@@ -7,6 +7,7 @@
 
 // Lang::CwC
 
+#include <unistd.h>
 #include "distributed_app.h"
 #include "stdout_msg_manager.h"
 

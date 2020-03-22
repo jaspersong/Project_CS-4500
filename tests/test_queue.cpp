@@ -1,4 +1,4 @@
-// Lang::CwC
+// Lang::Cpp
 
 #include "custom_object.h"
 #include "custom_string.h"
@@ -9,13 +9,13 @@ Sys helper;
 
 void test1() {
   // Basic test
-  Queue *q = new Queue(10);
+  auto *q = new Queue(10);
 
   helper.t_true(q->getSize() == 0);
   helper.t_true(q->isEmpty());
 
-  String *s = new String("Hello");
-  String *t = new String("World");
+  auto *s = new String("Hello");
+  auto *t = new String("World");
 
   q->enqueue(s);
   q->enqueue(t);
@@ -32,10 +32,10 @@ void test1() {
 
 void test2() {
   // Test getTop and getBottom and getSize
-  Queue *q = new Queue(10);
+  auto *q = new Queue(10);
 
-  CustomObject *s = new CustomObject();
-  CustomObject *t = new CustomObject();
+  auto *s = new CustomObject();
+  auto *t = new CustomObject();
 
   q->enqueue(s);
   q->enqueue(t);
@@ -56,10 +56,10 @@ void test2() {
 
 void test3() {
   // Test enqueue and dequeue
-  Queue *q = new Queue(10);
+  auto *q = new Queue(10);
 
-  String *s = new String("Hello");
-  String *t = new String("World");
+  auto *s = new String("Hello");
+  auto *t = new String("World");
 
   q->enqueue(s);
   q->enqueue(t);
@@ -80,11 +80,11 @@ void test3() {
 
 void test4() {
   // Test contains
-  Queue *q = new Queue(10);
+  auto *q = new Queue(10);
 
-  String *s = new String("Hello");
-  String *t = new String("World");
-  String *u = new String("CS4500");
+  auto *s = new String("Hello");
+  auto *t = new String("World");
+  auto *u = new String("CS4500");
 
   q->enqueue(s);
   q->enqueue(t);
@@ -102,19 +102,19 @@ void test4() {
 
 void test5() {
   // Test equals and hash
-  Queue *q = new Queue(10);
+  auto *q = new Queue(10);
 
-  String *s = new String("Hello");
-  String *t = new String("World");
-  String *u = new String("CS4500");
+  auto *s = new String("Hello");
+  auto *t = new String("World");
+  auto *u = new String("CS4500");
 
   q->enqueue(s);
   q->enqueue(t);
 
-  Queue *q2 = new Queue(10);
+  auto *q2 = new Queue(10);
 
-  String *s2 = new String("Hello");
-  String *t2 = new String("World");
+  auto *s2 = new String("Hello");
+  auto *t2 = new String("World");
 
   q2->enqueue(s2);
   q2->enqueue(t2);
@@ -138,9 +138,9 @@ void test5() {
 
 void test6() {
   // Test adding tons of items
-  Queue *q = new Queue(10);
+  auto *q = new Queue(10);
 
-  String *s = new String("Hello");
+  auto *s = new String("Hello");
 
   for (unsigned long i = 0; i < 1000; i++) {
     q->enqueue(s);

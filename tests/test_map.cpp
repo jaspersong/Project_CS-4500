@@ -7,8 +7,8 @@ Sys helper;
 
 void it_returns_the_value_for_a_key() {
   Map *map = new Map();
-  String *foo_key = new String("fooKey");
-  String *foo = new String("foo");
+  auto *foo_key = new String("fooKey");
+  auto *foo = new String("foo");
   map->put(foo_key, foo);
 
   helper.t_true(map->get(foo_key)->equals(foo));
@@ -22,8 +22,8 @@ void it_returns_the_value_for_a_key() {
 
 void it_contains_the_key() {
   Map *map = new Map();
-  String *foo_key = new String("fooKey");
-  String *foo = new String("foo");
+  auto *foo_key = new String("fooKey");
+  auto *foo = new String("foo");
   map->put(foo_key, foo);
 
   helper.t_true(map->contains_key(foo_key) && !map->contains_key(foo));
@@ -50,8 +50,8 @@ void it_equals_another_empty_map() {
 void it_equals_another_map() {
   Map *map1 = new Map();
   Map *map2 = new Map();
-  String *foo_key = new String("fooKey");
-  String *foo = new String("foo");
+  auto *foo_key = new String("fooKey");
+  auto *foo = new String("foo");
   map1->put(foo_key, foo);
   map2->put(foo_key, foo);
 
@@ -80,8 +80,8 @@ void it_computes_the_same_empty_hashcode() {
 void it_computes_the_same_hashcode() {
   Map *map1 = new Map();
   Map *map2 = new Map();
-  String *foo_key = new String("fooKey");
-  String *foo = new String("foo");
+  auto *foo_key = new String("fooKey");
+  auto *foo = new String("foo");
   map1->put(foo_key, foo);
   map2->put(foo_key, foo);
 
@@ -97,10 +97,10 @@ void it_computes_the_same_hashcode() {
 
 void it_computes_keyset() {
   Map *map = new Map();
-  String *foo_key = new String("fooKey");
-  String *bar_key = new String("barKey");
-  String *foo = new String("foo");
-  String *bar = new String("bar");
+  auto *foo_key = new String("fooKey");
+  auto *bar_key = new String("barKey");
+  auto *foo = new String("foo");
+  auto *bar = new String("bar");
   map->put(foo_key, foo);
   map->put(bar_key, bar);
   CustomObject **keys = map->key_set();
@@ -132,10 +132,10 @@ void it_computes_keyset() {
 
 void it_removes_elements() {
   Map *map = new Map();
-  String *foo_key = new String("fooKey");
-  String *bar_key = new String("barKey");
-  String *foo = new String("foo");
-  String *bar = new String("bar");
+  auto *foo_key = new String("fooKey");
+  auto *bar_key = new String("barKey");
+  auto *foo = new String("foo");
+  auto *bar = new String("bar");
   map->put(foo_key, foo);
   map->put(bar_key, bar);
 
@@ -163,8 +163,8 @@ void it_computes_size() {
   Map *map = new Map();
   helper.t_false(map->size() != 0);
 
-  String *foo_key = new String("fooKey");
-  String *foo = new String("foo");
+  auto *foo_key = new String("fooKey");
+  auto *foo = new String("foo");
   map->put(foo_key, foo);
 
   helper.t_true(map->size() == 1);
@@ -178,9 +178,9 @@ void it_computes_size() {
 
 void it_updates_values() {
   Map *map = new Map();
-  String *foo_key = new String("fooKey");
-  String *foo = new String("foo");
-  String *bar = new String("bar");
+  auto *foo_key = new String("fooKey");
+  auto *foo = new String("foo");
+  auto *bar = new String("bar");
 
   map->put(foo_key, foo);
   helper.t_false(!map->get(foo_key)->equals(foo));

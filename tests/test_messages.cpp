@@ -1,6 +1,6 @@
 /**
  * Name: Snowy Chen, Joe Song
- * Date: 28 February 2020
+ * Date: 22 March 2020
  * Section: Jason Hemann, MR 11:45-1:25
  * Email: chen.xinu@husky.neu.edu, song.jo@husky.neu.edu
  */
@@ -476,7 +476,7 @@ void kill_case() {
 }
 
 void register_case() {
-  String *ip_addr = new String("127.0.0.1");
+  auto *ip_addr = new String("127.0.0.1");
   Register register0(ip_addr, 4);
   register0.set_target_id(1);
   register0.set_sender_id(2);
@@ -515,7 +515,7 @@ void register_case() {
 }
 
 void directory_case() {
-  String *ip_addr = new String("127.0.0.1");
+  auto *ip_addr = new String("127.0.0.1");
   Directory directory0(5);
   directory0.set_target_id(1);
   directory0.set_sender_id(2);

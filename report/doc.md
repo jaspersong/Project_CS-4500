@@ -77,7 +77,7 @@ NOTE: This linked list of arrays does NOT support removing items. Only
 replacing them with different values, or adding new ones. This is because
 Row, Schema and Column APIs do not have a need for removing items.
 
-* `column.h`
+* `dataframe_column.h`
 Represents one column of a data frame which holds values of a single type.
 This abstract class defines methods overriden in subclasses. There is
 one subclass per element type. Columns are mutable, equality is pointer
@@ -199,7 +199,7 @@ Other general purpose functions implemented by the abstract server class are
 the following:
 - `void close_server()`: A thread-safe function to close the server instance. 
 It will also close all the connections to the clients as well.
-- `bool is_running()`: A function to query whether or not the server is running.
+- `bool running()`: A function to query whether or not the server is running.
 - `bool send_message(size_t client_id, unsigned char *message, size_t bytes)`: 
 A function to send a message to a client at a specified client id. The provided 
 buffer is set to be unsigned char in order to support messages that are encoded 
@@ -259,7 +259,7 @@ direct communication with.
 Other general purpose functions implemented by the abstract client class are 
 the following:
 - `void close_client()`: A thread-safe function to close the client instance.
-- `bool is_running()`: A function to query whether or not the client is running.
+- `bool running()`: A function to query whether or not the client is running.
 - `bool send_message(unsigned char *message, size_t bytes)`: A function to send
 a message the server. The provided buffer is set to be unsigned char in order 
 to support messages that are encoded in bytes, and are not ASCII messages. 
@@ -305,7 +305,7 @@ into the resizeable Seralizer buffer:
 - `bool set_size_t(size_t value)`
 - `bool set_int(int value)`
 - `bool set_double(double value)`
-- `bool set_generic(void *value, size_t num_bytes)`
+- `bool set_generic(unsigned char *value, size_t num_bytes)`
 
 Once the serialization has been completed, the function 
 `unsigned char *get_serialized_buffer()` can retrieve the completed buffer
@@ -600,7 +600,7 @@ structure in regard to a growing buffer of large amounts of data
 - Integrated 4500ne's sorer into the project
 - Created hooks to receive put, get, reply, and wait and get message types
 - Fixed memory leaks found within the test suites
-- Implemented fromArray API functions within the DataFrame class
+- Implemented from_array API functions within the DataFrame class
 - Created a trivial application that run standalone.
 
 ### Technical Debt and TODOs

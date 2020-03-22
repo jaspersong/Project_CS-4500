@@ -10,6 +10,8 @@
 #include "custom_string.h"
 #include "dataframe.h"
 #include "helper.h"
+#include "key.h"
+#include "key_value_store.h"
 
 Sys helper;
 
@@ -37,7 +39,7 @@ void test1() {
   String str_avatar("Then the fire nation attacked.");
 
   // Create a schema for the rows
-  Schema *s1 = new Schema();
+  auto *s1 = new Schema();
   s1->add_column('B');
   s1->add_column('I');
   s1->add_column('F');
@@ -68,7 +70,7 @@ void test1() {
   r3->set(4, &str_dev);
 
   // Construct the dataframe
-  DataFrame *df0 = new DataFrame(*s1);
+  auto *df0 = new DataFrame(*s1);
 
   // Add the rows
   df0->add_row(*r0);
@@ -147,7 +149,7 @@ void test2() {
   String str_dev("Development");
   String str_avatar("Then the fire nation attacked.");
 
-  Schema *s1 = new Schema();
+  auto *s1 = new Schema();
 
   // Add some columns
   helper.t_true(s1->width() == 0);
@@ -168,7 +170,7 @@ void test2() {
   helper.t_true(s1->width() == 6);
 
   // Test the copy constructor
-  Schema *copy = new Schema(*s1);
+  auto *copy = new Schema(*s1);
   helper.t_true(copy->col_type(0) == 'B');
   helper.t_true(copy->col_type(1) == 'I');
   helper.t_true(copy->col_type(2) == 'F');
@@ -182,7 +184,7 @@ void test2() {
   helper.t_true(s1->width() == 6);
 
   // Test the string of types constructor
-  Schema *s2 = new Schema("IFSS");
+  auto *s2 = new Schema("IFSS");
   helper.t_true(s2->col_type(0) == 'I');
   helper.t_true(s2->col_type(1) == 'F');
   helper.t_true(s2->col_type(2) == 'S');
@@ -304,11 +306,11 @@ void test3() {
   helper.t_true(conv_string_colunmn->size() == 6);
 
   // Test the constructors
-  DF_BoolColumn *cons_bool_column = new DF_BoolColumn(2, false, true);
-  DF_IntColumn *cons_int_column = new DF_IntColumn(3, 0, 1, 2);
-  DF_FloatColumn *cons_float_column =
+  auto *cons_bool_column = new DF_BoolColumn(2, false, true);
+  auto *cons_int_column = new DF_IntColumn(3, 0, 1, 2);
+  auto *cons_float_column =
       new DF_FloatColumn(4, 0.1f, 0.2f, 0.3f, 0.4f);
-  DF_StringColumn *cons_string_column =
+  auto *cons_string_column =
       new DF_StringColumn(3, &str_hello, &str_world, &str_avatar);
   helper.t_true(cons_bool_column->get(1));
   helper.t_false((cons_bool_column->get(0)));
@@ -357,7 +359,7 @@ void test4() {
   String str_avatar("Then the fire nation attacked.");
 
   // Create a schema for the rows
-  Schema *s1 = new Schema();
+  auto *s1 = new Schema();
   s1->add_column('B');
   s1->add_column('I');
   s1->add_column('F');
@@ -474,12 +476,12 @@ void test_from_array() {
   String str4(":)");
 
   Key key0("0", 0);
-  Key key1("1", 1);
-  Key key2("2", 2);
-  Key key3("3", 3);
-  Key key4("4", 4);
+  Key key1("1", 0);
+  Key key2("2", 0);
+  Key key3("3", 0);
+  Key key4("4", 0);
 
-  Map map;
+  KeyValueStore map(0);
 
   size_t SZ = 10;
   bool bool_vals[SZ];
@@ -502,10 +504,10 @@ void test_from_array() {
   str_vals[9] = &str0;
 
   // Make the dataframes and put them into the map
-  DataFrame *df0 = DataFrame::fromArray(&key0, &map, SZ, bool_vals);
-  DataFrame *df1 = DataFrame::fromArray(&key1, &map, SZ, int_vals);
-  DataFrame *df2 = DataFrame::fromArray(&key2, &map, SZ, float_vals);
-  DataFrame *df3 = DataFrame::fromArray(&key3, &map, SZ, str_vals);
+  DataFrame *df0 = KeyValueStore::from_array(key0, &map, SZ, bool_vals);
+  DataFrame *df1 = KeyValueStore::from_array(key1, &map, SZ, int_vals);
+  DataFrame *df2 = KeyValueStore::from_array(key2, &map, SZ, float_vals);
+  DataFrame *df3 = KeyValueStore::from_array(key3, &map, SZ, str_vals);
 
   helper.t_true(df0->get_schema().width() == 1);
   helper.t_true(df1->get_schema().width() == 1);
@@ -531,16 +533,13 @@ void test_from_array() {
   helper.t_true(df3->get_string(0, 8) == nullptr);
   helper.t_true(df3->get_string(0, 9)->equals(&str0));
 
-  helper.t_true(map.contains_key(&key0));
-  helper.t_true(map.contains_key(&key1));
-  helper.t_true(map.contains_key(&key2));
-  helper.t_true(map.contains_key(&key3));
-  helper.t_false(map.contains_key(&key4));
+  // TODO: Create and test functions for if the KV-store contains the key
+  //  locally, or if it's in a different KV-store
 
-  DataFrame *exp_df0 = reinterpret_cast<DataFrame *>(map.get(&key0));
-  DataFrame *exp_df1 = reinterpret_cast<DataFrame *>(map.get(&key1));
-  DataFrame *exp_df2 = reinterpret_cast<DataFrame *>(map.get(&key2));
-  DataFrame *exp_df3 = reinterpret_cast<DataFrame *>(map.get(&key3));
+  auto *exp_df0 = reinterpret_cast<DataFrame *>(map.wait_and_get(key0));
+  auto *exp_df1 = reinterpret_cast<DataFrame *>(map.wait_and_get(key1));
+  auto *exp_df2 = reinterpret_cast<DataFrame *>(map.wait_and_get(key2));
+  auto *exp_df3 = reinterpret_cast<DataFrame *>(map.wait_and_get(key3));
 
   // Should be true with pointer equality, since they should be pointing to
   // the same exact objects.
