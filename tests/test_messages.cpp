@@ -246,70 +246,6 @@ void status_funcs() {
   helper.OK("Test status_funcs passed");
 }
 
-// Add ack use case
-void ack_case() {
-  Ack ack0;
-  ack0.set_target_id(1);
-  ack0.set_sender_id(2);
-  ack0.set_id(3);
-
-  // Serialize the message
-  Serializer serializer;
-  ack0.serialize(serializer);
-  unsigned char *buffer = serializer.get_serialized_buffer();
-  size_t buffer_size = serializer.get_size_serialized_data();
-
-  // Now deserialize it and make sure that all of the values from the
-  // original has been retained
-  Message *received_msg = Message::deserialize_as_message(buffer, buffer_size);
-
-  // test
-  Ack *ack_received_message = received_msg->as_ack();
-  helper.t_true(ack_received_message != nullptr);
-  helper.t_true(ack_received_message->get_target_id() == 1);
-  helper.t_true(ack_received_message->get_sender_id() == 2);
-  helper.t_true(ack_received_message->get_id() == 3);
-
-  // Free the memory
-  delete[] buffer;
-  delete received_msg;
-
-  helper.OK("Test ack_case passed");
-}
-
-void nack_case() {
-  Nack nack0;
-  nack0.set_target_id(1);
-  nack0.set_sender_id(2);
-  nack0.set_id(3);
-
-  // Serialize the message
-  Serializer serializer;
-  nack0.serialize(serializer);
-  unsigned char *buffer = serializer.get_serialized_buffer();
-  size_t buffer_size = serializer.get_size_serialized_data();
-
-  // Now deserialize it and make sure that all of the values from the
-  // original has been retained
-  Message *received_msg = Message::deserialize_as_message(buffer, buffer_size);
-
-  // test
-  Nack *nack_received = received_msg->as_nack();
-  helper.t_true(nack_received != nullptr);
-  helper.t_true(nack_received->get_target_id() == 1);
-  helper.t_false(nack_received->get_target_id() == 0);
-  helper.t_true(nack_received->get_sender_id() == 2);
-  helper.t_false(nack_received->get_sender_id() == 0);
-  helper.t_true(nack_received->get_id() == 3);
-  helper.t_false(nack_received->get_id() == 0);
-
-  // Free the memory
-  delete[] buffer;
-  delete received_msg;
-
-  helper.OK("Test nack_case passed");
-}
-
 void put_case() {
   Put put0;
   put0.set_target_id(1);
@@ -376,39 +312,6 @@ void reply_case() {
   helper.OK("Test reply_case passed");
 }
 
-void get_case() {
-  Get get0;
-  get0.set_target_id(1);
-  get0.set_sender_id(2);
-  get0.set_id(3);
-
-  // Serialize the message
-  Serializer serializer;
-  get0.serialize(serializer);
-  unsigned char *buffer = serializer.get_serialized_buffer();
-  size_t buffer_size = serializer.get_size_serialized_data();
-
-  // Now deserialize it and make sure that all of the values from the
-  // original has been retained
-  Message *received_msg = Message::deserialize_as_message(buffer, buffer_size);
-
-  // test
-  Get *get_received = received_msg->as_get();
-  helper.t_true(get_received != nullptr);
-  helper.t_true(get_received->get_target_id() == 1);
-  helper.t_false(get_received->get_target_id() == 0);
-  helper.t_true(get_received->get_sender_id() == 2);
-  helper.t_false(get_received->get_sender_id() == 0);
-  helper.t_true(get_received->get_id() == 3);
-  helper.t_false(get_received->get_id() == 0);
-
-  // Free the memory
-  delete[] buffer;
-  delete received_msg;
-
-  helper.OK("Test get_case passed");
-}
-
 void waitAget_case() {
   WaitAndGet wait_and_get0;
   wait_and_get0.set_target_id(1);
@@ -440,39 +343,6 @@ void waitAget_case() {
   delete received_msg;
 
   helper.OK("Test waitAget_case passed");
-}
-
-void kill_case() {
-  Kill kill0;
-  kill0.set_target_id(1);
-  kill0.set_sender_id(2);
-  kill0.set_id(3);
-
-  // Serialize the message
-  Serializer serializer;
-  kill0.serialize(serializer);
-  unsigned char *buffer = serializer.get_serialized_buffer();
-  size_t buffer_size = serializer.get_size_serialized_data();
-
-  // Now deserialize it and make sure that all of the values from the
-  // original has been retained
-  Message *received_msg = Message::deserialize_as_message(buffer, buffer_size);
-
-  // test
-  Kill *kill_received = received_msg->as_kill();
-  helper.t_true(kill_received != nullptr);
-  helper.t_true(kill_received->get_target_id() == 1);
-  helper.t_false(kill_received->get_target_id() == 0);
-  helper.t_true(kill_received->get_sender_id() == 2);
-  helper.t_false(kill_received->get_sender_id() == 0);
-  helper.t_true(kill_received->get_id() == 3);
-  helper.t_false(kill_received->get_id() == 0);
-
-  // Free the memory
-  delete[] buffer;
-  delete received_msg;
-
-  helper.OK("Test kill_case passed");
 }
 
 void register_case() {
@@ -580,13 +450,9 @@ int main(int argc, char **argv) {
   test_double();
   status_round_trip();
   status_funcs();
-  ack_case();
-  nack_case();
   put_case();
   reply_case();
-  get_case();
   waitAget_case();
-  kill_case();
   register_case();
   directory_case();
 }

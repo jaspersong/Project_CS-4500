@@ -13,21 +13,8 @@ StdoutMessageManager::StdoutMessageManager(size_t std_id) {
   this->std_id = std_id;
 }
 
-void StdoutMessageManager::handle_ack(Ack &msg) {
-  printf("%zu: Received ack message.\n", this->std_id);
-}
-
-void StdoutMessageManager::handle_nack(Nack &msg) {
-  printf("%zu: Received Nack message.\n", this->std_id);
-}
-
 bool StdoutMessageManager::handle_put(Put &msg) {
   printf("%zu: Received a put message.\n", this->std_id);
-  return true;
-}
-
-bool StdoutMessageManager::handle_get(Get &msg) {
-  printf("%zu: Received a get message.\n", this->std_id);
   return true;
 }
 

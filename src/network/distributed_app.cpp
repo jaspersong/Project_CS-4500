@@ -117,20 +117,8 @@ public:
       return;
     }
     switch (message->get_message_kind()) {
-    case MsgKind::Ack: {
-      this->dm_recv_msg_manager->handle_ack(*message->as_ack());
-      break;
-    }
-    case MsgKind::Nack: {
-      this->dm_recv_msg_manager->handle_nack(*message->as_nack());
-      break;
-    }
     case MsgKind::Put: {
       this->dm_recv_msg_manager->handle_put(*message->as_put());
-      break;
-    }
-    case MsgKind::Get: {
-      this->dm_recv_msg_manager->handle_get(*message->as_get());
       break;
     }
     case MsgKind::WaitAndGet: {
@@ -139,11 +127,6 @@ public:
     }
     case MsgKind::Status: {
       this->dm_recv_msg_manager->handle_status(*message->as_status());
-      break;
-    }
-    case MsgKind::Kill: {
-      printf("Received Kill message from client id %zu. Ignoring command.\n",
-             client_id);
       break;
     }
     case MsgKind::Register: {
@@ -294,20 +277,8 @@ void Registrar::handle_incoming_message(size_t client_id, unsigned char *buffer,
     return;
   }
   switch (message->get_message_kind()) {
-  case MsgKind::Ack: {
-    this->received_msg_manager->handle_ack(*message->as_ack());
-    break;
-  }
-  case MsgKind::Nack: {
-    this->received_msg_manager->handle_nack(*message->as_nack());
-    break;
-  }
   case MsgKind::Put: {
     this->received_msg_manager->handle_put(*message->as_put());
-    break;
-  }
-  case MsgKind::Get: {
-    this->received_msg_manager->handle_get(*message->as_get());
     break;
   }
   case MsgKind::WaitAndGet: {
@@ -316,11 +287,6 @@ void Registrar::handle_incoming_message(size_t client_id, unsigned char *buffer,
   }
   case MsgKind::Status: {
     this->received_msg_manager->handle_status(*message->as_status());
-    break;
-  }
-  case MsgKind::Kill: {
-    printf("Received Kill message from client id %zu\n", client_id);
-    printf("Server cannot be killed. Ignoring command.\n");
     break;
   }
   case MsgKind::Register: {
@@ -445,23 +411,8 @@ void Node::handle_incoming_message(unsigned char *buffer, size_t num_bytes) {
     return;
   }
   switch (message->get_message_kind()) {
-  case MsgKind::Ack: {
-    this->received_msg_manager->handle_ack(*message->as_ack());
-    delete message;
-    break;
-  }
-  case MsgKind::Nack: {
-    this->received_msg_manager->handle_nack(*message->as_nack());
-    delete message;
-    break;
-  }
   case MsgKind::Put: {
     this->received_msg_manager->handle_put(*message->as_put());
-    delete message;
-    break;
-  }
-  case MsgKind::Get: {
-    this->received_msg_manager->handle_get(*message->as_get());
     delete message;
     break;
   }
@@ -472,13 +423,6 @@ void Node::handle_incoming_message(unsigned char *buffer, size_t num_bytes) {
   }
   case MsgKind::Status: {
     this->received_msg_manager->handle_status(*message->as_status());
-    delete message;
-    break;
-  }
-  case MsgKind::Kill: {
-    printf("Received a kill message from the server. Initiating client "
-           "spin-down.\n");
-    this->close_client_no_wait();
     delete message;
     break;
   }

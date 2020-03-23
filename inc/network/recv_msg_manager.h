@@ -21,18 +21,9 @@ public:
    * Virtual functions that can be overridden in order to handle generalized
    * messages with varying payloads.
    * @param msg The message received.
-   */
-  virtual void handle_ack(Ack &msg) {}
-  virtual void handle_nack(Nack &msg) {}
-
-  /**
-   * Virtual functions that can be overridden in order to handle generalized
-   * messages with varying payloads.
-   * @param msg The message received.
    * @return True if the message payload is valid, false if otherwise.
    */
   virtual bool handle_put(Put &msg) { return true; }
-  virtual bool handle_get(Get &msg) { return true; }
   virtual bool handle_waitandget(WaitAndGet &msg) { return true; }
   virtual bool handle_status(Status &msg) { return true; }
 };

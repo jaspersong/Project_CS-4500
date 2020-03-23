@@ -19,10 +19,7 @@ class StdoutMessageManager : public ReceivedMessageManager {
 public:
   explicit StdoutMessageManager(size_t std_id);
 
-  void handle_ack(Ack &msg) override;
-  void handle_nack(Nack &msg) override;
   bool handle_put(Put &msg) override;
-  bool handle_get(Get &msg) override;
   bool handle_waitandget(WaitAndGet &msg) override;
   bool handle_status(Status &msg) override;
 

@@ -94,29 +94,17 @@ Message *Message::deserialize_as_message(unsigned char *buffer,
 
   Message *ret_value = nullptr;
   switch (header->get_message_kind()) {
-  case MsgKind::Ack:
-    ret_value = new Ack(payload, payload_size);
-    break;
-  case MsgKind::Nack:
-    ret_value = new Nack(payload, payload_size);
-    break;
   case MsgKind::Put:
     ret_value = new Put(payload, payload_size);
     break;
   case MsgKind::Reply:
     ret_value = new Reply(payload, payload_size);
     break;
-  case MsgKind::Get:
-    ret_value = new Get(payload, payload_size);
-    break;
   case MsgKind::WaitAndGet:
     ret_value = new WaitAndGet(payload, payload_size);
     break;
   case MsgKind::Status:
     ret_value = new Status(payload, payload_size);
-    break;
-  case MsgKind::Kill:
-    ret_value = new Kill(payload, payload_size);
     break;
   case MsgKind::Register:
     ret_value = new Register(payload, payload_size);
@@ -141,32 +129,6 @@ Message *Message::deserialize_as_message(unsigned char *buffer,
   delete header;
 
   return ret_value;
-}
-
-Ack::Ack() : Message(MsgKind::Ack) {}
-
-Ack::Ack(unsigned char *payload, size_t num_bytes) : Message(MsgKind::Ack) {
-  // There is no payload
-  assert(num_bytes == 0);
-}
-
-void Ack::serialize(Serializer &serializer) {
-  // Just prepare the message header since it has no payload
-  this->set_payload_size(0);
-  return Message::serialize(serializer);
-}
-
-Nack::Nack() : Message(MsgKind::Nack) {}
-
-Nack::Nack(unsigned char *payload, size_t num_bytes) : Message(MsgKind::Nack) {
-  // There is no payload
-  assert(num_bytes == 0);
-}
-
-void Nack::serialize(Serializer &serializer) {
-  // Just prepare the message header since it has no payload
-  this->set_payload_size(0);
-  return Message::serialize(serializer);
 }
 
 SerializerMessage_::SerializerMessage_(MsgKind type, Deserializer *deserializer)
@@ -256,19 +218,6 @@ bool Status::equals(CustomObject *other) {
 }
 
 size_t Status::hash_me() { return Message::hash_me() + this->msg->hash_me(); }
-
-Kill::Kill() : Message(MsgKind::Kill) {}
-
-Kill::Kill(unsigned char *payload, size_t num_bytes) : Message(MsgKind::Kill) {
-  // There is no payload
-  assert(num_bytes == 0);
-}
-
-void Kill::serialize(Serializer &serializer) {
-  // Just prepare the message header since it has no payload
-  this->set_payload_size(0);
-  return Message::serialize(serializer);
-}
 
 Register::Register() : Message(MsgKind::Register) {
   // Initialize the properties with default values

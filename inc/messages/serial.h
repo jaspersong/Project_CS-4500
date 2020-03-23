@@ -13,26 +13,18 @@
 #include <netinet/in.h>
 #include "custom_string.h"
 
-class Ack;
-class Nack;
 class Put;
 class Reply;
-class Get;
 class WaitAndGet;
 class Status;
-class Kill;
 class Register;
 class Directory;
 
 enum class MsgKind {
-  Ack,
-  Nack,
   Put,
   Reply,
-  Get,
   WaitAndGet,
   Status,
-  Kill,
   Register,
   Directory
 };
@@ -111,20 +103,6 @@ public:
   void set_payload_size(size_t payload_size) { this->size = payload_size; }
 
   /**
-   * Casts the message to an Ack message, if the message is an Ack message.
-   * @return The casted message, or nullptr if the message is not of the
-   *        correct type
-   */
-  virtual Ack *as_ack() { return nullptr; }
-
-  /**
-   * Casts the message to an Nack message, if the message is an Nack message.
-   * @return The casted message, or nullptr if the message is not of the
-   *        correct type
-   */
-  virtual Nack *as_nack() { return nullptr; }
-
-  /**
    * Casts the message to an Put message, if the message is an Put message.
    * @return The casted message, or nullptr if the message is not of the
    *        correct type
@@ -137,13 +115,6 @@ public:
    *        correct type
    */
   virtual Reply *as_reply() { return nullptr; }
-
-  /**
-   * Casts the message to an Get message, if the message is an Get message.
-   * @return The casted message, or nullptr if the message is not of the
-   *        correct type
-   */
-  virtual Get *as_get() { return nullptr; }
 
   /**
    * Casts the message to an WaitAndGet message, if the message is an WaitAndGet
@@ -160,13 +131,6 @@ public:
    *        correct type
    */
   virtual Status *as_status() { return nullptr; }
-
-  /**
-   * Casts the message to an Kill message, if the message is an Kill message.
-   * @return The casted message, or nullptr if the message is not of the
-   *        correct type
-   */
-  virtual Kill *as_kill() { return nullptr; }
 
   /**
    * Casts the message to an Register message, if the message is an Register
@@ -217,52 +181,6 @@ private:
   size_t target; // the index of the receiver node
   size_t id;     // an id t unique within the node
   size_t size;   // Size of the payload
-};
-
-class Ack : public Message {
-public:
-  /**
-   * Constructs an Ack message.
-   */
-  Ack();
-
-  /**
-   * Constructs a Ack message from a serialized buffer payload through
-   * deserialization.
-   * @param buffer A pointer to the start of the payload containing the
-   *        status message.
-   * @param num_bytes The number of bytes the payload is.
-   * @throws If the provided payload does not have the expected size, it will
-   *         terminate the program. A payload not of the correct message type
-   *         will result in undefined behavior.
-   */
-  Ack(unsigned char *payload, size_t num_bytes);
-
-  void serialize(Serializer &serializer) override;
-  Ack *as_ack() override { return this; }
-};
-
-class Nack : public Message {
-public:
-  /**
-   * Constructs a Nack message.
-   */
-  Nack();
-
-  /**
-   * Constructs a Nack message from a serialized buffer payload through
-   * deserialization.
-   * @param buffer A pointer to the start of the payload containing the
-   *        status message.
-   * @param num_bytes The number of bytes the payload is.
-   * @throws If the provided payload does not have the expected size, it will
-   *         terminate the program. A payload not of the correct message type
-   *         will result in undefined behavior.
-   */
-  Nack(unsigned char *payload, size_t num_bytes);
-
-  void serialize(Serializer &serializer) override;
-  Nack *as_nack() override { return this; }
 };
 
 /**
@@ -348,19 +266,6 @@ public:
   Reply *as_reply() override { return this; }
 };
 
-class Get : public SerializerMessage_ {
-public:
-  Get() : SerializerMessage_(MsgKind::Get, nullptr) {}
-
-  Get(unsigned char *payload, size_t num_bytes)
-      : SerializerMessage_(MsgKind::Get, payload, num_bytes) {}
-
-  explicit Get(Serializer &serializer)
-      : SerializerMessage_(MsgKind::Get, serializer) {}
-
-  Get *as_get() override { return this; }
-};
-
 class WaitAndGet : public SerializerMessage_ {
 public:
   WaitAndGet() : SerializerMessage_(MsgKind::WaitAndGet, nullptr) {}
@@ -427,30 +332,6 @@ public:
 
 private:
   String *msg; // owned
-};
-
-class Kill : public Message {
-public:
-  /**
-   * Constructs a Kill message.
-   */
-  Kill();
-
-  /**
-   * Constructs a Kill message from a serialized buffer payload through
-   * deserialization.
-   * @param buffer A pointer to the start of the payload containing the
-   *        status message.
-   * @param num_bytes The number of bytes the payload is.
-   * @throws If the provided payload does not have the expected size, it will
-   *         terminate the program. A payload not of the correct message type
-   *         will result in undefined behavior.
-   */
-  Kill(unsigned char *payload, size_t num_bytes);
-
-  void serialize(Serializer &serializer) override;
-
-  Kill *as_kill() override { return this; }
 };
 
 class Register : public Message {

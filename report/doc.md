@@ -62,6 +62,7 @@ WaitAndGet message to the node id associated to that Key.
 ## Implementation
 
 ### Dataframe Folder
+
 * `dataframe.h`
 An implementation of thread that will be used to concurrently iterate
 through the rows of a dataframe. A RowerThread_ will only every other
@@ -99,22 +100,6 @@ A schema is a description of the contents of a data frame, the schema
 knows the number of columns and number of rows, the type of each column,
 optionally columns and rows can be named by strings.
 The valid types are represented by the chars 'S', 'B', 'I' and 'F'.
-
-* `euclidean_magnitude_rower.h`
-An implementation of Rower that goes through a dataframe comprised
-entirely of floats and integer type columns. It treats each row in a
-dataframe as a vector, and then calculates the Euclidean normal magnitude
-of each of the vectors. The calculated Euclidean magnitude can be queried
-by get_euclidean_magnitude(), and the average Euclidean magnitude can be
-queried by get_average().
-
-* `summation_rower.h`
-An implementation of a Fielder that accepts the values of the row with a
-schema comprised entirely of integer and float column data types, stores
-the summation of all of the values of that row. To get the summation once the
-row has been iterated through, call get_summation(). If any of fields
-within the row is not integer or float, the fielder will throw an error to
-stdout and terminate the program.
 
 ### Network Folder
 
@@ -359,43 +344,6 @@ size_t payload_length
 MsgKind is an enumeration value that determines what sort of message the payload
 contains, thus determining how to deserialize the serialized payload.
 
-###### Ack
-
-This message kind can be sent between nodes, from server to node, or node to
-server. It is sent as a response to another message in order to notify the
-sender of that message that the receiver had properly received the message.
-
-For example, the registrar can send a Directory message to a node. The node
-then sends an Ack message to the registrar in order to notify the registrar
-that the node had received the Directory message.
-
-The Ack message contains only the header, and does not have a payload to 
-deserialize.
-
-*NOTE*: This message type is currently not being used because the current eau2
-system implementation uses UDP, which does not have a use for an Ack message. 
-
-###### Nack
-
-This message kind can be sent between nodes, from server to node, or node to
-server. It is sent to notify a registrar or a node that the sender had been
-expecting to receive a message from the recipient, but either did not
-receive the expected message within a set time limit, or had received a message
-but was not the message it expected (i.e., a message was received out of order
-or a message was corrupted).
-
-For example, the registrar can send a Directory message to a node after the node
-had sent a Register message. However, the node did not receive the Directory
-message after 1 minute, which is the time limit to be spent waiting for the 
-Directory message. As a result, the node would then send a Nack message to the
-registrar to notify the registrar that it did not receive the message.
-
-The Nack message contains only the header, and does not have a payload to 
-deserialize.
-
-*NOTE*: This message type is currently not being used because the current eau2
-system implementation uses UDP, which does not have a use for an Nack message.
-
 ###### Put
 
 This message is sent between nodes in order to update a data chunk in its
@@ -446,16 +394,6 @@ Dataframe dataframe
 In order to prevent redundancy and stale data, the recipient node is not
 intended to keep the data within a cache after it has finished using it.
 
-###### Get
-
-This message can be sent between nodes. It is a query message asking the
-receiving node for the dataframe value of the key specified in the payload.
-
-The values of the payload are formatted in the following order:
-```C++
-Key key
-```
-
 ###### WaitAndGet
 
 This message can be sent between nodes. It is a query message asking the
@@ -470,6 +408,8 @@ The values of the payload are formatted in the following order:
 Key key
 struct timeval timeout
 ```
+
+If the timeout value is 0, that means that the client will wait indefinitely.
 
 ###### Status
 
@@ -487,15 +427,6 @@ A string value is formatted in the following C-struct binary format:
 size_t length
 char string[length + 1]
 ```
-
-###### Kill
-
-This message can only be sent from a registrar to a node. It is sent when the 
-registrar wants to shut down the eau2 network, and is shutting down the clients
-one-by-one.
-
-The Kill message contains only the header, and does not have a payload to 
-deserialize.
 
 ###### Register
 
@@ -610,6 +541,4 @@ structure in regard to a growing buffer of large amounts of data
 - Get the network code to run within Docker
 - Assigning and aligning of the node ids in order to maintain ids throughout
 the direct communication between nodes
-- Message queue within the TCP message manager (AKA, using Ack and Nack). 
-Currently it's running UDP-style. 
  
