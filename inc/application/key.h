@@ -25,16 +25,7 @@ public:
   void serialize(Serializer &serializer) override;
   size_t serialization_required_bytes() override;
 
-  /**
-   * Gets the home node id of the key.
-   * @return The home node id of the key.
-   */
   size_t get_home_id() { return this->home_id; }
-
-  /**
-   * The name of the key. The caller does NOT get to own the returned value.
-   * @return The name of the key.
-   */
   String *get_name() { return this->name; }
 
   /**

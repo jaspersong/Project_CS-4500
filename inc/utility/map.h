@@ -6,14 +6,8 @@ class Map : public CustomObject {
 public:
   static const size_t DEFAULT_HASH_SIZE = 64;
 
-  // Constructs map with the default hash size table.
   Map();
-
-  // Constructs map with the provided hash table size. It determines how many
-  // buckets of hash chains (linked lists) there will be.
   explicit Map(size_t hash_table_size);
-
-  // Deconstructor
   ~Map() override;
 
   // Does this map contain the given key

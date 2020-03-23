@@ -19,23 +19,8 @@ public:
   // Default initial capacity for queue
   static const unsigned long DEFAULT_CAPACITY = 16;
 
-  /**
-   * Constructs a new Queue object with a default initial capacity.
-   */
   Queue();
-
-  /**
-   * Constructs a new Queue object.
-   * @param initial_capacity The initial capacity to allocate for storing queue
-   * items ie, enqueue can be called this many times initially without Queue
-   * having to perform a reallocation
-   */
   explicit Queue(unsigned long initial_capacity);
-
-  /**
-   * Destructor for Queue. Does not free any contained objects (that is the
-   * responsibility of user code).
-   */
   ~Queue() override;
 
   /**
@@ -84,9 +69,7 @@ public:
    */
   virtual bool contains(CustomObject *object);
 
-  // Force implementation of hash and equals for the queue
   unsigned long hash_me() override;
-
   bool equals(CustomObject *other) override;
 
   /**

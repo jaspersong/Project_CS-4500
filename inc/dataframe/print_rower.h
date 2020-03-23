@@ -21,11 +21,6 @@
  */
 class PrintFielder : public Fielder {
 public:
-  /**
-   * Constructs a PrintFielder.
-   * @param row  The row that this fielder will be iterating through. The row
-   *        passed remains external.
-   */
   explicit PrintFielder(Row &row);
 
   void start(size_t r) override;

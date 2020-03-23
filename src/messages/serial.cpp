@@ -267,14 +267,6 @@ void Register::serialize(Serializer &serializer) {
   serializer.set_size_t(this->port);
 }
 
-void Register::set_ip_addr(String *ip_addr) {
-  inet_pton(AF_INET, ip_addr->c_str(), &this->client.sin_addr);
-}
-
-void Register::set_port_num(int port_num) {
-  this->client.sin_port = htons(port_num);
-}
-
 String *Register::get_ip_addr() {
   struct in_addr ip_addr = this->client.sin_addr;
   char addr_cstr[INET_ADDRSTRLEN];
@@ -324,25 +316,6 @@ Directory::Directory(size_t max_clients) : Message(MsgKind::Directory) {
   for (size_t i = 0; i < this->clients; i++) {
     this->ports[i] = 0;
     this->addresses[i] = nullptr;
-  }
-}
-
-Directory::Directory(Directory &directory) : Message(MsgKind::Directory) {
-  this->clients = directory.clients;
-
-  this->ports = new size_t[this->clients];
-  for (size_t i = 0; i < this->clients; i++) {
-    this->ports[i] = directory.ports[i];
-  }
-
-  // Get the addresses
-  this->addresses = new String *[this->clients];
-  for (size_t i = 0; i < this->clients; i++) {
-    if (directory.addresses[i] != nullptr) {
-      this->addresses[i] = new String(directory.addresses[i]->c_str());
-    } else {
-      this->addresses[i] = nullptr;
-    }
   }
 }
 

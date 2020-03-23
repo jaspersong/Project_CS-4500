@@ -35,9 +35,6 @@ public:
    * undefined. **/
   explicit Schema(const char *types);
 
-  /**
-   * Deconstruct the schema.
-   */
   ~Schema() override;
 
   /**

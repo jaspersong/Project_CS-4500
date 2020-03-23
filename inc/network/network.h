@@ -206,30 +206,9 @@ public:
    * Configuration functions
    ****************************/
 
-  /**
-   * Gets the maximum number of clients this server is configured to support.
-   * By default, it supports only 1 client.
-   * @return Maximum number of clients.
-   */
   size_t get_max_clients() { return this->max_clients; }
-
-  /**
-   * Gets the maximum number of bytes the server can receive from a client.
-   * @return The maximum number of bytes a received message can be.
-   */
   size_t get_max_receive_size() { return this->max_receive_size; }
-
-  /**
-   * Gets the IP address that this server is listening to.
-   * @return The string representing the IP address. This string should not
-   * be owned by the caller.
-   */
   String *get_ip_addr() { return this->ip_addr; }
-
-  /**
-   * Gets the port number that the server is listening to.
-   * @return The port number.
-   */
   size_t get_port_num() { return this->port_num; }
 
 private:
@@ -384,12 +363,6 @@ public:
   void close_client();
 
   /**
-   * Closes the client. This function sends a signal to close the client, but
-   * it does not wait for the client to spin down.
-   */
-  void close_client_no_wait();
-
-  /**
    * Determines if the server is running.
    * @return True if the server is running, false if otherwise.
    */
@@ -411,10 +384,6 @@ public:
    */
   bool send_message(unsigned char *message, size_t bytes);
 
-  /**
-   * Gets the maximum number of bytes the server can receive from a client.
-   * @return The maximum number of bytes a received message can be.
-   */
   size_t get_max_receive_size() { return this->max_receive_size; }
 
 private:

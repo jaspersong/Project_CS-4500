@@ -57,16 +57,9 @@ public:
     this->len = this->file_size;
   }
 
-  /**
-   * Constructs a Sorer integrator.
-   * @param file_path The file path to the Sorer file
-   */
   explicit SorerIntegrator(const char *file_path)
       : SorerIntegrator(file_path, 0) {}
 
-  /**
-   * Deconstructs the sorer integrator
-   */
   ~SorerIntegrator() {
     fclose(this->file);
     delete this->parser;

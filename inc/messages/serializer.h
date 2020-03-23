@@ -24,20 +24,8 @@ class Serializer {
 public:
   static const size_t DEFAULT_STARTING_BUFFER_SIZE = 32;
 
-  /**
-   * Constructs a serializer that starts at the specified size buffer.
-   * @param starting_size Starting size of teh buffer.
-   */
   explicit Serializer(size_t starting_size);
-
-  /**
-   * Constructs a serializer.
-   */
   Serializer() : Serializer(Serializer::DEFAULT_STARTING_BUFFER_SIZE) {}
-
-  /**
-   * Deconstructs a serializer.
-   */
   ~Serializer();
 
   /**
@@ -46,26 +34,8 @@ public:
    * @return The number of bytes needed to serialize the provided value.
    */
   static size_t get_required_bytes(bool value) { return sizeof(bool); }
-
-  /**
-   * Calculates the number of bytes is needed to serialize the provided value.
-   * @param value The value to serialize.
-   * @return The number of bytes needed to serialize the provided value.
-   */
   static size_t get_required_bytes(size_t value) { return sizeof(size_t); }
-
-  /**
-   * Calculates the number of bytes is needed to serialize the provided value.
-   * @param value The value to serialize.
-   * @return The number of bytes needed to serialize the provided value.
-   */
   static size_t get_required_bytes(int value) { return sizeof(int); }
-
-  /**
-   * Calculates the number of bytes is needed to serialize the provided value.
-   * @param value The value to serialize.
-   * @return The number of bytes needed to serialize the provided value.
-   */
   static size_t get_required_bytes(double value) { return sizeof(double); }
 
   /**
@@ -78,35 +48,14 @@ public:
     return this->set_generic(reinterpret_cast<unsigned char *>(&value),
         sizeof(value));
   }
-
-  /**
-   * Appends the serialization of the provided size_t value into the serialized
-   * data buffer.
-   * @param value The value to serialize into the serialized data buffer.
-   * @return True if it successfully serialized the data. False if otherwise.
-   */
   bool set_size_t(size_t value) {
     return this->set_generic(reinterpret_cast<unsigned char *>(&value),
         sizeof(value));
   }
-
-  /**
-   * Appends the serialization of the provided int value into the serialized
-   * data buffer.
-   * @param value The value to serialize into the serialized data buffer.
-   * @return True if it successfully serialized the data. False if otherwise.
-   */
   bool set_int(int value) {
     return this->set_generic(reinterpret_cast<unsigned char *>(&value),
         sizeof(value));
   }
-
-  /**
-   * Appends the serialization of the provided double value into the serialized
-   * data buffer.
-   * @param value The value to serialize into the serialized data buffer.
-   * @return True if it successfully serialized the data. False if otherwise.
-   */
   bool set_double(double value) {
     return this->set_generic(reinterpret_cast<unsigned char *>(&value),
         sizeof(value));
@@ -188,9 +137,6 @@ public:
    */
   Deserializer(unsigned char *buffer, size_t num_bytes);
 
-  /**
-   * Deconstructs a deserializer.
-   */
   ~Deserializer();
 
   /**
@@ -202,93 +148,27 @@ public:
 
   /**
    * Determines if there is enough bytes left to be read from the buffer in
-   * order to retrieve a data value of a byte.
-   * @return True if there is enough data left to read. False if otherwise.
-   */
-  bool has_byte() {
-    return this->get_num_bytes_left() >= sizeof(unsigned char);
-  }
-
-  /**
-   * Determines if there is enough bytes left to be read from the buffer in
-   * order to retrieve a data value of a bool.
-   * @return True if there is enough data left to read. False if otherwise.
+   * order to retrieve a certain data value.
+   * @return True if there is enough data left to read the specified data
+   * value. False if otherwise.
    */
   bool has_bool() { return this->get_num_bytes_left() >= sizeof(bool); }
-
-  /**
-   * Determines if there is enough bytes left to be read from the buffer in
-   * order to retrieve a data value of a size_t.
-   * @return True if there is enough data left to read. False if otherwise.
-   */
   bool has_size_t() { return this->get_num_bytes_left() >= sizeof(size_t); }
-
-  /**
-   * Determines if there is enough bytes left to be read from the buffer in
-   * order to retrieve a data value of a int.
-   * @return True if there is enough data left to read. False if otherwise.
-   */
   bool has_int() { return this->get_num_bytes_left() >= sizeof(int); }
-
-  /**
-   * Determines if there is enough bytes left to be read from the buffer in
-   * order to retrieve a data value of a double.
-   * @return True if there is enough data left to read. False if otherwise.
-   */
   bool has_double() { return this->get_num_bytes_left() >= sizeof(double); }
 
   /**
-   * Gets the next byte of buffer. It will move the pointer within the
+   * Gets the next value of buffer. It will move the pointer within the
    * buffer, so calling this function again will read the next byte of the
    * buffer.
-   * @return The next byte of the buffer.
+   * @return The next value of the buffer at the specified type.
    * @throws Throws an error and terminates the program if there is not
    *        enough bytes left to be able to read from the buffer.
    */
   unsigned char get_byte();
-
-  /**
-   * Gets the next few bytes as a bool data type. It will move the pointer
-   * within the buffer, so calling this function again will read the next
-   * bool of the buffer.
-   * @return The next bytes as a bool value.
-   * @throws Throws an error and terminates the program if there is not
-   *         enough bytes left to be able to read a bool value from the
-   *         buffer.
-   */
   bool get_bool();
-
-  /**
-   * Gets the next few bytes as a size_t data type. It will move the pointer
-   * within the buffer, so calling this function again will read the next
-   * size_t of the buffer.
-   * @return The next bytes as a size_t value.
-   * @throws Throws an error and terminates the program if there is not
-   *         enough bytes left to be able to read a size_t value from the
-   *         buffer.
-   */
   size_t get_size_t();
-
-  /**
-   * Gets the next few bytes as a int data type. It will move the pointer
-   * within the buffer, so calling this function again will read the next
-   * int of the buffer.
-   * @return The next bytes as a int value.
-   * @throws Throws an error and terminates the program if there is not
-   *         enough bytes left to be able to read a int value from the
-   *         buffer.
-   */
   int get_int();
-
-  /**
-   * Gets the next few bytes as a double data type. It will move the pointer
-   * within the buffer, so calling this function again will read the next
-   * double of the buffer.
-   * @return The next bytes as a double value.
-   * @throws Throws an error and terminates the program if there is not
-   *         enough bytes left to be able to read a double value from the
-   *         buffer.
-   */
   double get_double();
 
   /**

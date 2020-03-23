@@ -38,16 +38,6 @@ public:
 
   /** Subclass responsibility, the body of the run method */
   virtual void run() { assert(false); }
-
-  // there's a better way to get an CwC value out of a threadid, but this'll do
-  // for now
-  /** Return the id of the current thread */
-  static String *thread_id() {
-    std::stringstream buf;
-    buf << std::this_thread::get_id();
-    std::string buffer(buf.str());
-    return new String(buffer.c_str(), buffer.size());
-  }
 };
 
 /** A convenient lock and condition variable wrapper. */
@@ -93,23 +83,4 @@ public:
 
   // Notify one thread waiting on this lock
   void notify_one() { cv_.notify_one(); }
-};
-
-/** A simple thread-safe counter. */
-class Counter : public CustomObject {
-public:
-  std::atomic<size_t> next_;
-
-  Counter() { next_ = 0; }
-
-  size_t next() {
-    size_t r = next_++;
-    return r;
-  }
-  size_t prev() {
-    size_t r = next_--;
-    return r;
-  }
-
-  size_t current() { return next_; }
 };

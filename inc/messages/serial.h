@@ -40,112 +40,29 @@ class Message : public CustomObject {
 public:
   static const size_t HEADER_SIZE = sizeof(MsgKind) + 4 * sizeof(size_t);
 
-  /**
-   * Constructs a generic message.
-   * @param kind The kind of message.
-   */
   explicit Message(MsgKind kind);
 
-  /**
-   * Gets the message type.
-   * @return The message type.
-   */
   MsgKind get_message_kind() { return this->kind; }
-
-  /**
-   * Gets the sender id.
-   * @return The sender id. If the id is -1, then it is from the server.
-   */
   size_t get_sender_id() { return this->sender; }
-
-  /**
-   * Gets the target id.
-   * @return The target id. If the id is -1, then it is from the server.
-   */
   size_t get_target_id() { return this->target; }
-
-  /**
-   * Gets the id of the message.
-   * @return The id of the message.
-   */
   size_t get_id() { return this->id; }
-
-  /**
-   * Gets the size of the message payload.
-   * @return The size of the payload.
-   */
   size_t get_payload_size() { return this->size; }
 
-  /**
-   * Sets the sender id of the message.
-   * @param sender_id The sender id of the message. If the id is -1, then it is
-   *        from the server
-   */
   void set_sender_id(size_t sender_id) { this->sender = sender_id; }
-
-  /**
-   * Sets the target id of the message.
-   * @param target_id The target id of the message. If the id is -1, then the
-   *        message is to the server.
-   */
   void set_target_id(size_t target_id) { this->target = target_id; }
-
-  /**
-   * Sets the id of the message.
-   * @param msg_id The unique id of the message.
-   */
   void set_id(size_t msg_id) { this->id = msg_id; }
-
-  /**
-   * Sets the payload of the message.
-   * @param payload_size The payload of the message
-   */
   void set_payload_size(size_t payload_size) { this->size = payload_size; }
 
   /**
-   * Casts the message to an Put message, if the message is an Put message.
+   * Casts the message to a specified message type.
    * @return The casted message, or nullptr if the message is not of the
    *        correct type
    */
   virtual Put *as_put() { return nullptr; }
-
-  /**
-   * Casts the message to an Reply message, if the message is an Reply message.
-   * @return The casted message, or nullptr if the message is not of the
-   *        correct type
-   */
   virtual Reply *as_reply() { return nullptr; }
-
-  /**
-   * Casts the message to an WaitAndGet message, if the message is an WaitAndGet
-   * message.
-   * @return The casted message, or nullptr if the message is not of the
-   *        correct type
-   */
   virtual WaitAndGet *as_waitandget() { return nullptr; }
-
-  /**
-   * Casts the message to an Status message, if the message is an Status
-   * message.
-   * @return The casted message, or nullptr if the message is not of the
-   *        correct type
-   */
   virtual Status *as_status() { return nullptr; }
-
-  /**
-   * Casts the message to an Register message, if the message is an Register
-   * message.
-   * @return The casted message, or nullptr if the message is not of the
-   *        correct type
-   */
   virtual Register *as_register() { return nullptr; }
-
-  /**
-   * Casts the message to an Directory message, if the message is an Directory
-   * message.
-   * @return The casted message, or nullptr if the message is not of the
-   *        correct type
-   */
   virtual Directory *as_directory() { return nullptr; }
 
   bool equals(CustomObject *other) override;
@@ -219,9 +136,6 @@ public:
    */
   explicit SerializerMessage_(MsgKind type, Serializer &serializer);
 
-  /**
-   * Deconstructs the put message.
-   */
   ~SerializerMessage_() override;
 
   void serialize(Serializer &serializer) override;
@@ -281,48 +195,14 @@ public:
 
 class Status : public Message {
 public:
-  /**
-   * Constructs a Status message.
-   * @param message The message that the status message will have. This
-   * string will remain external.
-   */
   explicit Status(String &message);
-
-  /**
-   * Constructs a blank Status message.
-   */
   Status();
-
-  /**
-   * Constructs a Status message from a serialized buffer payload.
-   * @param buffer A pointer to the start of the payload containing the
-   *        status message.
-   * @param num_bytes The number of bytes the payload is.
-   * @throws If the provided payload does not have the expected size, it will
-   *         terminate the program. A payload not of the correct message type
-   *         will result in undefined behavior.
-   */
   Status(unsigned char *payload, size_t num_bytes);
-
-  /**
-   * Deconstructs the message.
-   */
   ~Status() override;
 
   void serialize(Serializer &serializer) override;
 
-  /**
-   * Sets the message of the status as the provided message. The argument
-   * will remain external.
-   * @param new_msg The new message.
-   */
   void set_message(String &new_msg);
-
-  /**
-   * Returns the message of the status.
-   * @return The message of the status. Mutating the return value will not
-   *        affect the Status message.
-   */
   String *get_message();
 
   Status *as_status() override { return this; }
@@ -336,47 +216,13 @@ private:
 
 class Register : public Message {
 public:
-  /**
-   * Constructs a blank Register message.
-   */
   Register();
-
-  /**
-   * Constructs a register message.
-   * @param ip_addr The IP address the register message should have. The
-   *        string will remain external.
-   * @param port_num The port number the register message should have.
-   * @throws If the provided payload does not have the expected size, it will
-   *         terminate the program. A payload not of the correct message type
-   *         will result in undefined behavior.
-   */
   Register(String *ip_addr, int port_num);
-
-  /**
-   * Constructs a Register message from a serialized buffer payload through
-   * deserialization.
-   * @param buffer A pointer to the start of the payload containing the
-   *        status message.
-   * @param num_bytes The number of bytes the payload is.
-   */
   Register(unsigned char *payload, size_t num_bytes);
 
   void serialize(Serializer &serializer) override;
 
-  void set_ip_addr(String *ip_addr);
-  void set_port_num(int port_num);
-
-  /**
-   * Gets the IP address of the message.
-   * @return A new string containing the IP address. The returned value will
-   *        now be owned by the caller.
-   */
   String *get_ip_addr();
-
-  /**
-   * Gets the port number.
-   * @return The port number. -1 means that it has not been set yet.
-   */
   int get_port_num();
 
   Register *as_register() override { return this; }
@@ -391,33 +237,8 @@ private:
 
 class Directory : public Message {
 public:
-  /**
-   * Constructs a blank directory message.
-   * @param max_clients
-   */
   explicit Directory(size_t max_clients);
-
-  /**
-   * Copy constructor.
-   * @param director Directory to copy from
-   */
-  Directory(Directory &directory);
-
-  /**
-   * Constructs a Directory message from a serialized buffer payload through
-   * deserialization.
-   * @param buffer A pointer to the start of the payload containing the
-   *        status message.
-   * @param num_bytes The number of bytes the payload is.
-   * @throws If the provided payload does not have the expected size, it will
-   *         terminate the program. A payload not of the correct message type
-   *         will result in undefined behavior.
-   */
   Directory(unsigned char *payload, size_t num_bytes);
-
-  /**
-   * Deconstructs the message.
-   */
   ~Directory() override;
 
   void serialize(Serializer &serializer) override;
@@ -445,43 +266,9 @@ public:
    */
   bool remove_client(size_t client_id);
 
-  /**
-   * Gets the maximum number of clients that can be registered at any time.
-   * @return The maximum number of clients that can be registered at the same
-   *        time.
-   */
   size_t get_max_num_clients() { return this->clients; }
-
-  /**
-   * Determines if there is a client registered at the specified index.
-   * @param client_id The id of the client. The id will be from 0 to 1 less than
-   *        the maximum number of clients that the register server can have
-   *        registered at any given one time.
-   * @return True if there is a client connected at this id. False if otherwise.
-   */
   bool is_client_connected(size_t client_id);
-
-  /**
-   * Gets the ip address of the client.
-   * @param client_id The id of the client. The id will be from 0 to 1 less
-   *        than the maximum number of clients that the registrar server can
-   *        have registered at any given one time.
-   * @return The IP address of the client. The string will be owned by the
-   *        caller. It will return nullptr if there is not client registered
-   *        at that id. If the id provided is invalid, it will termiante the
-   *        program.
-   */
   String *get_client_ip_addr(size_t client_id);
-
-  /**
-   * Gets the port number of the client.
-   * @param client_id The id of the client. The id will be from 0 to 1 less
-   *        than the maximum number of clients that the registrar server can
-   *        have registered at anuy given one time.
-   * @return The port number of the client. It will return 0 if there is no
-   *        client registered at that id. If the id provided is invalid, it
-   *        will terminate the program.
-   */
   int get_client_port_num(size_t client_id);
 
   Directory *as_directory() override { return this; }

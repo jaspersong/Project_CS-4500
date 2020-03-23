@@ -28,10 +28,6 @@ class Row : public CustomObject {
 public:
   /** Build a row following a schema. */
   explicit Row(Schema &scm);
-
-  /**
-   * Deconstructs the row.
-   */
   ~Row() override;
 
   /** Setters: set the given column with the given value. Setting a column with

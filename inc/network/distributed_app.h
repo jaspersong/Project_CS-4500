@@ -42,10 +42,6 @@ public:
    */
   Registrar(String *ip_addr, int port_num, size_t max_num_clients,
             ReceivedMessageManager &received_message_manager);
-
-  /**
-   * Deconstructs the server.
-   */
   ~Registrar() override;
 
   void handle_incoming_message(size_t client_id, unsigned char *buffer,
@@ -66,7 +62,7 @@ private:
    * Helper function that broadcasts the updated client directory to all of
    * the connected and registered nodes to this server.
    */
-  void broadcast_client_directory_();
+  void broadcast_client_directory();
 };
 
 /**
@@ -95,10 +91,6 @@ public:
        int port_num, size_t fixed_num_clients,
        ReceivedMessageManager &msg_manager,
        ReceivedMessageManager &dm_msg_manager);
-
-  /**
-   * Deconstructs the client
-   */
   ~Node() override;
 
   void init() override;

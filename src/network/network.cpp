@@ -502,12 +502,6 @@ void Client::close_client() {
   }
 }
 
-void Client::close_client_no_wait() {
-  if (this->running()) {
-    this->continue_running = false;
-  }
-}
-
 bool Client::send_message(unsigned char *message, size_t bytes) {
   if (message == nullptr) {
     return false;

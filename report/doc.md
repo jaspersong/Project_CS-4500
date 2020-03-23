@@ -541,4 +541,7 @@ structure in regard to a growing buffer of large amounts of data
 - Get the network code to run within Docker
 - Assigning and aligning of the node ids in order to maintain ids throughout
 the direct communication between nodes
+- Make use of templates for similar classes and methods
+- Connect multiple local KV-Stores to support communicating to each other
+over threads or over network connection 
  

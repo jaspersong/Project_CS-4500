@@ -303,7 +303,7 @@ void Registrar::handle_incoming_message(size_t client_id, unsigned char *buffer,
 
     // Now send out the updated directory to all of the other clients that
     // are connected.
-    this->broadcast_client_directory_();
+    this->broadcast_client_directory();
 
     delete ip_addr;
     break;
@@ -343,10 +343,10 @@ void Registrar::handle_closing_connection(size_t client_id) {
   printf("Client id %zu closed connection\n", client_id);
   this->client_dir->remove_client(client_id);
 
-  this->broadcast_client_directory_();
+  this->broadcast_client_directory();
 }
 
-void Registrar::broadcast_client_directory_() {
+void Registrar::broadcast_client_directory() {
   for (size_t i = 0; i < this->client_dir->get_max_num_clients(); i++) {
     if (this->client_dir->is_client_connected(i)) {
       this->client_dir->set_target_id(i);

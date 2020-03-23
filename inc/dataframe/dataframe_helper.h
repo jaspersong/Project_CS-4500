@@ -48,9 +48,6 @@ typedef union {
  */
 class ArrayOfArrays : public CustomObject {
 public:
-  /**
-   * Constructs an array of arrays.
-   */
   ArrayOfArrays();
 
   /**
@@ -60,9 +57,6 @@ public:
    */
   ArrayOfArrays(ArrayOfArrays &list);
 
-  /**
-   * Deconstructs an array of arrays.
-   */
   ~ArrayOfArrays() override;
 
   /**
