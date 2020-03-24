@@ -10,6 +10,7 @@ test_all: build_all
 	-cd ./build; ./test_suite_messages
 	-cd ./build; ./test_suite_network
 	-cd ./build; ./test_suite_sorer
+	-cd ./build; ./test_suite_kv_store
 
 test_valgrind: build_all
 	-cd ./build; valgrind --leak-check=yes ./test_suite_map

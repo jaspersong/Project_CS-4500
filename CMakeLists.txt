@@ -23,38 +23,19 @@ include_directories(
         "${CMAKE_CURRENT_SOURCE_DIR}/tests"
         "${CMAKE_CURRENT_SOURCE_DIR}/src/dataframe/CS4500-A1-part1")
 
-# Create targets for the test suites
-add_executable(test_suite_map
-        tests/test_map.cpp
-        inc/utility/map.h
-        src/utility/map.cpp
-        inc/utility/custom_string.h
-        src/utility/custom_string.cpp
+set(UTILITY_SRC
         inc/utility/helper.h
-        inc/utility/custom_object.h
-        inc/messages/serializer.h
-        src/messages/serializer.cpp)
-add_executable(test_suite_queue
-        tests/test_queue.cpp
-        inc/utility/queue.h
-        src/utility/queue.cpp
-        inc/utility/custom_string.h
-        src/utility/custom_string.cpp
-        inc/utility/helper.h
-        inc/utility/custom_object.h
-        inc/messages/serializer.h
-        src/messages/serializer.cpp)
-add_executable(test_suite_dataframe
-        tests/test_dataframe.cpp
-        inc/utility/helper.h
-        inc/utility/custom_object.h
-        inc/utility/custom_string.h
-        src/utility/custom_string.cpp
         inc/utility/thread.h
-        inc/utility/map.h
-        src/utility/map.cpp
+        inc/utility/custom_object.h
         inc/messages/serializer.h
         src/messages/serializer.cpp
+        inc/utility/custom_string.h
+        src/utility/custom_string.cpp
+        inc/utility/queue.h
+        src/utility/queue.cpp
+        inc/utility/map.h
+        src/utility/map.cpp)
+set(DATAFRAME_SRC
         inc/dataframe/dataframe_helper.h
         src/dataframe/dataframe_helper.cpp
         inc/dataframe/dataframe_column.h
@@ -68,196 +49,84 @@ add_executable(test_suite_dataframe
         inc/dataframe/fielder.h
         inc/dataframe/rower.h
         inc/dataframe/print_rower.h
-        src/dataframe/print_rower.cpp
+        src/dataframe/print_rower.cpp)
+set(NETWORK_SRC
+        inc/messages/serial.h
+        src/messages/serial.cpp
+        inc/network/distributed_app.h
+        src/network/distributed_app.cpp
+        inc/network/network.h
+        src/network/network.cpp
+        inc/network/recv_msg_manager.h
+        inc/application/stdout_msg_manager.h
+        src/application/stdout_msg_manager.cpp)
+set(APP_SRC
         inc/application/key.h
         src/application/key.cpp
         inc/application/application.h
         src/application/application.cpp
         inc/application/key_value_store.h
-        src/application/key_value_store.cpp
-        inc/network/distributed_app.h
-        src/network/distributed_app.cpp
-        inc/network/network.h
-        src/network/network.cpp
-        inc/utility/queue.h
-        src/utility/queue.cpp
-        inc/messages/serial.h
-        src/messages/serial.cpp
-        inc/messages/serializer.h
-        src/messages/serializer.cpp)
+        src/application/key_value_store.cpp)
+
+# Create targets for the test suites
+add_executable(test_suite_map
+        tests/test_map.cpp
+        "${UTILITY_SRC}")
+add_executable(test_suite_queue
+        tests/test_queue.cpp
+        "${UTILITY_SRC}")
+add_executable(test_suite_dataframe
+        tests/test_dataframe.cpp
+        "${UTILITY_SRC}"
+        "${DATAFRAME_SRC}")
 add_executable(test_suite_messages
         tests/test_messages.cpp
-        inc/utility/helper.h
-        inc/utility/custom_object.h
-        inc/utility/custom_string.h
-        src/utility/custom_string.cpp
+        "${UTILITY_SRC}"
         inc/messages/serial.h
-        src/messages/serial.cpp
-        inc/messages/serializer.h
-        src/messages/serializer.cpp)
+        src/messages/serial.cpp)
 add_executable(test_suite_network
         tests/test_network.cpp
-        inc/utility/helper.h
-        inc/utility/custom_object.h
-        inc/utility/custom_string.h
-        src/utility/custom_string.cpp
-        inc/utility/thread.h
-        inc/utility/queue.h
-        src/utility/queue.cpp
-        inc/network/network.h
-        src/network/network.cpp
-        inc/messages/serializer.h
-        src/messages/serializer.cpp)
+        "${UTILITY_SRC}"
+        "${NETWORK_SRC}")
 add_executable(test_suite_sorer
         tests/test_sorer.cpp
-        inc/utility/helper.h
-        inc/utility/custom_object.h
-        inc/utility/custom_string.h
-        src/utility/custom_string.cpp
-        inc/messages/serial.h
-        src/messages/serial.cpp
-        inc/messages/serializer.h
-        src/messages/serializer.cpp
-        inc/dataframe/dataframe_helper.h
-        src/dataframe/dataframe_helper.cpp
-        inc/dataframe/dataframe_column.h
-        src/dataframe/dataframe_column.cpp
-        inc/dataframe/row.h
-        src/dataframe/row.cpp
-        inc/dataframe/schema.h
-        src/dataframe/schema.cpp
-        inc/dataframe/dataframe.h
-        src/dataframe/dataframe.cpp
-        inc/dataframe/fielder.h
-        inc/dataframe/rower.h
-        inc/dataframe/print_rower.h
-        src/dataframe/print_rower.cpp
-        inc/dataframe/print_rower.h
+        "${UTILITY_SRC}"
+        "${DATAFRAME_SRC}"
         inc/dataframe/sorer_integrator.h
         src/dataframe/CS4500-A1-part1/column.h
         src/dataframe/CS4500-A1-part1/parser.h
         src/dataframe/CS4500-A1-part1/object.h)
+add_executable(test_suite_kv_store
+        tests/test_kv_store.cpp
+        "${UTILITY_SRC}"
+        "${DATAFRAME_SRC}"
+        "${NETWORK_SRC}"
+        "${APP_SRC}")
 
 # Create targets to demo server/client and registrar/node functionality
 add_executable(demo_registrar
         tests/registrar.cpp
-        inc/utility/helper.h
-        inc/utility/custom_object.h
-        inc/utility/custom_string.h
-        src/utility/custom_string.cpp
-        inc/utility/thread.h
-        inc/utility/queue.h
-        src/utility/queue.cpp
-        inc/network/network.h
-        src/network/network.cpp
-        inc/network/distributed_app.h
-        src/network/distributed_app.cpp
-        inc/messages/serial.h
-        src/messages/serial.cpp
-        inc/messages/serializer.h
-        src/messages/serializer.cpp
-        inc/network/recv_msg_manager.h
-        inc/application/stdout_msg_manager.h
-        src/application/stdout_msg_manager.cpp)
+        "${UTILITY_SRC}"
+        "${DATAFRAME_SRC}"
+        "${NETWORK_SRC}")
 add_executable(demo_node
         tests/node.cpp
-        inc/utility/helper.h
-        inc/utility/custom_object.h
-        inc/utility/custom_string.h
-        src/utility/custom_string.cpp
-        inc/utility/thread.h
-        inc/utility/queue.h
-        src/utility/queue.cpp
-        inc/network/network.h
-        src/network/network.cpp
-        inc/network/distributed_app.h
-        src/network/distributed_app.cpp
-        inc/messages/serial.h
-        src/messages/serial.cpp
-        inc/messages/serializer.h
-        src/messages/serializer.cpp
-        inc/network/recv_msg_manager.h
-        inc/application/stdout_msg_manager.h
-        src/application/stdout_msg_manager.cpp)
+        "${UTILITY_SRC}"
+        "${DATAFRAME_SRC}"
+        "${NETWORK_SRC}")
 add_executable(demo_trivial_app_nonet
         tests/trivial_app_nonet.cpp
-        inc/utility/helper.h
-        inc/utility/custom_object.h
-        inc/utility/custom_string.h
-        src/utility/custom_string.cpp
-        inc/utility/thread.h
-        inc/utility/map.h
-        src/utility/map.cpp
-        inc/messages/serial.h
-        src/messages/serial.cpp
-        inc/messages/serializer.h
-        src/messages/serializer.cpp
-        inc/dataframe/dataframe_helper.h
-        src/dataframe/dataframe_helper.cpp
-        inc/dataframe/dataframe_column.h
-        src/dataframe/dataframe_column.cpp
-        inc/dataframe/row.h
-        src/dataframe/row.cpp
-        inc/dataframe/schema.h
-        src/dataframe/schema.cpp
-        inc/dataframe/dataframe.h
-        src/dataframe/dataframe.cpp
-        inc/dataframe/fielder.h
-        inc/dataframe/rower.h
-        inc/dataframe/print_rower.h
-        src/dataframe/print_rower.cpp
-        inc/application/key.h
-        src/application/key.cpp
-        inc/application/application.h
-        src/application/application.cpp
-        inc/application/key_value_store.h
-        src/application/key_value_store.cpp
+        "${UTILITY_SRC}"
+        "${DATAFRAME_SRC}"
+        "${NETWORK_SRC}"
+        "${APP_SRC}"
         inc/application/trivial_app.h
-        src/application/trivial_app.cpp
-        inc/network/distributed_app.h
-        src/network/distributed_app.cpp
-        inc/network/network.h
-        src/network/network.cpp
-        inc/utility/queue.h
-        src/utility/queue.cpp)
+        src/application/trivial_app.cpp)
 add_executable(demo_app
         tests/demo_app_nonet.cpp
-        inc/utility/helper.h
-        inc/utility/custom_object.h
-        inc/utility/custom_string.h
-        src/utility/custom_string.cpp
-        inc/utility/thread.h
-        inc/utility/map.h
-        src/utility/map.cpp
-        inc/messages/serial.h
-        src/messages/serial.cpp
-        inc/messages/serializer.h
-        src/messages/serializer.cpp
-        inc/dataframe/dataframe_helper.h
-        src/dataframe/dataframe_helper.cpp
-        inc/dataframe/dataframe_column.h
-        src/dataframe/dataframe_column.cpp
-        inc/dataframe/row.h
-        src/dataframe/row.cpp
-        inc/dataframe/schema.h
-        src/dataframe/schema.cpp
-        inc/dataframe/dataframe.h
-        src/dataframe/dataframe.cpp
-        inc/dataframe/fielder.h
-        inc/dataframe/rower.h
-        inc/dataframe/print_rower.h
-        src/dataframe/print_rower.cpp
-        inc/application/key.h
-        src/application/key.cpp
-        inc/application/application.h
-        src/application/application.cpp
-        inc/application/key_value_store.h
-        src/application/key_value_store.cpp
+        "${UTILITY_SRC}"
+        "${DATAFRAME_SRC}"
+        "${NETWORK_SRC}"
+        "${APP_SRC}"
         inc/application/demo_app.h
-        src/application/demo_app.cpp
-        inc/network/distributed_app.h
-        src/network/distributed_app.cpp
-        inc/network/network.h
-        src/network/network.cpp
-        inc/utility/queue.h
-        src/utility/queue.cpp)
+        src/application/demo_app.cpp)
