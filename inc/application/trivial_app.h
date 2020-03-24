@@ -17,7 +17,7 @@
  */
 class Trivial : public Application {
 public:
-  explicit Trivial() : Application(0){};
+  explicit Trivial() : Application(1){};
 
-  void run() override;
+  void main() override;
 };

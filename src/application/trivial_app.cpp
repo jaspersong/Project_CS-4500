@@ -10,7 +10,7 @@
 #include "trivial_app.h"
 #include "key_value_store.h"
 
-void Trivial::run() {
+void Trivial::main() {
   size_t SZ = 1000 * 1000;
   auto *vals = new float[SZ];
 
@@ -24,7 +24,7 @@ void Trivial::run() {
   DataFrame *df = KeyValueStore::from_array(key, this->kv, SZ, vals);
   assert(df->get_float(0, 1) == 1);
 
-  auto *df2 = reinterpret_cast<DataFrame *>(this->kv->wait_and_get(key));
+  auto *df2 = reinterpret_cast<DataFrame *>(this->kv->get_local(key));
   for (size_t i = 0; i < SZ; ++i)
     sum -= df2->get_float(0, i);
   assert(sum == 0);

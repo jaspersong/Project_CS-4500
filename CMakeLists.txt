@@ -74,7 +74,17 @@ add_executable(test_suite_dataframe
         inc/application/application.h
         src/application/application.cpp
         inc/application/key_value_store.h
-        src/application/key_value_store.cpp)
+        src/application/key_value_store.cpp
+        inc/network/distributed_app.h
+        src/network/distributed_app.cpp
+        inc/network/network.h
+        src/network/network.cpp
+        inc/utility/queue.h
+        src/utility/queue.cpp
+        inc/messages/serial.h
+        src/messages/serial.cpp
+        inc/messages/serializer.h
+        src/messages/serializer.cpp)
 add_executable(test_suite_messages
         tests/test_messages.cpp
         inc/utility/helper.h
@@ -203,4 +213,51 @@ add_executable(demo_trivial_app_nonet
         inc/application/key_value_store.h
         src/application/key_value_store.cpp
         inc/application/trivial_app.h
-        src/application/trivial_app.cpp)
+        src/application/trivial_app.cpp
+        inc/network/distributed_app.h
+        src/network/distributed_app.cpp
+        inc/network/network.h
+        src/network/network.cpp
+        inc/utility/queue.h
+        src/utility/queue.cpp)
+add_executable(demo_app
+        tests/demo_app_nonet.cpp
+        inc/utility/helper.h
+        inc/utility/custom_object.h
+        inc/utility/custom_string.h
+        src/utility/custom_string.cpp
+        inc/utility/thread.h
+        inc/utility/map.h
+        src/utility/map.cpp
+        inc/messages/serial.h
+        src/messages/serial.cpp
+        inc/messages/serializer.h
+        src/messages/serializer.cpp
+        inc/dataframe/dataframe_helper.h
+        src/dataframe/dataframe_helper.cpp
+        inc/dataframe/dataframe_column.h
+        src/dataframe/dataframe_column.cpp
+        inc/dataframe/row.h
+        src/dataframe/row.cpp
+        inc/dataframe/schema.h
+        src/dataframe/schema.cpp
+        inc/dataframe/dataframe.h
+        src/dataframe/dataframe.cpp
+        inc/dataframe/fielder.h
+        inc/dataframe/rower.h
+        inc/dataframe/print_rower.h
+        src/dataframe/print_rower.cpp
+        inc/application/key.h
+        src/application/key.cpp
+        inc/application/application.h
+        src/application/application.cpp
+        inc/application/key_value_store.h
+        src/application/key_value_store.cpp
+        inc/application/demo_app.h
+        src/application/demo_app.cpp
+        inc/network/distributed_app.h
+        src/network/distributed_app.cpp
+        inc/network/network.h
+        src/network/network.cpp
+        inc/utility/queue.h
+        src/utility/queue.cpp)

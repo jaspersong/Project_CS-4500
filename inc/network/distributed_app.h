@@ -99,33 +99,20 @@ public:
                                size_t num_bytes) override;
 
   /**
-   * Initiates a direct message connection to the specified client at the
-   * client id.
-   * @param client_id The unique client id, which will be reused if a client
-   *        disconnects from the registrar server.
-   * @return True if the direct connection was successful. False if otherwise.
-   */
-  bool initiate_direct_message_connection(size_t client_id);
-
-  /**
-   * Closes a direct message connection to the specified client at the client
-   * id.
-   * @param client_id The unique client id.
-   */
-  void close_direct_message_connection(size_t client_id);
-
-  /**
    * Sends a direct message to the client at the specified client id.
    * @param client_id The unique client id.
-   * @param message A pointer to the buffer of the message that should be
-   * sent. this message should be dynamically allocated, and once it is
-   * passed into the function, this function will take ownership.
-   * @param bytes The number of bytes of this message.
+   * @param msg The message that will be sent to the specified client.
    * @return True if the message has successfully been queued. False if
    * otherwise.
    */
-  bool send_direct_message(size_t client_id, unsigned char *message,
-                           size_t bytes);
+  bool send_direct_message(size_t client_id, Message &msg);
+
+  /**
+   * Gets the id of the node. If the node has not been assigned an id, then
+   * it will wait until it is available first.
+   * @return The id of the node
+   */
+  size_t get_node_id_with_wait();
 
 private:
   class ClientDMManager;
@@ -133,4 +120,7 @@ private:
   ClientDMManager *dm_manager;
   MessageReceiver *message_receiver;
   ReceivedMessageManager *received_msg_manager;
+
+  size_t id;
+  Lock enum_signal;
 };

@@ -9,11 +9,35 @@
 
 #include "application.h"
 
-Application::Application(size_t node_id) {
-  this->kv = new KeyValueStore(node_id);
-  this->node_id = node_id;
+Application::Application(size_t num_nodes) {
+  assert(num_nodes > 0);
+
+  this->kv = new KeyValueStore(num_nodes);
+  this->running = false;
 }
 
-void Application::run() { assert(false); }
+void Application::main() { assert(false); }
 
-size_t Application::get_node_id() { return this->node_id; }
+size_t Application::get_node_id() { return this->kv->get_home_id(); }
+
+void Application::connect_local(size_t node_id) {
+  assert(!this->running);
+  this->kv->connect_local(node_id);
+}
+
+void Application::add_local(Application &other_app) {
+  assert(!this->running);
+  this->kv->add_local(*other_app.kv);
+}
+
+void Application::connect_network(Node& node) {
+  assert(!this->running);
+  this->kv->connect_network(node);
+}
+
+void Application::run() {
+  this->running = true;
+  assert(this->kv->verify_distributed_layer());
+  this->main();
+  this->running = false;
+}

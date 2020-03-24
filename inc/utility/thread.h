@@ -63,24 +63,6 @@ public:
    */
   void wait() { cv_.wait(mtx_); }
 
-  /**
-   * Sleep and wait for a notification on this lock only up to the specified
-   * timeout.
-   * @param ms Number of ms the timeout should be to wait for the lock.
-   * @return True if the the lock was released before the timeout. False the
-   * function returned because of the timeout on the wait.
-   *
-   * Note: After waking up, the lock is owned by the current thread and
-   * needs released by an explicit invocation of unlock().
-   */
-  bool wait_timeout(size_t ms) {
-    return (cv_.wait_for(mtx_, std::chrono::milliseconds(ms)) ==
-            std::cv_status::no_timeout);
-  }
-
   // Notify all threads waiting on this lock
   void notify_all() { cv_.notify_all(); }
-
-  // Notify one thread waiting on this lock
-  void notify_one() { cv_.notify_one(); }
 };

@@ -544,4 +544,5 @@ the direct communication between nodes
 - Make use of templates for similar classes and methods
 - Connect multiple local KV-Stores to support communicating to each other
 over threads or over network connection 
+- Simplify the target source code lists for the CMakeLists.txt
  

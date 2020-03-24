@@ -481,7 +481,7 @@ void test_from_array() {
   Key key3("3", 0);
   Key key4("4", 0);
 
-  KeyValueStore map(0);
+  KeyValueStore map(1);
 
   size_t SZ = 10;
   bool bool_vals[SZ];
@@ -536,10 +536,10 @@ void test_from_array() {
   // TODO: Create and test functions for if the KV-store contains the key
   //  locally, or if it's in a different KV-store
 
-  auto *exp_df0 = reinterpret_cast<DataFrame *>(map.wait_and_get(key0));
-  auto *exp_df1 = reinterpret_cast<DataFrame *>(map.wait_and_get(key1));
-  auto *exp_df2 = reinterpret_cast<DataFrame *>(map.wait_and_get(key2));
-  auto *exp_df3 = reinterpret_cast<DataFrame *>(map.wait_and_get(key3));
+  auto *exp_df0 = reinterpret_cast<DataFrame *>(map.get_local(key0));
+  auto *exp_df1 = reinterpret_cast<DataFrame *>(map.get_local(key1));
+  auto *exp_df2 = reinterpret_cast<DataFrame *>(map.get_local(key2));
+  auto *exp_df3 = reinterpret_cast<DataFrame *>(map.get_local(key3));
 
   // Should be true with pointer equality, since they should be pointing to
   // the same exact objects.
@@ -556,6 +556,64 @@ void test_from_array() {
   helper.OK("Test 5 passed");
 }
 
+void test_from_scalar() {
+  String str0("Then the fire nation attacked.");
+
+  Key key0("0", 0);
+  Key key1("1", 0);
+  Key key2("2", 0);
+  Key key3("3", 0);
+  Key key4("4", 0);
+
+  KeyValueStore map(1);
+
+  // Make the dataframes and put them into the map
+  DataFrame *df0 = KeyValueStore::from_scalar(key0, &map, true);
+  DataFrame *df1 = KeyValueStore::from_scalar(key1, &map, 5);
+  DataFrame *df2 = KeyValueStore::from_scalar(key2, &map, 6.3f);
+  DataFrame *df3 = KeyValueStore::from_scalar(key3, &map, &str0);
+
+  helper.t_true(df0->get_schema().width() == 1);
+  helper.t_true(df1->get_schema().width() == 1);
+  helper.t_true(df2->get_schema().width() == 1);
+  helper.t_true(df3->get_schema().width() == 1);
+  helper.t_true(df0->get_schema().col_type(0) == ColumnType_Bool);
+  helper.t_true(df1->get_schema().col_type(0) == ColumnType_Integer);
+  helper.t_true(df2->get_schema().col_type(0) == ColumnType_Float);
+  helper.t_true(df3->get_schema().col_type(0) == ColumnType_String);
+  helper.t_true(df0->nrows() == 1);
+  helper.t_true(df1->nrows() == 1);
+  helper.t_true(df2->nrows() == 1);
+  helper.t_true(df3->nrows() == 1);
+
+  helper.t_true(df0->get_bool(0, 0));
+  helper.t_true(df1->get_int(0, 0) == 5);
+  helper.t_true(df2->get_float(0, 0) == 6.3f);
+  helper.t_true(df3->get_string(0, 0)->equals(&str0));
+
+  // TODO: Create and test functions for if the KV-store contains the key
+  //  locally, or if it's in a different KV-store
+
+  auto *exp_df0 = reinterpret_cast<DataFrame *>(map.get_local(key0));
+  auto *exp_df1 = reinterpret_cast<DataFrame *>(map.get_local(key1));
+  auto *exp_df2 = reinterpret_cast<DataFrame *>(map.get_local(key2));
+  auto *exp_df3 = reinterpret_cast<DataFrame *>(map.get_local(key3));
+
+  // Should be true with pointer equality, since they should be pointing to
+  // the same exact objects.
+  helper.t_true(exp_df0->equals(df0));
+  helper.t_true(exp_df1->equals(df1));
+  helper.t_true(exp_df2->equals(df2));
+  helper.t_true(exp_df3->equals(df3));
+
+  delete df0;
+  delete df1;
+  delete df2;
+  delete df3;
+
+  helper.OK("Test 7 passed");
+}
+
 int main(int argc, char **argv) {
   basic();
   test1();
@@ -564,4 +622,5 @@ int main(int argc, char **argv) {
   test4();
   test_from_array();
   test6();
+  test_from_scalar();
 }

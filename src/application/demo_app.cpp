@@ -9,9 +9,9 @@
 
 #include "demo_app.h"
 
-Demo::Demo(size_t node_id) : Application(node_id){};
+Demo::Demo() : Application(3) {};
 
-void Demo::run() {
+void Demo::main() {
   switch (this->get_node_id()) {
   case 0:
     this->producer();
@@ -28,7 +28,7 @@ void Demo::run() {
 
 void Demo::producer() {
   size_t SZ = 100 * 1000;
-  float *vals = new float[SZ];
+  auto *vals = new float[SZ];
   float sum = 0;
 
   // Create the array
@@ -38,7 +38,7 @@ void Demo::producer() {
   }
 
   // Create the dataframes to the keys.
-  KeyValueStore::from_array(this->main, this->kv, SZ, vals);
+  KeyValueStore::from_array(this->main_key, this->kv, SZ, vals);
   KeyValueStore::from_scalar(this->check, this->kv, sum);
 }
 
@@ -46,7 +46,7 @@ void Demo::counter() {
   Sys helper;
 
   // Get the dataframe
-  DataFrame *v = this->kv->wait_and_get(this->main);
+  DataFrame *v = this->kv->wait_and_get(this->main_key);
 
   // Sum up the values from the main dataframe
   float sum = 0.0f;

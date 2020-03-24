@@ -27,27 +27,20 @@ int main(int argc, char **argv) {
 
   // Run the server on localhost with port 1234
   client0->start();
+  sleep(10); // Let the client0 be assigned the node id 0.
   client1->start();
+  sleep(10); // Let client1 be assigned the node id 1.
 
   // Queue up some messages from client 1 to client 0.
-  while (!client1->initiate_direct_message_connection(0)) {
-    sleep(1);
-  }
   for (int i = 0; i < argc; i++) {
     String status_message(argv[i]);
     Status status(status_message);
 
-    Serializer serialized_message;
-    status.serialize(serialized_message);
-    unsigned char *message = serialized_message.get_serialized_buffer();
-    size_t message_size = serialized_message.get_size_serialized_data();
-
-    printf("Sent status message: %s\n", argv[i]);
-    client1->send_direct_message(0, message, message_size);
+    printf("Sending status message: %s\n", argv[i]);
+    client1->send_direct_message(0, status);
   }
 
   sleep(15);
-  client1->close_direct_message_connection(0);
   client0->close_client();
   client1->close_client();
   delete client0;

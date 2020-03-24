@@ -17,12 +17,12 @@ public:
   /**
    * Constructs the demo application
    */
-  explicit Demo(size_t node_id);
+  explicit Demo();
 
-  void run() override;
+  void main() override;
 
 private:
-  Key main = Key("main", 0);
+  Key main_key = Key("main", 0);
   Key verify = Key("verif", 0);
   Key check = Key("ck", 0);
 

@@ -18,12 +18,12 @@
  */
 class Application : public Thread {
 public:
-  explicit Application(size_t node_id);
+  explicit Application(size_t num_nodes);
 
   /**
    * The main function of the application.
    */
-  void run() override;
+  virtual void main();
 
   /**
    * Gets the node id that the application is running on.
@@ -32,7 +32,41 @@ public:
    */
   size_t get_node_id();
 
+  bool is_running() { return this->running; }
+
+  /**
+   * Connects this application to other application instances that are
+   * readily available over a different thread, but in the same process.
+   * connect_local can only be called once in order to configure this KVStore
+   * to communicate with other locally distributed applications. Call
+   * add_local() to add multiple local applications that also have had
+   * connect_local() called to hook up to. add_local() is a directed
+   * connection, so in order to establish mutual connection, add_local() must
+   * be called on both applications.
+   *
+   * However, this cannot be called if connect_network() has been
+   * called. This function should be called only if the application isn't
+   * already running. In addition, this function or connect_network() must be called
+   * before running the application, unless the application is expecting to have
+   * only one instance (num_nodes in the constructor is 1).
+   * @param app The application that this application will link to.
+   */
+  void connect_local(size_t node_id);
+  void add_local(Application &other_app);
+
+  /**
+   * Connects this application to a network node so that it will communicate
+   * with other application instances over the network layer. This function
+   * can only be called once. This cannot be called if connect_local() has
+   * been called. In addition, this function or connect_network() must be
+   * called before running the application, unless the application is
+   * expecting to have only one instance (num_nodes in the constructor is 1).
+   */
+  void connect_network(Node &node);
+
 protected:
   KeyValueStore *kv;
-  size_t node_id;
+  bool running;
+
+  void run() override;
 };

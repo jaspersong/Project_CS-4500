@@ -203,27 +203,40 @@ public:
   /**
    * Sends a direct message to the client at the specified client id.
    * @param client_id The unique client id.
-   * @param message A pointer to the buffer of the message that should be
-   * sent. this message should be dynamically allocated, and once it is
-   * passed into the function, this function will take ownership.
-   * @param bytes The number of bytes of this message.
+   * @param msg The message that will be sent to the specified client.
    * @return True if the message has successfully been queued. False if
    * otherwise.
    */
-  bool send_direct_message(size_t client_id, unsigned char *message,
-                           size_t bytes) {
-    return this->send_message(client_id, message, bytes);
+  bool send_direct_message(size_t client_id, Message &msg) {
+    // Call the serializer to serialize the message.
+    Serializer serialized_message;
+    msg.serialize(serialized_message);
+    unsigned char *message = serialized_message.get_serialized_buffer();
+    size_t message_size = serialized_message.get_size_serialized_data();
+
+    // Now sent it.
+    return this->send_message(client_id, message, message_size);
   }
 
   /**
-   * Determines if the client is already directly connected to the specified
-   * client.
+   * Ensures that the client at the specified id is directly connected. If
+   * the client id is not registered yet, then it will return false.
    * @param client_id Unique client id that this client should be connecting
    * to.
    * @return True if the clients are directly connected. False if otherwise.
    */
-  bool is_client_directly_connected(size_t client_id) {
-    return this->is_client_connected(client_id);
+  bool ensure_client_directly_connected(size_t client_id) {
+    // We expect the client to be connected if it's available in the directory
+    if (this->directory->is_client_connected(client_id)) {
+      // Wait until the client has been connected
+      if (!this->is_client_connected(client_id)) {
+        Thread::sleep(1000);
+      }
+      return true;
+    }
+    else {
+      return false;
+    }
   }
 
   /**
@@ -375,6 +388,8 @@ Node::Node(String *server_ip_addr, int server_port_num, String *ip_addr,
 
   this->message_receiver = new MessageReceiver();
   this->received_msg_manager = &msg_manager;
+
+  this->id = -1; // Default id for now until the registrar gives us an id
 }
 
 Node::~Node() {
@@ -390,7 +405,7 @@ void Node::init() {
 
   // Set up the register message
   Register reg(this->dm_manager->get_ip_addr(), this->dm_manager->get_port_num());
-  reg.set_sender_id(-1); // Don't know what the index is yet. Use the servers
+  reg.set_sender_id(this->id);
   reg.set_target_id(-1); // Goes to the server
 
   // Serialize the message
@@ -435,7 +450,27 @@ void Node::handle_incoming_message(unsigned char *buffer, size_t num_bytes) {
   case MsgKind::Directory: {
     // Replace the current directory with the updated directory
     printf("Received Directory from server\n");
-    this->dm_manager->update_directory(message->as_directory());
+    Directory *dir_message = message->as_directory();
+    this->dm_manager->update_directory(dir_message);
+
+    // Pull the node id from the directory message as the enumeration, if
+    // this is the first directory message we have received.
+    if (this->id == -1) { // This means that the node id hasn't been assigned.
+      this->id = message->get_target_id();
+      printf("Assigned node id %zu.\n", this->id);
+      this->enum_signal.notify_all();
+    }
+    else {
+      // Initiate the connection to all of the currently connected clients to
+      // the directory. We can iterate from this id (exclusive) to
+      // the last id because we know that the registrar will assign node ids in
+      // the order that connect to the registrar
+      for (size_t i = this->id + 1; dir_message->is_client_connected(i); i++) {
+        while (!this->dm_manager->initiate_direct_message_connection(i)) {
+          sleep(1000);
+        }
+      }
+    }
     break;
   }
   default: {
@@ -447,28 +482,28 @@ void Node::handle_incoming_message(unsigned char *buffer, size_t num_bytes) {
   }
 }
 
-bool Node::initiate_direct_message_connection(size_t client_id) {
-  return this->dm_manager->initiate_direct_message_connection(client_id);
-}
-
-void Node::close_direct_message_connection(size_t client_id) {
-  this->dm_manager->close_direct_message_connection(client_id);
-}
-
-bool Node::send_direct_message(size_t client_id, unsigned char *message,
-                               size_t bytes) {
-  bool ret_value = this->dm_manager->is_client_directly_connected(client_id);
-
-  if (!ret_value) {
-    // It hasn't been connected yet. Initiate a direct message connection
-    ret_value =
-        this->dm_manager->initiate_direct_message_connection(client_id);
-  }
+bool Node::send_direct_message(size_t client_id, Message &msg) {
+  bool ret_value =
+      this->dm_manager->ensure_client_directly_connected(client_id);
 
   if (ret_value) {
+    // Prepare the message ids
+    msg.set_sender_id(this->id);
+    msg.set_target_id(client_id);
+
     ret_value =
-        this->dm_manager->send_direct_message(client_id, message, bytes);
+        this->dm_manager->send_direct_message(client_id, msg);
   }
 
   return ret_value;
+}
+
+size_t Node::get_node_id_with_wait() {
+  if (this->id == -1) {
+    // This means that the id has not been found yet. Wait for it to be
+    // available
+    this->enum_signal.wait();
+  }
+
+  return this->id;
 }
