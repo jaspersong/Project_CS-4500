@@ -11,12 +11,16 @@
 
 class MessageReceiver {
 public:
+  static const size_t STARTING_BUFFER_SIZE = 1024;
+
   unsigned char *buffer;
   size_t buffer_index;
+  size_t buffer_size;
 
   MessageReceiver() {
-    this->buffer = new unsigned char[1024];
+    this->buffer = new unsigned char[STARTING_BUFFER_SIZE];
     this->buffer_index = 0;
+    this->buffer_size = STARTING_BUFFER_SIZE;
   }
 
   ~MessageReceiver() { delete[] this->buffer; }
@@ -35,8 +39,18 @@ public:
     // Added the provided data chunk into the buffer we are building.
     Message *ret_value = nullptr;
 
-    // TODO: Check for errors when building the message (i.e., continuous
-    //  building of the message even though it's passed 1024 bytes, etc.)
+    // TODO: Check for errors when building the message, such as being out of
+    //  sync from the message stream
+    if (this->buffer_index + num_bytes > this->buffer_size) {
+      // Resize quadratically
+      this->buffer_size = this->buffer_size * this->buffer_size;
+      auto *new_buffer = new unsigned char[this->buffer_size];
+      for (size_t i = 0; i < this->buffer_index; i++) {
+        new_buffer[i] = this->buffer[i];
+      }
+      delete[] this->buffer;
+      this->buffer = new_buffer;
+    }
     for (size_t i = 0; i < num_bytes; i++) {
       this->buffer[i + this->buffer_index] = receive[i];
     }
