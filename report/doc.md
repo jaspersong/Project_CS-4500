@@ -534,6 +534,8 @@ structure in regard to a growing buffer of large amounts of data
 - Implemented from_array API functions within the DataFrame class
 - Created a trivial application that run standalone.
 - Simplify the target source code lists for the CMakeLists.txt
+- Connect multiple local KV-Stores to support communicating to each other
+over threads
 
 ### Technical Debt and TODOs
 
@@ -544,6 +546,5 @@ structure in regard to a growing buffer of large amounts of data
 the direct communication between nodes
 - Make use of templates for similar classes and methods
 - Connect multiple local KV-Stores to support communicating to each other
-over threads or over network connection 
-- Revise the fake network to have a message queue instead
+over threads
  

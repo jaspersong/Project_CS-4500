@@ -11,6 +11,8 @@ test_all: build_all
 	-cd ./build; ./test_suite_network
 	-cd ./build; ./test_suite_sorer
 	-cd ./build; ./test_suite_kv_store
+	-cd ./build; ./demo_trivial_app_nonet
+	-cd ./build; ./demo_app
 
 test_valgrind: build_all
 	-cd ./build; valgrind --leak-check=yes ./test_suite_map
@@ -19,6 +21,9 @@ test_valgrind: build_all
 	-cd ./build; valgrind --leak-check=yes ./test_suite_messages
 	-cd ./build; valgrind --leak-check=yes ./test_suite_network
 	-cd ./build; valgrind --leak-check=yes ./test_suite_sorer
+	-cd ./build; valgrind --leak-check=yes ./test_suite_kv_store
+	-cd ./build; valgrind --leak-check=yes ./demo_trivial_app_nonet
+	-cd ./build; valgrind --leak-check=yes ./demo_app
 
 demo_distro_app: build_all
 	cd ./build; ./demo_registrar & ./demo_node hello world
