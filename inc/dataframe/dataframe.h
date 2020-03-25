@@ -81,8 +81,9 @@ public:
   /** Visit rows in order */
   void map(Rower &r);
 
-  /** Print the dataframe in SoR format to standard output. */
-  void print();
+  void serialize(Serializer &serializer) override;
+  size_t serialization_required_bytes() override;
+  static DataFrame *deserialize_as_dataframe(Deserializer &deserializer);
 
 private:
   Schema *schema;

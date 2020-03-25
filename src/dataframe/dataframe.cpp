@@ -8,7 +8,6 @@
 // Lang::Cpp
 
 #include "dataframe.h"
-#include "print_rower.h"
 
 DataFrame::DataFrame(DataFrame &df) : DataFrame(df.get_schema()) {}
 
@@ -85,6 +84,11 @@ void DataFrame::add_column(DF_Column *col) {
     DataItem_ item;
     item.o = new_column;
     this->col_list->add_new_item(item);
+
+    // Update the number of rows accordingly
+    if (this->num_rows < new_column->size()) {
+      this->num_rows = new_column->size();
+    }
   }
 }
 
@@ -372,8 +376,113 @@ void DataFrame::map(Rower &r) {
   }
 }
 
-void DataFrame::print() {
-  // Use a rower to print out the dataframe
-  PrintRower rower;
-  this->map(rower);
+void DataFrame::serialize(Serializer &serializer) {
+  serializer.set_size_t(this->ncols());
+  serializer.set_size_t(this->nrows());
+
+  for (size_t c = 0; c < this->ncols(); c++) {
+    char data_type = this->get_schema().col_type(c);
+    serializer.set_generic(reinterpret_cast<unsigned char *>(&data_type),
+        sizeof(data_type));
+    for (size_t r = 0; r < this->nrows(); r++) {
+      switch (data_type) {
+      case 'B':
+        serializer.set_bool(this->get_bool(c, r));
+        break;
+      case 'I':
+        serializer.set_int(this->get_int(c, r));
+        break;
+      case 'F':
+        serializer.set_double(this->get_float(c, r));
+        break;
+      case 'S':
+      default:
+        this->get_string(c, r)->serialize(serializer);
+        break;
+      }
+    }
+  }
+}
+
+size_t DataFrame::serialization_required_bytes() {
+  size_t ret_value = Serializer::get_required_bytes(this->ncols());
+  ret_value += Serializer::get_required_bytes(this->nrows());
+
+  for (size_t c = 0; c < this->ncols(); c++) {
+    char data_type = this->get_schema().col_type(c);
+    ret_value += 1;
+    for (size_t r = 0; r < this->nrows(); r++) {
+      switch (data_type) {
+      case 'B':
+        ret_value += Serializer::get_required_bytes(this->get_bool(c, r));
+        break;
+      case 'I':
+        ret_value += Serializer::get_required_bytes(this->get_int(c, r));
+        break;
+      case 'F':
+        ret_value += Serializer::get_required_bytes(this->get_float(c, r));
+        break;
+      case 'S':
+      default:
+        ret_value += this->get_string(c, r)->serialization_required_bytes();
+        break;
+      }
+    }
+  }
+
+  return ret_value;
+}
+
+DataFrame *DataFrame::deserialize_as_dataframe(Deserializer &deserializer) {
+  size_t num_cols = deserializer.get_size_t();
+  size_t num_rows = deserializer.get_size_t();
+
+  Schema schema;
+  auto *df = new DataFrame(schema);
+
+  for (size_t c = 0; c < num_cols; c++) {
+    char data_type = (char)deserializer.get_byte();
+    switch (data_type) {
+    case 'B': {
+      DF_BoolColumn col;
+      for (size_t r = 0; r < num_rows; r++) {
+        bool value = deserializer.get_bool();
+        col.push_back(value);
+      }
+      df->add_column(&col);
+      break;
+    }
+    case 'I': {
+      DF_IntColumn col;
+      for (size_t r = 0; r < num_rows; r++) {
+        int value = deserializer.get_int();
+        col.push_back(value);
+      }
+      df->add_column(&col);
+      break;
+    }
+    case 'F': {
+      DF_FloatColumn col;
+      for (size_t r = 0; r < num_rows; r++) {
+        auto value = (float)deserializer.get_double();
+        col.push_back(value);
+      }
+      df->add_column(&col);
+      break;
+    }
+    case 'S':
+    default: {
+      DF_StringColumn col;
+      for (size_t r = 0; r < num_rows; r++) {
+        String *value = String::deserialize_as_string(deserializer);
+        col.push_back(value);
+        // TODO: Need to deconstruct the strings when done
+      }
+      df->add_column(&col);
+      break;
+    }
+    }
+  }
+
+  return df;
 }

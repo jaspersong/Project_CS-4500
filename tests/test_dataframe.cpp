@@ -466,6 +466,54 @@ void test5() {
   helper.OK("Test 5 passed");
 }
 
+void test6() {
+  // Create a dataframe
+  String str("Hello");
+  Schema s("BIFS");
+  DataFrame df(s);
+
+  // Add a few items into the dataframe
+  Row r(df.get_schema());
+  for (size_t i = 0; i < 5; i++) {
+    r.set(0, true);
+    r.set(1, 5);
+    r.set(2, 6.3f);
+    r.set(3, &str);
+
+    // Add the row to the dataframe
+    df.add_row(r);
+  }
+
+  // Now test round trip serialization/deserialization
+  Serializer serializer;
+  df.serialize(serializer);
+
+  unsigned char *buffer = serializer.get_serialized_buffer();
+  helper.t_true(df.serialization_required_bytes() == serializer.get_size_serialized_data());
+
+  Deserializer deserializer(buffer, serializer.get_size_serialized_data());
+  DataFrame *ret_df = DataFrame::deserialize_as_dataframe(deserializer);
+
+  // Now make sure that it's the same the original
+  helper.t_true(df.nrows() == ret_df->nrows());
+  helper.t_true(df.ncols() == ret_df->ncols());
+  helper.t_true(df.get_schema().col_type(0) == ret_df->get_schema().col_type(0));
+  helper.t_true(df.get_schema().col_type(1) == ret_df->get_schema().col_type(1));
+  helper.t_true(df.get_schema().col_type(2) == ret_df->get_schema().col_type(2));
+  helper.t_true(df.get_schema().col_type(3) == ret_df->get_schema().col_type(3));
+  for (size_t i = 0; i < 5; i++) {
+    helper.t_true(df.get_bool(0, i) == ret_df->get_bool(0, i));
+    helper.t_true(df.get_int(1, i) == ret_df->get_int(1, i));
+    helper.t_true(df.get_float(2, i) == ret_df->get_float(2, i));
+    helper.t_true(df.get_string(3, i)->equals(ret_df->get_string(3, i)));
+  }
+
+  delete buffer;
+  delete ret_df;
+
+  helper.OK("Test 6 passed");
+}
+
 int main(int argc, char **argv) {
   basic();
   test1();
@@ -473,4 +521,5 @@ int main(int argc, char **argv) {
   test3();
   test4();
   test5();
+  test6();
 }

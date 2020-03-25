@@ -48,8 +48,7 @@ set(DATAFRAME_SRC
         src/dataframe/dataframe.cpp
         inc/dataframe/fielder.h
         inc/dataframe/rower.h
-        inc/dataframe/print_rower.h
-        src/dataframe/print_rower.cpp src/dataframe/copy_rower.cpp)
+        src/dataframe/copy_rower.cpp)
 set(NETWORK_SRC
         inc/messages/serial.h
         src/messages/serial.cpp
