@@ -14,16 +14,16 @@ int main(int argc, char **argv) {
   Demo counter;
   Demo summarizer;
 
-  producer.connect_local(0);
-  counter.connect_local(1);
-  summarizer.connect_local(2);
+  LocalNetworkMessageManager *prod_manager = producer.connect_local(0);
+  LocalNetworkMessageManager *counter_manager = counter.connect_local(1);
+  LocalNetworkMessageManager *summarizer_manager = summarizer.connect_local(2);
 
-  producer.add_local(counter);
-  producer.add_local(summarizer);
-  counter.add_local(producer);
-  counter.add_local(summarizer);
-  summarizer.add_local(producer);
-  summarizer.add_local(counter);
+  producer.register_local(counter_manager);
+  producer.register_local(summarizer_manager);
+  counter.register_local(prod_manager);
+  counter.register_local(summarizer_manager);
+  summarizer.register_local(prod_manager);
+  summarizer.register_local(counter_manager);
 
   producer.start();
   counter.start();
@@ -32,6 +32,10 @@ int main(int argc, char **argv) {
   producer.join();
   counter.join();
   summarizer.join();
+
+  delete prod_manager;
+  delete counter_manager;
+  delete summarizer_manager;
 
   return 0;
 }

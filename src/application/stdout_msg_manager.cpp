@@ -31,3 +31,8 @@ bool StdoutMessageManager::handle_status(Status &msg) {
 
   return true;
 }
+
+bool StdoutMessageManager::handle_reply(Reply &msg) {
+  printf("%zu: Received a Reply message.\b", this->std_id);
+  return true;
+}

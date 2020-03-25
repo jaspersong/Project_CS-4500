@@ -46,6 +46,9 @@ void Queue::enqueue(CustomObject *o) {
   if (this->curr_tail >= this->curr_capacity) {
     this->curr_tail = this->curr_tail - this->curr_capacity;
   }
+
+  // Notify that there is now an item on the queue
+  this->enqueue_signal.notify_all();
 }
 
 CustomObject *Queue::dequeue() {
@@ -198,4 +201,11 @@ void Queue::resize(size_t desired_capacity) {
   this->curr_head = 0;
   this->curr_tail = new_curr;
   this->curr_capacity = desired_capacity;
+}
+
+void Queue::wait_for_items() {
+  if (this->getSize() < 1) {
+    // Wait only if there is nothing in the queue
+    this->enqueue_signal.wait();
+  }
 }

@@ -10,6 +10,7 @@
 #include <unistd.h>
 #include "key_value_store.h"
 #include "copy_rower.h"
+#include "local_network_msg_manager.h"
 
 KeyValueStore::KeyValueStore(size_t num_nodes) {
   assert(num_nodes > 0);
@@ -27,6 +28,7 @@ KeyValueStore::KeyValueStore(size_t num_nodes) {
   }
 
   this->network_layer = nullptr;
+  this->local_network_layer = nullptr;
   this->all_apps_registered = false;
 }
 
@@ -40,12 +42,25 @@ void KeyValueStore::put(Key &key, DataFrame *value) {
     this->kv_map.put(&key, value);
     this->kv_lock.unlock();
   } else {
+    // Build the put command message
+    Serializer serializer;
+    key.serialize(serializer);
+    value->serialize(serializer);
+    Put put_message(serializer);
+
     if (this->network_layer == nullptr) {
+      // Configure the target and sender ids manually when we're not being
+      // managed by the network layer
+      put_message.set_target_id(key.get_home_id());
+      put_message.set_sender_id(this->home_node);
+
       // This means that we are connected directly through an application.
-      // Just put the value in that application
+      // Get the network manager for the target
       DataItem_ item = this->app_list.get_item(key.get_home_id());
-      auto *other_kv = reinterpret_cast<KeyValueStore *>(item.o);
-      other_kv->put(key, value);
+      auto *other_kv = reinterpret_cast<LocalNetworkMessageManager *>(item.o);
+
+      // Send the put message to the target kvstore
+      other_kv->handle_put(put_message);
     }
     else {
       // TODO: Connect with the network layer
@@ -59,6 +74,11 @@ DataFrame *KeyValueStore::wait_and_get(Key &key) {
   assert(this->verify_distributed_layer());
 
   if (key.get_home_id() == this->home_node) {
+    // Wait until the key is available on this key-value store
+    while (!this->kv_map.contains_key(&key)) {
+      sleep(1);
+    }
+
     this->kv_lock.lock();
 
     auto *value = reinterpret_cast<DataFrame *>(this->kv_map.get(&key));
@@ -73,17 +93,25 @@ DataFrame *KeyValueStore::wait_and_get(Key &key) {
     return ret_value;
   }
   else if (key.get_home_id() < this->num_nodes) {
-    if (this->network_layer == nullptr) {
-      // This means that we are connected directly through an application.
-      // Just put the value in that application
-      DataItem_ item = this->app_list.get_item(key.get_home_id());
-      auto *other_kv = reinterpret_cast<KeyValueStore *>(item.o);
+    // Build the wait and get message
+    Serializer serializer;
+    key.serialize(serializer);
+    WaitAndGet wait_get_msg(serializer);
 
-      // Now wait until the key appears in the other kv's storage
-      while (!other_kv->kv_map.contains_key(&key)) {
-        sleep(5);
-      }
-      return other_kv->wait_and_get(key);
+    if (this->network_layer == nullptr) {
+      // Configure the target and sender ids manually when we're not being
+      // managed by the network layer
+      wait_get_msg.set_target_id(key.get_home_id());
+      wait_get_msg.set_sender_id(this->home_node);
+
+      // This means that we are connected directly through an application.
+      // Request the dataframe
+      DataItem_ item = this->app_list.get_item(key.get_home_id());
+      auto *other_kv = reinterpret_cast<LocalNetworkMessageManager *>(item.o);
+      other_kv->handle_waitandget(wait_get_msg);
+
+      // Now wait for the response
+      return this->local_network_layer->get_requested_dataframe();
     }
     else {
       // TODO: Connect with the network layer
@@ -100,20 +128,24 @@ DataFrame *KeyValueStore::get_local(Key &key) {
   assert(this->verify_distributed_layer());
 
   if (key.get_home_id() == this->home_node) {
+    // Wait until the key is available on this key-value store
+    while (!this->kv_map.contains_key(&key)) {
+      sleep(1);
+    }
+
     return reinterpret_cast<DataFrame *>(this->kv_map.get(&key));
   } else {
     return nullptr;
   }
 }
 
-void  KeyValueStore::connect_local(size_t node_id) {
+LocalNetworkMessageManager *KeyValueStore::connect_local(size_t node_id) {
   assert(this->network_layer == nullptr);
   assert(this->app_list.size() == 0);
   assert(this->num_nodes > 1);
   assert(this->home_node == -1);
 
   this->home_node = node_id;
-
   // Fill the app list with nullptrs to the number of expected nodes to be
   // connected.
   DataItem_ item;
@@ -121,24 +153,28 @@ void  KeyValueStore::connect_local(size_t node_id) {
   for (size_t i = 0; i < this->num_nodes; i++) {
     this->app_list.add_new_item(item);
   }
+
+  this->local_network_layer = new LocalNetworkMessageManager(this);
+  return this->local_network_layer;
 }
 
-void KeyValueStore::add_local(KeyValueStore &other_kv) {
+void KeyValueStore::register_local(LocalNetworkMessageManager *msg_manager) {
   assert(this->network_layer == nullptr);
   assert(this->app_list.size() == this->num_nodes);
   assert(this->num_nodes > 1);
   assert(this->home_node != -1);
-  assert(other_kv.home_node != -1);
-  assert(other_kv.home_node != this->home_node);
+  assert(msg_manager != nullptr);
+  assert(msg_manager->get_home_id() != -1);
+  assert(msg_manager->get_home_id() != this->home_node);
   assert(!this->all_apps_registered);
 
   // Ensure that this slot has not been taken up by another application
-  DataItem_ item = this->app_list.get_item(other_kv.home_node);
+  DataItem_ item = this->app_list.get_item(msg_manager->get_home_id());
   assert(item.o == nullptr);
 
   // Now add this application to the slot
-  item.o = &other_kv;
-  this->app_list.set_new_item(other_kv.home_node, item);
+  item.o = msg_manager;
+  this->app_list.set_new_item(msg_manager->get_home_id(), item);
 
   // Check to see if all of the apps have been registered
   bool found_unreg_slot = false;
@@ -334,7 +370,36 @@ bool KeyValueStore::verify_distributed_layer() {
 }
 
 size_t KeyValueStore::get_home_id() {
-  assert(this->verify_distributed_layer());
-
   return this->home_node;
+}
+
+void KeyValueStore::reply(size_t node_id, Key *key, DataFrame *df) {
+  assert(key != nullptr);
+  assert(df != nullptr);
+  assert(node_id != this->home_node);
+
+  // Construct the reply
+  Serializer serializer;
+  key->serialize(serializer);
+  df->serialize(serializer);
+  auto *reply = new Reply(serializer);
+
+  if (this->network_layer == nullptr) {
+    // Manually add the target and sender id because we aren't being managed
+    // by the network layer
+    reply->set_sender_id(this->home_node);
+    reply->set_target_id(node_id);
+
+    // This means that we are connected directly through an application.
+    // Get the network manager for the target
+    DataItem_ item = this->app_list.get_item(node_id);
+    auto *other_kv = reinterpret_cast<LocalNetworkMessageManager *>(item.o);
+
+    // Send the put message to the target kvstore
+    other_kv->handle_reply(*reply);
+  }
+  else {
+    // TODO: Connect with the network layer
+    assert(false);
+  }
 }

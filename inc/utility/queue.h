@@ -4,6 +4,7 @@
 #include <cstdio>
 
 #include "custom_object.h"
+#include "thread.h"
 
 /**
  *  The CwC implementation of a Queue supports Objects and (since String is a
@@ -80,6 +81,11 @@ public:
    */
   void resize(size_t desired_capacity);
 
+  /**
+   * Waits for the queue to have at least one item.
+   */
+  void wait_for_items();
+
 private:
   unsigned long curr_capacity; // The current maximum of items this queue can
   // store.
@@ -88,4 +94,6 @@ private:
   CustomObject **buffer; // The buffer to store the data.
   size_t curr_head;      // Index of the current head of the queue
   size_t curr_tail;      // Index of the current tail of the queue
+
+  Lock enqueue_signal;
 };

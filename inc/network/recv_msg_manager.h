@@ -15,7 +15,7 @@
  * An abstract class that manages the messages received by the particular
  * server/client that use the message types in the serial.h.
  */
-class ReceivedMessageManager {
+class ReceivedMessageManager : public CustomObject {
 public:
   /**
    * Virtual functions that can be overridden in order to handle generalized
@@ -23,7 +23,18 @@ public:
    * @param msg The message received.
    * @return True if the message payload is valid, false if otherwise.
    */
+  virtual bool handle_reply(Reply &msg) { return true; }
   virtual bool handle_put(Put &msg) { return true; }
   virtual bool handle_waitandget(WaitAndGet &msg) { return true; }
   virtual bool handle_status(Status &msg) { return true; }
+
+  /**
+   * Virtual functions that can wait for a reply to a wait and get message,
+   * and then retrieve the reply that was received. Once get_reply() gets
+   * called, then the reply has been consumed and the same reply cannot be
+   * retrieved.
+   */
+  virtual void wait_for_reply() {}
+  // If there is no reply available, it will return with nullptr
+  virtual Reply *get_reply() { return nullptr; }
 };

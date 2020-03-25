@@ -14,8 +14,10 @@
 #include "key.h"
 #include "map.h"
 #include "thread.h"
+#include "local_network_msg_manager.h"
 
 class Application;
+class LocalNetworkMessageManager;
 
 class KeyValueStore : public CustomObject {
 public:
@@ -42,6 +44,14 @@ public:
   DataFrame *wait_and_get(Key &key);
 
   /**
+   * Sends a reply containing the provided dataframe to the target node id.
+   * @param node_id The target node id
+   * @param key The key this dataframe came from
+   * @param df The dataframe to send
+   */
+  void reply(size_t node_id, Key *key, DataFrame *df);
+
+  /**
    * Gets a local dataframe stored within this KV-store.
    * @param key The key that the desired value is associated with.
    * @return The dataframe that is locally stored. The dataframe not owned by
@@ -51,24 +61,26 @@ public:
   DataFrame *get_local(Key &key);
 
   /**
-   * Connects this application to other application instances that are
-   * readily available over a different thread, but in the same process.
-   * connect_local can only be called once in order to configure this KVStore
-   * to communicate with other locally distributed applications. Call
-   * add_local() to add multiple local applications that also have had
-   * connect_local() called to hook up to. add_local() is a directed
-   * connection, so in order to establish mutual connection, add_local() must
-   * be called on both applications.
-   *
-   * However, this cannot be called if connect_network() has been
-   * called. This function should be called only if the application isn't
-   * already running. In addition, this function or connect_network() must be called
-   * before running the application, unless the application is expecting to have
-   * only one instance (num_nodes in the constructor is 1).
-   * @param app The application that this application will link to.
+   * Configures this application to other application instances that are
+   * running on a different thread within the same process. connect_local()
+   * can only be called once in order to configure this KVStore to
+   * communicate with other locally distributed applications. In order to
+   * formally hook the application to other applications, call register_local()
+   * with the returned message manager on the other application instances.
+   * @param node_id The node id that this application will now be running on.
+   * @return The configured message manager that can be provided to
+   * register_local() called on other application instances in order to allow
+   * other applications to communicate to this application instance.
    */
-  void connect_local(size_t node_id);
-  void add_local(KeyValueStore &other_kv);
+  LocalNetworkMessageManager *connect_local(size_t node_id);
+
+  /**
+   * Registers the provided message manager to other applications. This MUST
+   * only be called AFTER connect_local() has been called.
+   * @param msg_manager The message manager provided by another application
+   * that is configured to connect to local networks.
+   */
+  void register_local(LocalNetworkMessageManager *msg_manager);
 
   /**
    * Connects this application to a network node so that it will communicate
@@ -136,6 +148,7 @@ private:
   Lock kv_lock;
 
   Node *network_layer;
+  LocalNetworkMessageManager *local_network_layer;
   ArrayOfArrays app_list;
   bool all_apps_registered;
 };

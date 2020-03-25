@@ -35,24 +35,26 @@ public:
   bool is_running() { return this->running; }
 
   /**
-   * Connects this application to other application instances that are
-   * readily available over a different thread, but in the same process.
-   * connect_local can only be called once in order to configure this KVStore
-   * to communicate with other locally distributed applications. Call
-   * add_local() to add multiple local applications that also have had
-   * connect_local() called to hook up to. add_local() is a directed
-   * connection, so in order to establish mutual connection, add_local() must
-   * be called on both applications.
-   *
-   * However, this cannot be called if connect_network() has been
-   * called. This function should be called only if the application isn't
-   * already running. In addition, this function or connect_network() must be called
-   * before running the application, unless the application is expecting to have
-   * only one instance (num_nodes in the constructor is 1).
-   * @param app The application that this application will link to.
+   * Configures this application to other application instances that are
+   * running on a different thread within the same process. connect_local()
+   * can only be called once in order to configure this KVStore to
+   * communicate with other locally distributed applications. In order to
+   * formally hook the application to other applications, call register_local()
+   * with the returned message manager on the other application instances.
+   * @param node_id The node id that this application will now be running on.
+   * @return The configured message manager that can be provided to
+   * register_local() called on other application instances in order to allow
+   * other applications to communicate to this application instance.
    */
-  void connect_local(size_t node_id);
-  void add_local(Application &other_app);
+  LocalNetworkMessageManager *connect_local(size_t node_id);
+
+  /**
+   * Registers the provided message manager to other applications. This MUST
+   * only be called AFTER connect_local() has been called.
+   * @param msg_manager The message manager provided by another application
+   * that is configured to connect to local networks.
+   */
+  void register_local(LocalNetworkMessageManager *msg_manager);
 
   /**
    * Connects this application to a network node so that it will communicate

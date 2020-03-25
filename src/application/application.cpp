@@ -20,14 +20,15 @@ void Application::main() { assert(false); }
 
 size_t Application::get_node_id() { return this->kv->get_home_id(); }
 
-void Application::connect_local(size_t node_id) {
+LocalNetworkMessageManager *Application::connect_local(size_t node_id) {
   assert(!this->running);
-  this->kv->connect_local(node_id);
+  return this->kv->connect_local(node_id);
 }
 
-void Application::add_local(Application &other_app) {
+void Application::register_local(LocalNetworkMessageManager *msg_manager) {
   assert(!this->running);
-  this->kv->add_local(*other_app.kv);
+  assert(msg_manager != nullptr);
+  this->kv->register_local(msg_manager);
 }
 
 void Application::connect_network(Node& node) {
