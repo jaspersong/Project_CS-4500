@@ -161,7 +161,28 @@ void test_from_scalar() {
   helper.OK("Test 2 passed");
 }
 
+void test_wait_get() {
+  String str0("Then the fire nation attacked.");
+  Key key0("0", 0);
+  KeyValueStore map(1);
+
+  DataFrame *df = KeyValueStore::from_scalar(key0, &map, &str0);
+  DataFrame *copy_df = map.wait_and_get(key0);
+
+  helper.t_false(df == copy_df);
+  helper.t_true(df->get_schema().col_type(0) == copy_df->get_schema().col_type(0));
+  helper.t_true(df->nrows() == copy_df->nrows());
+  helper.t_true(df->ncols() == copy_df->ncols());
+  helper.t_true(df->get_string(0, 0)->equals(copy_df->get_string(0, 0)));
+
+  delete df;
+  delete copy_df;
+
+  helper.OK("Test 3 passed");
+}
+
 int main(int argc, char **argv) {
   test_from_array();
   test_from_scalar();
+  test_wait_get();
 }

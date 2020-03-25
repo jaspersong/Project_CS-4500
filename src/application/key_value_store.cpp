@@ -9,6 +9,7 @@
 
 #include <unistd.h>
 #include "key_value_store.h"
+#include "copy_rower.h"
 
 KeyValueStore::KeyValueStore(size_t num_nodes) {
   assert(num_nodes > 0);
@@ -64,13 +65,12 @@ DataFrame *KeyValueStore::wait_and_get(Key &key) {
 
     // Now copy the value so it can be owned by the caller.
     auto *ret_value = new DataFrame(*value);
-    // TODO: Create a rower/fielder to copy the dataframe into a new
-    //  dataframe.
+    CopyRower copier(ret_value);
+    value->map(copier);
 
     this->kv_lock.unlock();
 
-//    return ret_value;
-    return value;
+    return ret_value;
   }
   else if (key.get_home_id() < this->num_nodes) {
     if (this->network_layer == nullptr) {

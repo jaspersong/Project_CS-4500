@@ -49,7 +49,7 @@ set(DATAFRAME_SRC
         inc/dataframe/fielder.h
         inc/dataframe/rower.h
         inc/dataframe/print_rower.h
-        src/dataframe/print_rower.cpp)
+        src/dataframe/print_rower.cpp src/dataframe/copy_rower.cpp)
 set(NETWORK_SRC
         inc/messages/serial.h
         src/messages/serial.cpp
@@ -129,4 +129,4 @@ add_executable(demo_app
         "${NETWORK_SRC}"
         "${APP_SRC}"
         inc/application/demo_app.h
-        src/application/demo_app.cpp)
+        src/application/demo_app.cpp inc/dataframe/copy_rower.h)
