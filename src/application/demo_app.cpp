@@ -9,7 +9,7 @@
 
 #include "demo_app.h"
 
-Demo::Demo() : Application(3) {};
+Demo::Demo() : Application(3) {}
 
 void Demo::main() {
   switch (this->get_node_id()) {
@@ -40,6 +40,8 @@ void Demo::producer() {
   // Create the dataframes to the keys.
   KeyValueStore::from_array(this->main_key, this->kv, SZ, vals);
   KeyValueStore::from_scalar(this->check, this->kv, sum);
+
+  delete[] vals;
 }
 
 void Demo::counter() {
@@ -58,9 +60,12 @@ void Demo::counter() {
   helper.p("The sum is  ").pln(sum);
 
   // Store it into the verify key.
-  KeyValueStore::from_scalar(this->verify, this->kv, sum);
+  DataFrame *counter_df = KeyValueStore::from_scalar(this->verify, this->kv,
+      sum);
 
   delete v;
+  // Fine to delete this dataframe because the verify key's home is in node 0.
+  delete counter_df;
 }
 
 void Demo::summarizer() {

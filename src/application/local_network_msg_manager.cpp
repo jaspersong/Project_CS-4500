@@ -34,6 +34,7 @@ bool LocalNetworkMessageManager::handle_put(Put &msg) {
   this->kv_store->put(*key, df);
   // TODO: There's a memory leak once the key-value store gets deconstructed.
 
+  delete key;
   delete deserializer;
 
   return true;

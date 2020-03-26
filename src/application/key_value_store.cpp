@@ -30,14 +30,27 @@ KeyValueStore::KeyValueStore(size_t num_nodes) {
   this->local_network_layer = nullptr;
 }
 
+KeyValueStore::~KeyValueStore() {
+  // Delete all of the dataframes within the map
+  CustomObject **keys = this->kv_map.key_set();
+  size_t num_keys = this->kv_map.size();
+  for (size_t i = 0; i < num_keys; i++) {
+    delete this->kv_map.remove(keys[i]);
+    delete keys[i];
+  }
+  delete[] keys;
+}
+
 void KeyValueStore::put(Key &key, DataFrame *value) {
   assert(key.get_home_id() < this->num_nodes);
   assert(value != nullptr);
   assert(this->verify_distributed_layer());
 
   if (key.get_home_id() == this->home_node) {
+    Key *owned_key = new Key(key.get_name()->c_str(), key.get_home_id());
+
     this->kv_lock.lock();
-    this->kv_map.put(&key, value);
+    this->kv_map.put(owned_key, value);
     this->kv_lock.unlock();
   } else if (this->using_local_network) {
     this->local_network_layer->send_put(key.get_home_id(), key, value);

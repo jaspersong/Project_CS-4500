@@ -95,11 +95,6 @@ void test_from_array() {
   helper.t_true(exp_df2->equals(df2));
   helper.t_true(exp_df3->equals(df3));
 
-  delete df0;
-  delete df1;
-  delete df2;
-  delete df3;
-
   helper.OK("Test 1 passed");
 }
 
@@ -153,11 +148,6 @@ void test_from_scalar() {
   helper.t_true(exp_df2->equals(df2));
   helper.t_true(exp_df3->equals(df3));
 
-  delete df0;
-  delete df1;
-  delete df2;
-  delete df3;
-
   helper.OK("Test 2 passed");
 }
 
@@ -175,7 +165,6 @@ void test_wait_get() {
   helper.t_true(df->ncols() == copy_df->ncols());
   helper.t_true(df->get_string(0, 0)->equals(copy_df->get_string(0, 0)));
 
-  delete df;
   delete copy_df;
 
   helper.OK("Test 3 passed");

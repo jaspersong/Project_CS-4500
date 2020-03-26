@@ -22,6 +22,7 @@ class LocalNetworkMessageManager;
 class KeyValueStore : public CustomObject {
 public:
   explicit KeyValueStore(size_t num_nodes);
+  ~KeyValueStore() override;
 
   /**
    * Puts the dataframe to the associated key. If the key-value store is not the
@@ -29,7 +30,8 @@ public:
    * the correct home node. Once the value has been passed to the function,
    * the KV-store will now own the value.
    * @param key The key that this value will be associated with
-   * @param value The value that will be stored
+   * @param value The value that will be stored. All dataframes put in the
+   * kv-store will be owned by the kvstore
    */
   void put(Key &key, DataFrame *value);
 

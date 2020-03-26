@@ -30,5 +30,4 @@ void Trivial::main() {
   assert(sum == 0);
 
   delete[] vals;
-  delete df;
 }
