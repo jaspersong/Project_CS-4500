@@ -453,6 +453,28 @@ size_t port_num[max_num_clients]
 String ip_addresses[max_num_clients]
 ```
 
+### Application
+
+All applications are run on a thread that has access to a KeyValueStore, 
+which allows the application to store and retrieve dataframes. Its functionality
+is implemented by overriding the `main()` function.
+
+A distributed application that makes use of more than 1 node requires an
+interface in order to communicate over the network through their distributed 
+KeyValueStore. In order to facilitate that, 3 functions are provided to
+configure the application to communicate:
+- `LocalNetworkMessageManager *connect_local(size_t node_id)`: Prepares the 
+application to communicate through an interface that fakes a "network" across 
+different threads within the same process. This function will be paired with
+`register_local()`. The return value is a communicate interface that will allow
+another application to communicate with this application.
+- `void register_local(LocalNetworkMessageManager *msg_manager`: This function
+must be called after `connect_local()`. This passes the provided interface into
+an application to allow that application to communicate with the application
+that has been configured in.
+- `connect_network()`: This is a function is TODO and projected to be 
+implemented at a different moment in time.
+
 ## Use cases
 
 ### Dataframe
@@ -536,15 +558,15 @@ structure in regard to a growing buffer of large amounts of data
 - Simplify the target source code lists for the CMakeLists.txt
 - Connect multiple local KV-Stores to support communicating to each other
 over threads
+- Assigning and aligning of the node ids in order to maintain ids throughout
+the direct communication between nodes
 
 ### Technical Debt and TODOs
 
 - Make polling timeouts configurable within the server and clients
 - Create unit tests for the dataframe's array of arrays
 - Get the network code to run within Docker
-- Assigning and aligning of the node ids in order to maintain ids throughout
-the direct communication between nodes
 - Make use of templates for similar classes and methods
 - Connect multiple local KV-Stores to support communicating to each other
-over threads
+over the network
  

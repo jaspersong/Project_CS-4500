@@ -27,9 +27,10 @@ int main(int argc, char **argv) {
 
   // Run the server on localhost with port 1234
   client0->start();
-  sleep(10); // Let the client0 be assigned the node id 0.
+  sleep(10); // Let the client0 be assigned the node id 0 before starting node 1
   client1->start();
-  sleep(10); // Let client1 be assigned the node id 1.
+  sleep(10); // Let client1 be assigned the node id 1 and establish direct
+  // communication with other nodes.
 
   // Queue up some messages from client 1 to client 0.
   for (int i = 0; i < argc; i++) {
