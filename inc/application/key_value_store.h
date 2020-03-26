@@ -38,18 +38,9 @@ public:
    * @param key The key that the desired value is associated with.
    * @return The dataframe value associated with the key. The dataframe will be
    * dynamically allocated the caller will now own the dataframe. This can be
-   * called for locally stored dataframes. If the key cannot be found, it
-   * will return nullptr.
+   * called for locally stored dataframes.
    */
   DataFrame *wait_and_get(Key &key);
-
-  /**
-   * Sends a reply containing the provided dataframe to the target node id.
-   * @param node_id The target node id
-   * @param key The key this dataframe came from
-   * @param df The dataframe to send
-   */
-  void reply(size_t node_id, Key *key, DataFrame *df);
 
   /**
    * Gets a local dataframe stored within this KV-store.
@@ -81,16 +72,6 @@ public:
    * that is configured to connect to local networks.
    */
   void register_local(LocalNetworkMessageManager *msg_manager);
-
-  /**
-   * Connects this application to a network node so that it will communicate
-   * with other application instances over the network layer. This function
-   * can only be called once. This cannot be called if connect_local() has
-   * been called. In addition, this function or connect_network() must be
-   * called before running the application, unless the application is
-   * expecting to have only one instance (num_nodes in the constructor is 1).
-   */
-  void connect_network(Node &node);
 
   /**
    * Verifies that the distributed layer has been configured properly in
@@ -140,15 +121,14 @@ public:
    */
   size_t get_home_id();
 
+  size_t get_num_nodes() { return this->num_nodes; }
+
 private:
   Map kv_map;
   size_t home_node; // The id of the node this keyvalue store is running on
   size_t num_nodes;
-
   Lock kv_lock;
 
-  Node *network_layer;
+  bool using_local_network;
   LocalNetworkMessageManager *local_network_layer;
-  ArrayOfArrays app_list;
-  bool all_apps_registered;
 };

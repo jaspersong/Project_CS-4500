@@ -56,16 +56,6 @@ public:
    */
   void register_local(LocalNetworkMessageManager *msg_manager);
 
-  /**
-   * Connects this application to a network node so that it will communicate
-   * with other application instances over the network layer. This function
-   * can only be called once. This cannot be called if connect_local() has
-   * been called. In addition, this function or connect_network() must be
-   * called before running the application, unless the application is
-   * expecting to have only one instance (num_nodes in the constructor is 1).
-   */
-  void connect_network(Node &node);
-
 protected:
   KeyValueStore *kv;
   bool running;

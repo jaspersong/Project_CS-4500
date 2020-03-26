@@ -31,11 +31,6 @@ void Application::register_local(LocalNetworkMessageManager *msg_manager) {
   this->kv->register_local(msg_manager);
 }
 
-void Application::connect_network(Node& node) {
-  assert(!this->running);
-  this->kv->connect_network(node);
-}
-
 void Application::run() {
   this->running = true;
   assert(this->kv->verify_distributed_layer());
