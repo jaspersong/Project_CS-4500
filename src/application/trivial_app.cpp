@@ -21,7 +21,8 @@ void Trivial::main() {
   }
 
   Key key("triv", 0);
-  DataFrame *df = KeyValueStore::from_array(key, this->kv, SZ, vals);
+  KeyValueStore::from_array(key, this->kv, SZ, vals);
+  DataFrame *df = this->kv->get_local(key);
   assert(df->get_float(0, 1) == 1);
 
   auto *df2 = reinterpret_cast<DataFrame *>(this->kv->get_local(key));

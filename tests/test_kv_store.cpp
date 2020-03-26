@@ -51,10 +51,14 @@ void test_from_array() {
   str_vals[9] = &str0;
 
   // Make the dataframes and put them into the map
-  DataFrame *df0 = KeyValueStore::from_array(key0, &map, SZ, bool_vals);
-  DataFrame *df1 = KeyValueStore::from_array(key1, &map, SZ, int_vals);
-  DataFrame *df2 = KeyValueStore::from_array(key2, &map, SZ, float_vals);
-  DataFrame *df3 = KeyValueStore::from_array(key3, &map, SZ, str_vals);
+  KeyValueStore::from_array(key0, &map, SZ, bool_vals);
+  KeyValueStore::from_array(key1, &map, SZ, int_vals);
+  KeyValueStore::from_array(key2, &map, SZ, float_vals);
+  KeyValueStore::from_array(key3, &map, SZ, str_vals);
+  DataFrame *df0 = map.get_local(key0);
+  DataFrame *df1 = map.get_local(key1);
+  DataFrame *df2 = map.get_local(key2);
+  DataFrame *df3 = map.get_local(key3);
 
   helper.t_true(df0->get_schema().width() == 1);
   helper.t_true(df1->get_schema().width() == 1);
@@ -83,10 +87,10 @@ void test_from_array() {
   // TODO: Create and test functions for if the KV-store contains the key
   //  locally, or if it's in a different KV-store
 
-  auto *exp_df0 = reinterpret_cast<DataFrame *>(map.get_local(key0));
-  auto *exp_df1 = reinterpret_cast<DataFrame *>(map.get_local(key1));
-  auto *exp_df2 = reinterpret_cast<DataFrame *>(map.get_local(key2));
-  auto *exp_df3 = reinterpret_cast<DataFrame *>(map.get_local(key3));
+  auto *exp_df0 = map.get_local(key0);
+  auto *exp_df1 = map.get_local(key1);
+  auto *exp_df2 = map.get_local(key2);
+  auto *exp_df3 = map.get_local(key3);
 
   // Should be true with pointer equality, since they should be pointing to
   // the same exact objects.
@@ -110,10 +114,14 @@ void test_from_scalar() {
   KeyValueStore map(1);
 
   // Make the dataframes and put them into the map
-  DataFrame *df0 = KeyValueStore::from_scalar(key0, &map, true);
-  DataFrame *df1 = KeyValueStore::from_scalar(key1, &map, 5);
-  DataFrame *df2 = KeyValueStore::from_scalar(key2, &map, 6.3f);
-  DataFrame *df3 = KeyValueStore::from_scalar(key3, &map, &str0);
+  KeyValueStore::from_scalar(key0, &map, true);
+  KeyValueStore::from_scalar(key1, &map, 5);
+  KeyValueStore::from_scalar(key2, &map, 6.3f);
+  KeyValueStore::from_scalar(key3, &map, &str0);
+  DataFrame *df0 = map.get_local(key0);
+  DataFrame *df1 = map.get_local(key1);
+  DataFrame *df2 = map.get_local(key2);
+  DataFrame *df3 = map.get_local(key3);
 
   helper.t_true(df0->get_schema().width() == 1);
   helper.t_true(df1->get_schema().width() == 1);
@@ -136,10 +144,10 @@ void test_from_scalar() {
   // TODO: Create and test functions for if the KV-store contains the key
   //  locally, or if it's in a different KV-store
 
-  auto *exp_df0 = reinterpret_cast<DataFrame *>(map.get_local(key0));
-  auto *exp_df1 = reinterpret_cast<DataFrame *>(map.get_local(key1));
-  auto *exp_df2 = reinterpret_cast<DataFrame *>(map.get_local(key2));
-  auto *exp_df3 = reinterpret_cast<DataFrame *>(map.get_local(key3));
+  auto *exp_df0 = map.get_local(key0);
+  auto *exp_df1 = map.get_local(key1);
+  auto *exp_df2 = map.get_local(key2);
+  auto *exp_df3 = map.get_local(key3);
 
   // Should be true with pointer equality, since they should be pointing to
   // the same exact objects.
@@ -156,7 +164,8 @@ void test_wait_get() {
   Key key0("0", 0);
   KeyValueStore map(1);
 
-  DataFrame *df = KeyValueStore::from_scalar(key0, &map, &str0);
+  KeyValueStore::from_scalar(key0, &map, &str0);
+  DataFrame *df = map.get_local(key0);
   DataFrame *copy_df = map.wait_and_get(key0);
 
   helper.t_false(df == copy_df);

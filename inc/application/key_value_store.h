@@ -92,13 +92,13 @@ public:
    * @param values The array of valuas that will be used to create a dataframe
    * @return The newly created dataframe
    */
-  static DataFrame *from_array(Key &key, KeyValueStore *kv, size_t num_values,
+  static void from_array(Key &key, KeyValueStore *kv, size_t num_values,
                                float *values);
-  static DataFrame *from_array(Key &key, KeyValueStore *kv, size_t num_values,
+  static void from_array(Key &key, KeyValueStore *kv, size_t num_values,
                                int *values);
-  static DataFrame *from_array(Key &key, KeyValueStore *kv, size_t num_values,
+  static void from_array(Key &key, KeyValueStore *kv, size_t num_values,
                                bool *values);
-  static DataFrame *from_array(Key &key, KeyValueStore *kv, size_t num_values,
+  static void from_array(Key &key, KeyValueStore *kv, size_t num_values,
                                String **values);
 
   /**
@@ -107,12 +107,11 @@ public:
    * @param key The key associated with the new dataframe.
    * @param map The map that will store the dataframe at the specified key.
    * @param value The value that the dataframe will store.
-   * @return The newly created dataframe
    */
-  static DataFrame *from_scalar(Key &key, KeyValueStore *kv, bool value);
-  static DataFrame *from_scalar(Key &key, KeyValueStore *kv, int value);
-  static DataFrame *from_scalar(Key &key, KeyValueStore *kv, float value);
-  static DataFrame *from_scalar(Key &key, KeyValueStore *kv, String *value);
+  static void from_scalar(Key &key, KeyValueStore *kv, bool value);
+  static void from_scalar(Key &key, KeyValueStore *kv, int value);
+  static void from_scalar(Key &key, KeyValueStore *kv, float value);
+  static void from_scalar(Key &key, KeyValueStore *kv, String *value);
 
   /**
    * Gets the home node id of this KV store ONLY if the distributed

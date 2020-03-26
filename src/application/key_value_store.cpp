@@ -129,7 +129,7 @@ void KeyValueStore::register_local(LocalNetworkMessageManager *msg_manager) {
   this->local_network_layer->register_local(msg_manager);
 }
 
-DataFrame *KeyValueStore::from_array(Key &key, KeyValueStore *kv,
+void KeyValueStore::from_array(Key &key, KeyValueStore *kv,
                                      size_t num_values, float *values) {
   assert(kv != nullptr);
   assert(values != nullptr);
@@ -146,11 +146,13 @@ DataFrame *KeyValueStore::from_array(Key &key, KeyValueStore *kv,
   }
 
   kv->put(key, ret_value);
-
-  return ret_value;
+  // Delete the created dataframe if we had to send it to a different node
+  if (key.get_home_id() != kv->get_home_id()) {
+    delete ret_value;
+  }
 }
 
-DataFrame *KeyValueStore::from_array(Key &key, KeyValueStore *kv,
+void KeyValueStore::from_array(Key &key, KeyValueStore *kv,
                                      size_t num_values, int *values) {
   assert(kv != nullptr);
   assert(values != nullptr);
@@ -167,11 +169,13 @@ DataFrame *KeyValueStore::from_array(Key &key, KeyValueStore *kv,
   }
 
   kv->put(key, ret_value);
-
-  return ret_value;
+  // Delete the created dataframe if we had to send it to a different node
+  if (key.get_home_id() != kv->get_home_id()) {
+    delete ret_value;
+  }
 }
 
-DataFrame *KeyValueStore::from_array(Key &key, KeyValueStore *kv,
+void KeyValueStore::from_array(Key &key, KeyValueStore *kv,
                                      size_t num_values, bool *values) {
   assert(kv != nullptr);
   assert(values != nullptr);
@@ -188,11 +192,13 @@ DataFrame *KeyValueStore::from_array(Key &key, KeyValueStore *kv,
   }
 
   kv->put(key, ret_value);
-
-  return ret_value;
+  // Delete the created dataframe if we had to send it to a different node
+  if (key.get_home_id() != kv->get_home_id()) {
+    delete ret_value;
+  }
 }
 
-DataFrame *KeyValueStore::from_array(Key &key, KeyValueStore *kv,
+void KeyValueStore::from_array(Key &key, KeyValueStore *kv,
                                      size_t num_values, String **values) {
   assert(kv != nullptr);
   assert(values != nullptr);
@@ -209,11 +215,13 @@ DataFrame *KeyValueStore::from_array(Key &key, KeyValueStore *kv,
   }
 
   kv->put(key, ret_value);
-
-  return ret_value;
+  // Delete the created dataframe if we had to send it to a different node
+  if (key.get_home_id() != kv->get_home_id()) {
+    delete ret_value;
+  }
 }
 
-DataFrame *KeyValueStore::from_scalar(Key &key, KeyValueStore *kv, bool value) {
+void KeyValueStore::from_scalar(Key &key, KeyValueStore *kv, bool value) {
   assert(kv != nullptr);
   assert(key.get_home_id() < kv->num_nodes);
 
@@ -227,11 +235,13 @@ DataFrame *KeyValueStore::from_scalar(Key &key, KeyValueStore *kv, bool value) {
   ret_value->add_row(r);
 
   kv->put(key, ret_value);
-
-  return ret_value;
+  // Delete the created dataframe if we had to send it to a different node
+  if (key.get_home_id() != kv->get_home_id()) {
+    delete ret_value;
+  }
 }
 
-DataFrame *KeyValueStore::from_scalar(Key &key, KeyValueStore *kv, int value) {
+void KeyValueStore::from_scalar(Key &key, KeyValueStore *kv, int value) {
   assert(kv != nullptr);
   assert(key.get_home_id() < kv->num_nodes);
 
@@ -245,11 +255,13 @@ DataFrame *KeyValueStore::from_scalar(Key &key, KeyValueStore *kv, int value) {
   ret_value->add_row(r);
 
   kv->put(key, ret_value);
-
-  return ret_value;
+  // Delete the created dataframe if we had to send it to a different node
+  if (key.get_home_id() != kv->get_home_id()) {
+    delete ret_value;
+  }
 }
 
-DataFrame *KeyValueStore::from_scalar(Key &key, KeyValueStore *kv,
+void KeyValueStore::from_scalar(Key &key, KeyValueStore *kv,
                                       float value) {
   assert(kv != nullptr);
   assert(key.get_home_id() < kv->num_nodes);
@@ -264,11 +276,13 @@ DataFrame *KeyValueStore::from_scalar(Key &key, KeyValueStore *kv,
   ret_value->add_row(r);
 
   kv->put(key, ret_value);
-
-  return ret_value;
+  // Delete the created dataframe if we had to send it to a different node
+  if (key.get_home_id() != kv->get_home_id()) {
+    delete ret_value;
+  }
 }
 
-DataFrame *KeyValueStore::from_scalar(Key &key, KeyValueStore *kv,
+void KeyValueStore::from_scalar(Key &key, KeyValueStore *kv,
                                       String *value) {
   assert(kv != nullptr);
   assert(key.get_home_id() < kv->num_nodes);
@@ -283,8 +297,10 @@ DataFrame *KeyValueStore::from_scalar(Key &key, KeyValueStore *kv,
   ret_value->add_row(r);
 
   kv->put(key, ret_value);
-
-  return ret_value;
+  // Delete the created dataframe if we had to send it to a different node
+  if (key.get_home_id() != kv->get_home_id()) {
+    delete ret_value;
+  }
 }
 
 bool KeyValueStore::verify_distributed_layer() {

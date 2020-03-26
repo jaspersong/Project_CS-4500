@@ -60,11 +60,10 @@ void Demo::counter() {
   helper.p("The sum is  ").pln(sum);
 
   // Store it into the verify key.
-  DataFrame *counter_df = KeyValueStore::from_scalar(this->verify, this->kv,
-      sum);
+  KeyValueStore::from_scalar(this->verify, this->kv, sum);
+  DataFrame *counter_df = this->kv->wait_and_get(this->verify);
 
   delete v;
-  // Fine to delete this dataframe because the verify key's home is in node 0.
   delete counter_df;
 }
 
