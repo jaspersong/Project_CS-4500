@@ -8,6 +8,7 @@
 // Lang::Cpp
 
 #include "dataframe_column.h"
+#include <cstdarg>
 
 DF_Column::DF_Column(ColumnType_t column_type) {
   this->list = new ArrayOfArrays();

@@ -29,5 +29,6 @@ void Trivial::main() {
     sum -= df2->get_float(0, i);
   assert(sum == 0);
 
+  delete[] vals;
   delete df;
 }

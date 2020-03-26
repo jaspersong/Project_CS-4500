@@ -48,6 +48,7 @@ bool LocalNetworkMessageManager::handle_waitandget(WaitAndGet &msg) {
   this->send_reply(msg.get_sender_id(), *key, df);
 
   delete key;
+  delete deserializer;
   return true;
 }
 

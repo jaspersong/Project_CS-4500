@@ -508,7 +508,10 @@ void test6() {
     helper.t_true(df.get_string(3, i)->equals(ret_df->get_string(3, i)));
   }
 
-  delete buffer;
+  delete[] buffer;
+  for (size_t i = 0; i < 5; i++) {
+    delete ret_df->get_string(3, i);
+  }
   delete ret_df;
 
   helper.OK("Test 6 passed");

@@ -19,6 +19,7 @@
 class Application : public Thread {
 public:
   explicit Application(size_t num_nodes);
+  ~Application() override;
 
   /**
    * The main function of the application.

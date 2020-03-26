@@ -16,6 +16,10 @@ Application::Application(size_t num_nodes) {
   this->running = false;
 }
 
+Application::~Application() {
+  delete this->kv;
+}
+
 void Application::main() { assert(false); }
 
 size_t Application::get_node_id() { return this->kv->get_home_id(); }
