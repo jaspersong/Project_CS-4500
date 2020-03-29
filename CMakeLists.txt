@@ -65,7 +65,11 @@ set(APP_SRC
         inc/application/application.h
         src/application/application.cpp
         inc/application/key_value_store.h
-        src/application/key_value_store.cpp inc/application/local_network_msg_manager.h src/application/local_network_msg_manager.cpp)
+        src/application/key_value_store.cpp
+        inc/application/local_network_msg_manager.h
+        src/application/local_network_msg_manager.cpp
+        inc/application/application_network_interface.h
+        src/application/application_network_interface.cpp)
 
 # Create targets for the test suites
 add_executable(test_suite_map

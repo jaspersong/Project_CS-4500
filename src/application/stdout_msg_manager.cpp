@@ -13,26 +13,29 @@ StdoutMessageManager::StdoutMessageManager(size_t std_id) {
   this->std_id = std_id;
 }
 
-bool StdoutMessageManager::handle_put(Put &msg) {
+bool StdoutMessageManager::handle_put(Put *msg) {
+  (void)msg;
   printf("%zu: Received a put message.\n", this->std_id);
-  return true;
+  return false;
 }
 
-bool StdoutMessageManager::handle_waitandget(WaitAndGet &msg) {
+bool StdoutMessageManager::handle_waitandget(WaitAndGet *msg) {
+  (void)msg;
   printf("%zu: Received a Wait and Get message.\b", this->std_id);
-  return true;
+  return false;
 }
 
-bool StdoutMessageManager::handle_status(Status &msg) {
-  String *status_message = msg.get_message();
+bool StdoutMessageManager::handle_status(Status *msg) {
+  String *status_message = msg->get_message();
   printf("%zu: Received a status message: %s\n", this->std_id,
          status_message->c_str());
   delete status_message;
 
-  return true;
+  return false;
 }
 
-bool StdoutMessageManager::handle_reply(Reply &msg) {
+bool StdoutMessageManager::handle_reply(Reply *msg) {
+  (void)msg;
   printf("%zu: Received a Reply message.\b", this->std_id);
-  return true;
+  return false;
 }

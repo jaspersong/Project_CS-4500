@@ -132,37 +132,50 @@ public:
     }
     switch (message->get_message_kind()) {
     case MsgKind::Put: {
-      this->dm_recv_msg_manager->handle_put(*message->as_put());
+      if (!this->dm_recv_msg_manager->handle_put(message->as_put())) {
+        delete message;
+      }
+      break;
+    }
+    case MsgKind::Reply: {
+      if (!this->dm_recv_msg_manager->handle_reply(message->as_reply())) {
+        delete message;
+      }
       break;
     }
     case MsgKind::WaitAndGet: {
-      this->dm_recv_msg_manager->handle_waitandget(*message->as_waitandget());
+      if (!this->dm_recv_msg_manager->handle_waitandget(message->as_waitandget())) {
+        delete message;
+      }
       break;
     }
     case MsgKind::Status: {
-      this->dm_recv_msg_manager->handle_status(*message->as_status());
+      if (!this->dm_recv_msg_manager->handle_status(message->as_status())) {
+        delete message;
+      }
       break;
     }
     case MsgKind::Register: {
       printf("Received Register message from client id %zu. Ignoring "
              "command.\n",
              client_id);
+      delete message;
       break;
     }
     case MsgKind::Directory: {
       printf("Received Directory message from client id %zu. Ignoring "
              "command.\n",
              client_id);
+      delete message;
       break;
     }
     default: {
       // Invalid message type. Do nothing and just ignore it.
       printf("Received invalid message from client id %zu\n", client_id);
+      delete message;
       break;
     }
     }
-
-    delete message;
   }
 
   void handle_incoming_connection(size_t new_client_id, String *addr,
@@ -305,15 +318,27 @@ void Registrar::handle_incoming_message(size_t client_id, unsigned char *buffer,
   }
   switch (message->get_message_kind()) {
   case MsgKind::Put: {
-    this->received_msg_manager->handle_put(*message->as_put());
+    if (!this->received_msg_manager->handle_put(message->as_put())) {
+      delete message;
+    }
+    break;
+  }
+  case MsgKind::Reply: {
+    if (!this->received_msg_manager->handle_reply(message->as_reply())) {
+      delete message;
+    }
     break;
   }
   case MsgKind::WaitAndGet: {
-    this->received_msg_manager->handle_waitandget(*message->as_waitandget());
+    if (!this->received_msg_manager->handle_waitandget(message->as_waitandget())) {
+      delete message;
+    }
     break;
   }
   case MsgKind::Status: {
-    this->received_msg_manager->handle_status(*message->as_status());
+    if (!this->received_msg_manager->handle_status(message->as_status())) {
+      delete message;
+    }
     break;
   }
   case MsgKind::Register: {
@@ -333,6 +358,7 @@ void Registrar::handle_incoming_message(size_t client_id, unsigned char *buffer,
     this->broadcast_client_directory();
 
     delete ip_addr;
+    delete message;
     break;
   }
   case MsgKind::Directory: {
@@ -342,17 +368,17 @@ void Registrar::handle_incoming_message(size_t client_id, unsigned char *buffer,
     printf("Received Directory message from client id %zu. Ignoring "
            "command\n",
            client_id);
+    delete message;
     break;
   }
   default: {
     // Invalid message type. Do nothing and just ignore it.
     printf("Received invalid message from client id %zu. Ignoring.\n",
            client_id);
+    delete message;
     break;
   }
   }
-
-  delete message;
 }
 
 void Registrar::handle_incoming_connection(size_t new_client_id, String *addr,
@@ -441,18 +467,27 @@ void Node::handle_incoming_message(unsigned char *buffer, size_t num_bytes) {
   }
   switch (message->get_message_kind()) {
   case MsgKind::Put: {
-    this->received_msg_manager->handle_put(*message->as_put());
-    delete message;
+    if (!this->received_msg_manager->handle_put(message->as_put())) {
+      delete message;
+    }
+    break;
+  }
+  case MsgKind::Reply: {
+    if (!this->received_msg_manager->handle_reply(message->as_reply())) {
+      delete message;
+    }
     break;
   }
   case MsgKind::WaitAndGet: {
-    this->received_msg_manager->handle_waitandget(*message->as_waitandget());
-    delete message;
+    if (!this->received_msg_manager->handle_waitandget(message->as_waitandget())) {
+      delete message;
+    }
     break;
   }
   case MsgKind::Status: {
-    this->received_msg_manager->handle_status(*message->as_status());
-    delete message;
+    if (!this->received_msg_manager->handle_status(message->as_status())) {
+      delete message;
+    }
     break;
   }
   case MsgKind::Register: {

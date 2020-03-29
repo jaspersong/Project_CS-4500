@@ -14,7 +14,6 @@
 #include "key.h"
 #include "map.h"
 #include "thread.h"
-#include "local_network_msg_manager.h"
 
 class Application;
 class LocalNetworkMessageManager;

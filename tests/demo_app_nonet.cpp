@@ -8,6 +8,7 @@
 // Lang::Cpp
 
 #include "demo_app.h"
+#include "local_network_msg_manager.h"
 
 int main(int argc, char **argv) {
   Demo producer;

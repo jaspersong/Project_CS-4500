@@ -21,12 +21,13 @@ public:
    * Virtual functions that can be overridden in order to handle generalized
    * messages with varying payloads.
    * @param msg The message received.
-   * @return True if the message payload is valid, false if otherwise.
+   * @return True if the message has been taken/stolen by the function, and
+   * is no longer owned by the caller of the function.
    */
-  virtual bool handle_reply(Reply &msg) { return true; }
-  virtual bool handle_put(Put &msg) { return true; }
-  virtual bool handle_waitandget(WaitAndGet &msg) { return true; }
-  virtual bool handle_status(Status &msg) { return true; }
+  virtual bool handle_reply(Reply *msg) { return false; }
+  virtual bool handle_put(Put *msg) { return false; }
+  virtual bool handle_waitandget(WaitAndGet *msg) { return false; }
+  virtual bool handle_status(Status *msg) { return false; }
 
   /**
    * Virtual functions that can wait for a reply to a wait and get message,

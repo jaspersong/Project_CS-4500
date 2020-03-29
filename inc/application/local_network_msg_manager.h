@@ -10,17 +10,15 @@
 #pragma once
 
 #include "key_value_store.h"
-#include "recv_msg_manager.h"
 #include "thread.h"
-
-class KeyValueStore;
+#include "application_network_interface.h"
 
 /**
- * An implementation of message manager that can be used to communicate over
- * a fake network layer. It is used to link a distributed key-value store
- * that are different threads running on the same process
+ * An implementation of an interface between an application and a network
+ * layer so that the application is able to interface over a distributed
+ * application using a fake network.
  */
-class LocalNetworkMessageManager : public ReceivedMessageManager {
+class LocalNetworkMessageManager : public ApplicationNetworkInterface {
 public:
   explicit LocalNetworkMessageManager(KeyValueStore *kv_store);
 
@@ -39,28 +37,13 @@ public:
    */
   bool verify_configuration() { return this->all_apps_registered; }
 
-  bool handle_put(Put &msg) override;
-  bool handle_waitandget(WaitAndGet &msg) override;
-  // The reply passed in should be dynamically allocated
-  bool handle_reply(Reply &msg) override;
+  void send_put(size_t node_id, Key &key, DataFrame *value) override;
+  void send_waitandget(size_t node_id, Key &key) override;
+  void send_reply(size_t node_id, Key &key, DataFrame *df) override;
 
-  /**
-   * Sends the messages of the specified type with the provided content.
-   */
-  void send_put(size_t node_id, Key &key, DataFrame *value);
-  void send_waitandget(size_t node_id, Key &key);
-  void send_reply(size_t node_id, Key &key, DataFrame *df);
-
-  DataFrame *get_requested_dataframe();
-
-  size_t get_home_id();
+  size_t get_home_id() override;
 
 private:
-  KeyValueStore *kv_store;
-  Queue reply_queue;
   ArrayOfArrays app_list;
   bool all_apps_registered;
-
-  void wait_for_reply() override;
-  Reply *get_reply() override;
 };
