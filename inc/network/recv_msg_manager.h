@@ -11,6 +11,9 @@
 
 #include "serial.h"
 
+class Server;
+class Client;
+
 /**
  * An abstract class that manages the messages received by the particular
  * server/client that use the message types in the serial.h.
@@ -28,6 +31,12 @@ public:
   virtual bool handle_put(Put *msg) { return false; }
   virtual bool handle_waitandget(WaitAndGet *msg) { return false; }
   virtual bool handle_status(Status *msg) { return false; }
+
+  /**
+   * Passes in the server and client as the network layer to communicate over.
+   */
+  virtual void set_server(Server *server) {}
+  virtual void set_client(Client *client) {}
 
   /**
    * Virtual functions that can wait for a reply to a wait and get message,

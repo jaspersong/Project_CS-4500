@@ -48,6 +48,7 @@ set(DATAFRAME_SRC
         src/dataframe/dataframe.cpp
         inc/dataframe/fielder.h
         inc/dataframe/rower.h
+        inc/dataframe/copy_rower.h
         src/dataframe/copy_rower.cpp)
 set(NETWORK_SRC
         inc/messages/serial.h
@@ -69,7 +70,9 @@ set(APP_SRC
         inc/application/local_network_msg_manager.h
         src/application/local_network_msg_manager.cpp
         inc/application/application_network_interface.h
-        src/application/application_network_interface.cpp)
+        src/application/application_network_interface.cpp
+        inc/application/networked_msg_manager.h
+        src/application/networked_msg_manager.cpp)
 
 # Create targets for the test suites
 add_executable(test_suite_map
@@ -125,11 +128,19 @@ add_executable(demo_trivial_app_nonet
         "${APP_SRC}"
         inc/application/trivial_app.h
         src/application/trivial_app.cpp)
-add_executable(demo_app
+add_executable(demo_app_nonet
         tests/demo_app_nonet.cpp
         "${UTILITY_SRC}"
         "${DATAFRAME_SRC}"
         "${NETWORK_SRC}"
         "${APP_SRC}"
         inc/application/demo_app.h
-        src/application/demo_app.cpp inc/dataframe/copy_rower.h)
+        src/application/demo_app.cpp)
+add_executable(demo_app_wnet
+        tests/demo_app_wnet.cpp
+        "${UTILITY_SRC}"
+        "${DATAFRAME_SRC}"
+        "${NETWORK_SRC}"
+        "${APP_SRC}"
+        inc/application/demo_app.h
+        src/application/demo_app.cpp)

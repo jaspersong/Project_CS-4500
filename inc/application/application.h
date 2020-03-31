@@ -57,6 +57,15 @@ public:
    */
   void register_local(LocalNetworkMessageManager *msg_manager);
 
+  /**
+   * Configures this application so that it can support a real network layer.
+   * The return value can be passed into a Node or a server interface to
+   * allow the application to interact with the node/server as its network
+   * layer in order to communicate to other nodes in a distributed application
+   * @return
+   */
+  RealNetworkMessageManager *connect_network();
+
 protected:
   KeyValueStore *kv;
   bool running;

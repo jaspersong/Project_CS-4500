@@ -10,6 +10,7 @@
 #include "key_value_store.h"
 #include "copy_rower.h"
 #include "local_network_msg_manager.h"
+#include "networked_msg_manager.h"
 #include <unistd.h>
 
 KeyValueStore::KeyValueStore(size_t num_nodes) {
@@ -26,8 +27,8 @@ KeyValueStore::KeyValueStore(size_t num_nodes) {
     this->home_node = -1;
   }
 
-  this->using_local_network = false;
   this->local_network_layer = nullptr;
+  this->real_network_layer = nullptr;
 }
 
 KeyValueStore::~KeyValueStore() {
@@ -52,11 +53,10 @@ void KeyValueStore::put(Key &key, DataFrame *value) {
     this->kv_lock.lock();
     this->kv_map.put(owned_key, value);
     this->kv_lock.unlock();
-  } else if (this->using_local_network) {
+  } else if (this->local_network_layer != nullptr) {
     this->local_network_layer->send_put(key.get_home_id(), key, value);
-  } else {
-    // TODO: Connect with the network layer
-    assert(false);
+  } else if (this->real_network_layer != nullptr) {
+    this->real_network_layer->send_put(key.get_home_id(), key, value);
   }
 }
 
@@ -82,15 +82,19 @@ DataFrame *KeyValueStore::wait_and_get(Key &key) {
     this->kv_lock.unlock();
 
     return ret_value;
-  } else if (this->using_local_network) {
+  } else if (this->local_network_layer != nullptr) {
     this->local_network_layer->send_waitandget(key.get_home_id(), key);
 
     // Now wait for the response
     return this->local_network_layer->get_requested_dataframe();
+  } else if (this->real_network_layer != nullptr) {
+    this->real_network_layer->send_waitandget(key.get_home_id(), key);
+
+    // Now wait for the response
+    return this->real_network_layer->get_requested_dataframe();
   } else {
-    // TODO: Connect with the network layer
+    // We should not be here
     assert(false);
-    return nullptr;
   }
 }
 
@@ -110,23 +114,30 @@ DataFrame *KeyValueStore::get_local(Key &key) {
 }
 
 LocalNetworkMessageManager *KeyValueStore::connect_local(size_t node_id) {
-  assert(!this->using_local_network);
   assert(this->local_network_layer == nullptr);
+  assert(this->real_network_layer == nullptr);
   assert(this->num_nodes > 1);
   assert(this->home_node == -1);
 
   this->home_node = node_id;
 
-  this->using_local_network = true;
   this->local_network_layer = new LocalNetworkMessageManager(this);
   return this->local_network_layer;
 }
 
 void KeyValueStore::register_local(LocalNetworkMessageManager *msg_manager) {
-  assert(this->using_local_network);
   assert(this->local_network_layer != nullptr);
-
   this->local_network_layer->register_local(msg_manager);
+}
+
+RealNetworkMessageManager *KeyValueStore::connect_network() {
+  assert(this->local_network_layer == nullptr);
+  assert(this->real_network_layer == nullptr);
+  assert(this->num_nodes > 1);
+  assert(this->home_node == -1);
+
+  this->real_network_layer = new RealNetworkMessageManager(this);
+  return this->real_network_layer;
 }
 
 void KeyValueStore::from_array(Key &key, KeyValueStore *kv,
@@ -304,9 +315,17 @@ void KeyValueStore::from_scalar(Key &key, KeyValueStore *kv,
 }
 
 bool KeyValueStore::verify_distributed_layer() {
+  // Take the home id from the network layer if this application has been
+  // configured to dynamically be enumerated.
+  if (this->real_network_layer != nullptr) {
+    this->home_node = this->real_network_layer->get_home_id();
+  }
+
   return (this->home_node != -1) && (this->home_node < this->num_nodes) &&
-         ((this->num_nodes == 1) || (this->using_local_network &&
-         this->local_network_layer->verify_configuration()));
+         ((this->num_nodes == 1) || ((this->local_network_layer != nullptr) &&
+         this->local_network_layer->verify_configuration()) ||
+         ((this->real_network_layer != nullptr) &&
+         (this->real_network_layer->get_home_id() != -1)));
 }
 
 size_t KeyValueStore::get_home_id() { return this->home_node; }

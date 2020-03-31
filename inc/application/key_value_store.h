@@ -17,6 +17,7 @@
 
 class Application;
 class LocalNetworkMessageManager;
+class RealNetworkMessageManager;
 
 class KeyValueStore : public CustomObject {
 public:
@@ -75,6 +76,11 @@ public:
   void register_local(LocalNetworkMessageManager *msg_manager);
 
   /**
+   * Configures this application to use a real network layer.
+   */
+  RealNetworkMessageManager *connect_network();
+
+  /**
    * Verifies that the distributed layer has been configured properly in
    * order for the KV-store to properly get/put dataframes at the correct
    * distributed KV-Store
@@ -129,6 +135,6 @@ private:
   size_t num_nodes;
   Lock kv_lock;
 
-  bool using_local_network;
   LocalNetworkMessageManager *local_network_layer;
+  RealNetworkMessageManager *real_network_layer;
 };

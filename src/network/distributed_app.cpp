@@ -107,6 +107,7 @@ public:
 
     this->dm_msg_receiver = new MessageReceiver();
     this->dm_recv_msg_manager = &received_msg_manager;
+    this->dm_recv_msg_manager->set_server(this);
   }
 
   ~ClientDMManager() override {
@@ -296,6 +297,7 @@ Registrar::Registrar(String *ip_addr, int port_num, size_t max_num_clients,
 
   this->message_receiver = new MessageReceiver();
   this->received_msg_manager = &received_message_manager;
+  this->received_msg_manager->set_server(this);
 }
 
 Registrar::~Registrar() {
@@ -428,6 +430,7 @@ Node::Node(String *server_ip_addr, int server_port_num, String *ip_addr,
 
   this->message_receiver = new MessageReceiver();
   this->received_msg_manager = &msg_manager;
+  this->received_msg_manager->set_client(this);
 
   this->id = -1; // Default id for now until the registrar gives us an id
 }
