@@ -20,7 +20,7 @@ public:
   size_t hash() { return hash_ != 0 ? hash_ : hash_ = hash_me(); }
 
   /** Subclasses should redefine */
-  virtual bool equals(CustomObject *other) { return this == other; }
+  virtual bool equals(CustomObject *other) const { return this == other; }
 
   /** Return a copy of the object; nullptr is considered an error */
   virtual CustomObject *clone() { return nullptr; }

@@ -65,7 +65,7 @@ public:
   virtual Register *as_register() { return nullptr; }
   virtual Directory *as_directory() { return nullptr; }
 
-  bool equals(CustomObject *other) override;
+  bool equals(CustomObject *other) const override;
   size_t hash_me() override;
   void serialize(Serializer &serializer) override;
 
@@ -207,7 +207,7 @@ public:
 
   Status *as_status() override { return this; }
 
-  bool equals(CustomObject *other) override;
+  bool equals(CustomObject *other) const override;
   size_t hash_me() override;
 
 private:
@@ -222,12 +222,12 @@ public:
 
   void serialize(Serializer &serializer) override;
 
-  String *get_ip_addr();
-  int get_port_num();
+  String *get_ip_addr() const;
+  int get_port_num() const;
 
   Register *as_register() override { return this; }
 
-  bool equals(CustomObject *other) override;
+  bool equals(CustomObject *other) const override;
   size_t hash_me() override;
 
 private:
@@ -272,7 +272,7 @@ public:
   int get_client_port_num(size_t client_id);
 
   Directory *as_directory() override { return this; }
-  bool equals(CustomObject *other) override;
+  bool equals(CustomObject *other) const override;
   size_t hash_me() override;
 
 private:

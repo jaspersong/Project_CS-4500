@@ -40,7 +40,7 @@ public:
   char at(size_t index);
 
   /** Compare two strings. */
-  bool equals(CustomObject *other) override;
+  bool equals(CustomObject *other) const override;
 
   /** Deep copy of this string */
   String *clone() override { return new String(*this); }

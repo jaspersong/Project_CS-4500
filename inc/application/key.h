@@ -21,12 +21,12 @@ public:
   ~Key() override;
 
   size_t hash_me() override;
-  bool equals(CustomObject *other) override;
+  bool equals(CustomObject *other) const override;
   void serialize(Serializer &serializer) override;
   size_t serialization_required_bytes() override;
 
-  size_t get_home_id() { return this->home_id; }
-  String *get_name() { return this->name; }
+  size_t get_home_id() const { return this->home_id; }
+  String *get_name() const { return this->name; }
 
   /**
    * Interprets a serialized piece of data as a key, and returns the value

@@ -71,7 +71,7 @@ public:
   virtual bool contains(CustomObject *object);
 
   unsigned long hash_me() override;
-  bool equals(CustomObject *other) override;
+  bool equals(CustomObject *other) const override;
 
   /**
    * Resizes the queue to the desired size.

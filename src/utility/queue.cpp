@@ -130,7 +130,7 @@ unsigned long Queue::hash_me() {
   return hash;
 }
 
-bool Queue::equals(CustomObject *other) {
+bool Queue::equals(CustomObject *other) const {
   if (other == nullptr) {
     return false;
   }

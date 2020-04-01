@@ -32,14 +32,12 @@ KeyValueStore::KeyValueStore(size_t num_nodes) {
 }
 
 KeyValueStore::~KeyValueStore() {
-  // Delete all of the dataframes within the map
-  CustomObject **keys = this->kv_map.key_set();
-  size_t num_keys = this->kv_map.size();
-  for (size_t i = 0; i < num_keys; i++) {
-    delete this->kv_map.remove(keys[i]);
-    delete keys[i];
+  // Delete all of the keys and dataframes within the map
+  for (auto const& x : this->kv_map)
+  {
+    delete x.first;
+    delete x.second;
   }
-  delete[] keys;
 }
 
 void KeyValueStore::put(Key &key, DataFrame *value) {
@@ -51,7 +49,7 @@ void KeyValueStore::put(Key &key, DataFrame *value) {
     Key *owned_key = new Key(key.get_name()->c_str(), key.get_home_id());
 
     this->kv_lock.lock();
-    this->kv_map.put(owned_key, value);
+    this->kv_map[owned_key] = value;
     this->kv_lock.unlock();
   } else if (this->local_network_layer != nullptr) {
     this->local_network_layer->send_put(key.get_home_id(), key, value);
@@ -66,13 +64,16 @@ DataFrame *KeyValueStore::wait_and_get(Key &key) {
 
   if (key.get_home_id() == this->home_node) {
     // Wait until the key is available on this key-value store
-    while (!this->kv_map.contains_key(&key)) {
+    std::map<Key *, DataFrame *, KeyComp>::iterator it;
+    it = this->kv_map.find(&key);
+    while (it == this->kv_map.end()) {
       sleep(1);
+      it = this->kv_map.find(&key);
     }
 
     this->kv_lock.lock();
 
-    auto *value = reinterpret_cast<DataFrame *>(this->kv_map.get(&key));
+    auto *value = this->kv_map[&key];
 
     // Now copy the value so it can be owned by the caller.
     auto *ret_value = new DataFrame(*value);
@@ -103,11 +104,14 @@ DataFrame *KeyValueStore::get_local(Key &key) {
 
   if (key.get_home_id() == this->home_node) {
     // Wait until the key is available on this key-value store
-    while (!this->kv_map.contains_key(&key)) {
+    std::map<Key *, DataFrame *, KeyComp>::iterator it;
+    it = this->kv_map.find(&key);
+    while (it == this->kv_map.end()) {
       sleep(1);
+      it = this->kv_map.find(&key);
     }
 
-    return reinterpret_cast<DataFrame *>(this->kv_map.get(&key));
+    return this->kv_map[&key];
   } else {
     return nullptr;
   }

@@ -33,8 +33,7 @@ set(UTILITY_SRC
         src/utility/custom_string.cpp
         inc/utility/queue.h
         src/utility/queue.cpp
-        inc/utility/map.h
-        src/utility/map.cpp)
+        )
 set(DATAFRAME_SRC
         inc/dataframe/dataframe_helper.h
         src/dataframe/dataframe_helper.cpp
@@ -75,9 +74,6 @@ set(APP_SRC
         src/application/networked_msg_manager.cpp)
 
 # Create targets for the test suites
-add_executable(test_suite_map
-        tests/test_map.cpp
-        "${UTILITY_SRC}")
 add_executable(test_suite_queue
         tests/test_queue.cpp
         "${UTILITY_SRC}")

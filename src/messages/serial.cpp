@@ -17,7 +17,7 @@ Message::Message(MsgKind kind) {
   this->size = 0;
 }
 
-bool Message::equals(CustomObject *other) {
+bool Message::equals(CustomObject *other) const {
   if (other == this)
     return true;
   auto *x = dynamic_cast<Message *>(other);
@@ -205,7 +205,7 @@ void Status::set_message(String &new_msg) {
 
 String *Status::get_message() { return new String(*this->msg); }
 
-bool Status::equals(CustomObject *other) {
+bool Status::equals(CustomObject *other) const {
   if (other == this)
     return true;
   if (!Message::equals(other))
@@ -267,16 +267,16 @@ void Register::serialize(Serializer &serializer) {
   serializer.set_size_t(this->port);
 }
 
-String *Register::get_ip_addr() {
+String *Register::get_ip_addr() const {
   struct in_addr ip_addr = this->client.sin_addr;
   char addr_cstr[INET_ADDRSTRLEN];
   inet_ntop(AF_INET, &ip_addr, addr_cstr, INET_ADDRSTRLEN);
   return new String(addr_cstr);
 }
 
-int Register::get_port_num() { return static_cast<int>(this->port); }
+int Register::get_port_num() const { return static_cast<int>(this->port); }
 
-bool Register::equals(CustomObject *other) {
+bool Register::equals(CustomObject *other) const {
   if (other == this)
     return true;
   if (!Message::equals(other))
@@ -437,7 +437,7 @@ int Directory::get_client_port_num(size_t client_id) {
   return this->ports[client_id];
 }
 
-bool Directory::equals(CustomObject *other) {
+bool Directory::equals(CustomObject *other) const {
   if (other == this)
     return true;
   if (!Message::equals(other))

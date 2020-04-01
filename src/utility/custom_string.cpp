@@ -37,7 +37,7 @@ char String::at(size_t index) {
   return cstr_[index];
 }
 
-bool String::equals(CustomObject *other) {
+bool String::equals(CustomObject *other) const {
   if (other == this)
     return true;
   auto *x = dynamic_cast<String *>(other);

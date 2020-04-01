@@ -9,10 +9,10 @@
 
 #pragma once
 
+#include <map>
 #include "dataframe.h"
 #include "distributed_app.h"
 #include "key.h"
-#include "map.h"
 #include "thread.h"
 
 class Application;
@@ -130,7 +130,17 @@ public:
   size_t get_num_nodes() { return this->num_nodes; }
 
 private:
-  Map kv_map;
+  class KeyComp {
+  public:
+    bool operator() (const Key *lhs, const Key *rhs) const {
+      // Ensure that all of the map keys have keys that live in the same home id
+      assert(lhs->get_home_id() == rhs->get_home_id());
+
+      return strcmp(lhs->get_name()->c_str(), rhs->get_name()->c_str()) < 0;
+    }
+  };
+
+  std::map<Key *, DataFrame *, KeyComp> kv_map;
   size_t home_node; // The id of the node this keyvalue store is running on
   size_t num_nodes;
   Lock kv_lock;

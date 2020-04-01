@@ -18,7 +18,7 @@ Key::~Key() { delete this->name; }
 
 size_t Key::hash_me() { return this->home_id + this->name->hash(); }
 
-bool Key::equals(CustomObject *other) {
+bool Key::equals(CustomObject *other) const {
   if (other == this)
     return true;
   Key *x = dynamic_cast<Key *>(other);
