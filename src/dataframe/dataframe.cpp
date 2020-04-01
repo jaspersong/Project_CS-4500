@@ -47,8 +47,7 @@ DataFrame::~DataFrame() {
   // Iterate through the column and delete the internally allocated columns
   for (size_t i = 0; i < this->col_list->size(); i++) {
     DataItem_ item = this->col_list->get_item(i);
-    auto *column = dynamic_cast<DF_Column *>(item.o);
-    delete column;
+    delete item.o;
   }
   delete this->col_list;
 }

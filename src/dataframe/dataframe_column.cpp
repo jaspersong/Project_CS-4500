@@ -8,7 +8,6 @@
 // Lang::Cpp
 
 #include "dataframe_column.h"
-#include <cstdarg>
 
 DF_Column::DF_Column(ColumnType_t column_type) {
   this->list = new ArrayOfArrays();
@@ -69,20 +68,6 @@ char DF_Column::get_type() { return static_cast<char>(this->data_type); }
 
 DF_BoolColumn::DF_BoolColumn() : DF_Column(ColumnType_Bool) {}
 
-DF_BoolColumn::DF_BoolColumn(int n, ...) : DF_Column(ColumnType_Bool) {
-  // Iterate through the variadic list as boolean values and add them into
-  // the list within the column
-  va_list ap;
-  va_start(ap, n);
-  for (int i = 0; i < n; i++) {
-    // Create the boolean data item and pass it into the linked list of
-    // array of items
-    bool val = static_cast<bool>(va_arg(ap, int));
-    this->push_back(val);
-  }
-  va_end(ap);
-}
-
 DF_BoolColumn::DF_BoolColumn(DF_BoolColumn &column)
     : DF_Column(ColumnType_Bool) {
   this->data_type = column.data_type;
@@ -107,19 +92,6 @@ void DF_BoolColumn::set(size_t idx, bool val) {
 /*************************************************************************/
 
 DF_IntColumn::DF_IntColumn() : DF_Column(ColumnType_Integer) {}
-
-DF_IntColumn::DF_IntColumn(int n, ...) : DF_Column(ColumnType_Integer) {
-  // Iterate through the variadic list as int values and add them into
-  // the list within the column
-  va_list ap;
-  va_start(ap, n);
-  for (int i = 0; i < n; i++) {
-    // Create the integer item.
-    int val = va_arg(ap, int);
-    this->push_back(val);
-  }
-  va_end(ap);
-}
 
 DF_IntColumn::DF_IntColumn(DF_IntColumn &column)
     : DF_Column(ColumnType_Integer) {
@@ -146,19 +118,6 @@ void DF_IntColumn::set(size_t idx, int val) {
 
 DF_FloatColumn::DF_FloatColumn() : DF_Column(ColumnType_Float) {}
 
-DF_FloatColumn::DF_FloatColumn(int n, ...) : DF_Column(ColumnType_Float) {
-  // Iterate through the variadic list as float values and add them into
-  // the list within the column
-  va_list ap;
-  va_start(ap, n);
-  for (int i = 0; i < n; i++) {
-    // Create the float item.
-    double val = va_arg(ap, double);
-    this->push_back((float)val);
-  }
-  va_end(ap);
-}
-
 DF_FloatColumn::DF_FloatColumn(DF_FloatColumn &column)
     : DF_Column(ColumnType_Float) {
   this->data_type = column.data_type;
@@ -183,19 +142,6 @@ void DF_FloatColumn::set(size_t idx, float val) {
 /*************************************************************************/
 
 DF_StringColumn::DF_StringColumn() : DF_Column(ColumnType_String) {}
-
-DF_StringColumn::DF_StringColumn(int n, ...) : DF_Column(ColumnType_String) {
-  // Iterate through the variadic list as string values and add them into
-  // the list within the column
-  va_list ap;
-  va_start(ap, n);
-  for (int i = 0; i < n; i++) {
-    // Create the float item.
-    String *val = va_arg(ap, String *);
-    this->push_back(val);
-  }
-  va_end(ap);
-}
 
 DF_StringColumn::DF_StringColumn(DF_StringColumn &column)
     : DF_Column(ColumnType_String) {

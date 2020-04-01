@@ -86,8 +86,6 @@ class DF_BoolColumn : public DF_Column {
 public:
   DF_BoolColumn();
 
-  explicit DF_BoolColumn(int n, ...);
-
   // Constructs a column by copying the data from the provided column into
   // this new instance of column.
   DF_BoolColumn(DF_BoolColumn &column);
@@ -106,7 +104,6 @@ public:
 class DF_IntColumn : public DF_Column {
 public:
   DF_IntColumn();
-  explicit DF_IntColumn(int n, ...);
 
   // Constructs a column by copying the data from the provided column into
   // this new instance of column.
@@ -128,8 +125,6 @@ class DF_FloatColumn : public DF_Column {
 public:
   DF_FloatColumn();
 
-  explicit DF_FloatColumn(int n, ...);
-
   // Constructs a column by copying the data from the provided column into
   // this new instance of column.
   DF_FloatColumn(DF_FloatColumn &column);
@@ -149,8 +144,6 @@ public:
 class DF_StringColumn : public DF_Column {
 public:
   DF_StringColumn();
-
-  explicit DF_StringColumn(int n, ...);
 
   // Constructs a column by copying the data from the provided column into
   // this new instance of column.

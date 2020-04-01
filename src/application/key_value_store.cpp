@@ -142,8 +142,7 @@ RealNetworkMessageManager *KeyValueStore::connect_network() {
 
 void KeyValueStore::from_array(Key &key, KeyValueStore *kv,
                                      size_t num_values, float *values) {
-  assert(kv != nullptr);
-  assert(values != nullptr);
+  assert(kv && values);
   assert(key.get_home_id() < kv->num_nodes);
 
   // Create the dataframe
@@ -165,8 +164,7 @@ void KeyValueStore::from_array(Key &key, KeyValueStore *kv,
 
 void KeyValueStore::from_array(Key &key, KeyValueStore *kv,
                                      size_t num_values, int *values) {
-  assert(kv != nullptr);
-  assert(values != nullptr);
+  assert(kv && values);
   assert(key.get_home_id() < kv->num_nodes);
 
   // Create the dataframe
@@ -188,8 +186,7 @@ void KeyValueStore::from_array(Key &key, KeyValueStore *kv,
 
 void KeyValueStore::from_array(Key &key, KeyValueStore *kv,
                                      size_t num_values, bool *values) {
-  assert(kv != nullptr);
-  assert(values != nullptr);
+  assert(kv && values);
   assert(key.get_home_id() < kv->num_nodes);
 
   // Create the dataframe
@@ -211,8 +208,7 @@ void KeyValueStore::from_array(Key &key, KeyValueStore *kv,
 
 void KeyValueStore::from_array(Key &key, KeyValueStore *kv,
                                      size_t num_values, String **values) {
-  assert(kv != nullptr);
-  assert(values != nullptr);
+  assert(kv && values);
   assert(key.get_home_id() < kv->num_nodes);
 
   // Create the dataframe

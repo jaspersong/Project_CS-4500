@@ -101,6 +101,19 @@ knows the number of columns and number of rows, the type of each column,
 optionally columns and rows can be named by strings.
 The valid types are represented by the chars 'S', 'B', 'I' and 'F'.
 
+#### CS4500-A1-part1
+
+The folder contains code for the sorer application created by team CS4500ne. 
+As it stands, the folder is a git submodule within the project and then
+treated as a library. As a result, this project aims to maintain complete
+fidelity to the original source code without making any modifications to the
+original source code. In order to integrate the sorer into the project, the
+class `SorerIntegrator` was created to transform the data read from the sorer
+into a DataFrame. In addition, a separation from the object implementation
+was separated by naming them differently: The library code used `Object`, so
+the project implementation had to be updated to be `CustomObject` in order to
+avoid linking issues upon compile time.
+
 ### Network Folder
 
 The communication layer was implemented in two pieces: One is the Registrar, 
@@ -537,7 +550,11 @@ int main(int argc, char **argv) {
 
 ## Open questions
 
-None thus far.
+## Comments
+
+- "this->" within the codebase will remain as a styling choice, because we have
+gotten bitten during the debugging phase when we did not use the keyword to
+explicitly reference class fields.
 
 ## Status
 
@@ -569,4 +586,5 @@ the direct communication between nodes
 - Make use of templates for similar classes and methods
 - Connect multiple local KV-Stores to support communicating to each other
 over the network
+- Update the schema field in the dataframe to not be a pointer
  

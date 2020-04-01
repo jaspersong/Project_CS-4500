@@ -46,7 +46,9 @@ void test1() {
   s1->add_column('B');
 
   // Construct a dummy column
-  DF_Column *bool_column = new DF_BoolColumn(2, false, true);
+  DF_Column *bool_column = new DF_BoolColumn();
+  bool_column->push_back(false);
+  bool_column->push_back(true);
 
   // Construct the row
   Row *r0 = new Row(*s1);
@@ -304,12 +306,22 @@ void test3() {
   helper.t_true(conv_string_colunmn->size() == 6);
 
   // Test the constructors
-  auto *cons_bool_column = new DF_BoolColumn(2, false, true);
-  auto *cons_int_column = new DF_IntColumn(3, 0, 1, 2);
-  auto *cons_float_column =
-      new DF_FloatColumn(4, 0.1f, 0.2f, 0.3f, 0.4f);
-  auto *cons_string_column =
-      new DF_StringColumn(3, &str_hello, &str_world, &str_avatar);
+  auto *cons_bool_column = new DF_BoolColumn();
+  cons_bool_column->push_back(false);
+  cons_bool_column->push_back(true);
+  auto *cons_int_column = new DF_IntColumn();
+  cons_int_column->push_back(0);
+  cons_int_column->push_back(1);
+  cons_int_column->push_back(2);
+  auto *cons_float_column = new DF_FloatColumn();
+  cons_float_column->push_back(0.1f);
+  cons_float_column->push_back(0.2f);
+  cons_float_column->push_back(0.3f);
+  cons_float_column->push_back(0.4f);
+  auto *cons_string_column = new DF_StringColumn();
+  cons_string_column->push_back(&str_hello);
+  cons_string_column->push_back(&str_world);
+  cons_string_column->push_back(&str_avatar);
   helper.t_true(cons_bool_column->get(1));
   helper.t_false((cons_bool_column->get(0)));
   cons_bool_column->push_back(false);
