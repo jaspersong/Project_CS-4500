@@ -587,4 +587,5 @@ the direct communication between nodes
 - Connect multiple local KV-Stores to support communicating to each other
 over the network
 - Update the schema field in the dataframe to not be a pointer
+- Minimize copying strings when going when adding them to dataframes
  

@@ -144,6 +144,7 @@ public:
 class DF_StringColumn : public DF_Column {
 public:
   DF_StringColumn();
+  ~DF_StringColumn() override;
 
   // Constructs a column by copying the data from the provided column into
   // this new instance of column.

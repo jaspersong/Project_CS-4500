@@ -17,7 +17,7 @@ int main(int argc, char **argv) {
   WordCount counters[NUM_COUNTERS];
 
   LocalNetworkMessageManager *main_network_manager;
-  LocalNetworkMessageManager *counter_network_managers[7];
+  LocalNetworkMessageManager *counter_network_managers[NUM_COUNTERS];
 
   main_network_manager = main_node.connect_local(0);
   for (size_t i = 0; i < NUM_COUNTERS; i++) {

@@ -18,6 +18,8 @@
  */
 class SIMap : public CustomObject {
 public:
+  ~SIMap() override;
+
   bool contains(String &key);
   int get(String &key);
   void set(String &key, int value);
@@ -96,7 +98,7 @@ private:
  */
 class SIMapToDF : public Writer {
 public:
-  explicit SIMapToDF(SIMap& map);
+  explicit SIMapToDF(SIMap *map);
 
   void next();
 
@@ -104,7 +106,7 @@ public:
   bool done() override;
 
 private:
-  SIMap& map_;
+  SIMap* map;
 };
 
 /**
@@ -142,12 +144,13 @@ private:
  ****************************************************************************/
 class WordCount: public Application {
 public:
+  static const size_t NUM_NODES = 8;
+
   explicit WordCount();
   ~WordCount() override;
   void main() override;
 
 private:
-  static const size_t NUM_NODES = 8;
   static const size_t BUFSIZE = 1024;
 
   Key *wordcount_keys[NUM_NODES] = {};

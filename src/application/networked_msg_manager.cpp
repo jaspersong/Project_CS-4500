@@ -59,3 +59,10 @@ void RealNetworkMessageManager::send_reply(size_t node_id, Key &key,
 
   this->network_layer->send_direct_message(node_id, reply);
 }
+
+void RealNetworkMessageManager::send_status(size_t node_id, String &msg) {
+  // Construct the reply
+  Status status(msg);
+
+  this->network_layer->send_direct_message(node_id, status);
+}

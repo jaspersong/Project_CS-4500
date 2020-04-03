@@ -363,7 +363,7 @@ void KeyValueStore::from_visitor(const char *key_prefix, KeyValueStore *kv,
       // Generate the key
       char key_name[strlen(key_prefix) + 16];
       strcpy(key_name, key_prefix);
-      sprintf(key_name + strlen(key_prefix), "wc-%zu", num_segments);
+      sprintf(key_name + strlen(key_prefix), "%zu", num_segments);
       Key new_key(key_name, node_id);
 
       // Add the dataframe
@@ -389,7 +389,7 @@ void KeyValueStore::from_visitor(const char *key_prefix, KeyValueStore *kv,
     // Generate the key
     char key_name[strlen(key_prefix) + 16];
     strcpy(key_name, key_prefix);
-    sprintf(key_name + strlen(key_prefix), "wc-%zu", num_segments);
+    sprintf(key_name + strlen(key_prefix), "%zu", num_segments);
     Key new_key(key_name, node_id);
 
     // Add the dataframe
@@ -441,7 +441,7 @@ bool KeyValueStore::has_next() {
 }
 
 void KeyValueStore::next_iter() {
-  std::next(this->iter);
+  this->iter++;
 }
 
 Key *KeyValueStore::get_iter_key() {

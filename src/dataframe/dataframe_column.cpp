@@ -55,7 +55,11 @@ void DF_Column::push_back(String *val) {
   if (this->data_type == ColumnType_String) {
     // Create the item.
     DataItem_ new_item;
-    new_item.s = val;
+    if (val != nullptr) {
+      new_item.s = new String(*val);
+    } else {
+      new_item.s = nullptr;
+    }
     this->list->add_new_item(new_item);
   }
 }
@@ -143,11 +147,25 @@ void DF_FloatColumn::set(size_t idx, float val) {
 
 DF_StringColumn::DF_StringColumn() : DF_Column(ColumnType_String) {}
 
+DF_StringColumn::~DF_StringColumn() {
+  for (size_t i = 0; i < this->list->size(); i++) {
+    delete this->get(i);
+  }
+}
+
 DF_StringColumn::DF_StringColumn(DF_StringColumn &column)
     : DF_Column(ColumnType_String) {
   this->data_type = column.data_type;
-  delete this->list;
-  this->list = new ArrayOfArrays(*column.list);
+  for (size_t i = 0; i < column.size(); i++) {
+    DataItem_ data;
+    String *val = column.get(i);
+    if (val != nullptr) {
+      data.s = new String(*val);
+    } else {
+      data.s = nullptr;
+    }
+    this->list->add_new_item(data);
+  }
 }
 
 String *DF_StringColumn::get(size_t idx) {
@@ -158,8 +176,14 @@ String *DF_StringColumn::get(size_t idx) {
 void DF_StringColumn::set(size_t idx, String *val) {
   // Create a data item to be passed
   DataItem_ data;
-  data.s = val;
+  if (val != nullptr) {
+    data.s = new String(*val);
+  } else {
+    data.s = nullptr;
+  }
 
-  // Set the item
+  // Replace the old string with the new one
+  String *old_str = this->get(idx);
+  delete old_str;
   this->list->set_new_item(idx, data);
 }

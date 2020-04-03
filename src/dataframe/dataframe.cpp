@@ -475,7 +475,7 @@ DataFrame *DataFrame::deserialize_as_dataframe(Deserializer &deserializer) {
       for (size_t r = 0; r < num_rows; r++) {
         String *value = String::deserialize_as_string(deserializer);
         col.push_back(value);
-        // TODO: Need to deconstruct the strings when done
+        delete value; // There is no need for this anymore.
       }
       df->add_column(&col);
       break;

@@ -30,7 +30,15 @@ Row::Row(Schema &scm) {
   }
 }
 
-Row::~Row() { delete this->value_list; }
+Row::~Row() {
+  for (size_t i = 0; i < this->value_list->size(); i++) {
+    if (this->schema->col_type(i) == ColumnType_String) {
+      DataItem_ value = this->value_list->get_item(i);
+      delete value.s;
+    }
+  }
+  delete this->value_list;
+}
 
 void Row::set(size_t col, int val) {
   // Verify that this column index takes in an integer
@@ -76,7 +84,11 @@ void Row::set(size_t col, String *val) {
   }
 
   DataItem_ value;
-  value.s = val;
+  if (val != nullptr) {
+    value.s = new String(*val);
+  } else {
+    value.s = nullptr;
+  }
   this->value_list->set_new_item(col, value);
 }
 

@@ -30,6 +30,7 @@ public:
   void send_put(size_t node_id, Key &key, DataFrame *value) override;
   void send_waitandget(size_t node_id, Key &key) override;
   void send_reply(size_t node_id, Key &key, DataFrame *df) override;
+  void send_status(size_t node_id, String &msg) override;
 
   // This is only available if a network layer has been attached to this
   // interface.

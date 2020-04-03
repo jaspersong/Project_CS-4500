@@ -12,6 +12,12 @@
 Sys helper;
 const char *expected_signal_message = "distribution done";
 
+SIMap::~SIMap() {
+  for (this->start_iteration(); this->has_next(); this->next_iter()) {
+    delete this->get_iter_key();
+  }
+}
+
 bool SIMap::contains(String &key) {
   std::map<String *, int, StringComp>::iterator it;
   it = this->map.find(&key);
@@ -23,7 +29,8 @@ int SIMap::get(String &key) {
 }
 
 void SIMap::set(String &key, int value) {
-  this->map[&key] = value;
+  auto *new_key = new String(key);
+  this->map[new_key] = value;
 }
 
 void SIMap::start_iteration() {
@@ -35,7 +42,7 @@ bool SIMap::has_next() {
 }
 
 void SIMap::next_iter() {
-  std::next(this->iter);
+  this->iter++;
 }
 
 String *SIMap::get_iter_key() {
@@ -148,22 +155,24 @@ bool DFWordCounter::accept(Row &r) {
 
 /****************************************************************************/
 
-SIMapToDF::SIMapToDF(SIMap& map) : map_(map) {
-  this->map_.start_iteration();
+SIMapToDF::SIMapToDF(SIMap *map) {
+  assert(map);
+  this->map = map;
+  this->map->start_iteration();
 }
 
 void SIMapToDF::next() {
-  this->map_.next_iter();
+  this->map->next_iter();
 }
 
 void SIMapToDF::visit(Row& r) {
-  r.set(0, this->map_.get_iter_key());
-  r.set(1, this->map_.get_iter_value());
-  this->map_.next_iter();
+  r.set(0, this->map->get_iter_key());
+  r.set(1, this->map->get_iter_value());
+  this->map->next_iter();
 }
 
 bool SIMapToDF::done() {
-  return this->map_.has_next();
+  return !this->map->has_next();
 }
 
 /****************************************************************************/
@@ -197,9 +206,9 @@ WordCountStatusHandler::WordCountStatusHandler(Lock *distro_complete_signal) {
 
 bool WordCountStatusHandler::handle_status(Status *msg) {
   String *message = msg->get_message();
-  String expecterd_msg(expected_signal_message);
+  String expected_msg(expected_signal_message);
 
-  if (expecterd_msg.equals(message)) {
+  if (expected_msg.equals(message)) {
     // We got the expected message stating that the distribution of the
     // dataframe has been completed. Flip on the signal to start the local
     // counting
@@ -235,7 +244,7 @@ void WordCount::main() {
     // Create the dataframe from the text file
     String file_name("../data/shakespeare.txt");
     FileReader fr(&file_name);
-    KeyValueStore::from_visitor("txt-part-", this->kv, "S", fr, 50);
+    KeyValueStore::from_visitor("txt-part-", this->kv, "S", fr, 5);
 
     // Now notify that the dataframe has been distributed
     String distro_done_msg(expected_signal_message);
@@ -265,14 +274,15 @@ void WordCount::local_count() {
   // Iterate through all of the local dataframes to get the wordcount
   helper.p("Node ").p(this->kv->get_home_id()).pln(": starting local count...");
   for (this->kv->start_iter(); this->kv->has_next(); this->kv->next_iter()) {
-    this->kv->get_iter_value()->map(word_counter);
+    DataFrame *df = this->kv->get_iter_value();
+    df->map(word_counter);
   }
 
   // Now transform the word counter into a dataframe associated with this
   // node's word count key
-  SIMapToDF map_to_df(word_count);
-  helper.p("Storing count to key ").pln(
-      *this->wordcount_keys[this->kv->get_home_id()]->c_str());
+  SIMapToDF map_to_df(&word_count);
+  String *key_name = this->wordcount_keys[this->kv->get_home_id()]->get_name();
+  helper.p("Storing count to key ").pln(key_name->c_str());
   KeyValueStore::from_visitor(*this->wordcount_keys[this->kv->get_home_id()],
       this->kv, "SI", map_to_df);
 }
