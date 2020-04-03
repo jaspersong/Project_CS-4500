@@ -68,6 +68,9 @@ public:
 
 protected:
   KeyValueStore *kv;
+  StatusHandler *status_handler;
+
+private:
   bool running;
 
   void run() override;

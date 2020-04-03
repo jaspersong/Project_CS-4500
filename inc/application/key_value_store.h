@@ -18,6 +18,7 @@
 class Application;
 class LocalNetworkMessageManager;
 class RealNetworkMessageManager;
+class StatusHandler;
 
 class KeyValueStore : public CustomObject {
 public:
@@ -54,6 +55,21 @@ public:
   DataFrame *get_local(Key &key);
 
   /**
+   * Iterates through all of the local dataframes within the key-store. Call
+   * "start_iter" in order to start the iteration. next_iter() to move to the
+   * next. has_next() to see if there is another key value pair that is
+   * available locally. get_iter_key() to get the key of the current iterator
+   * get_iter_value() to get the value of the current local key-value store.
+   */
+  void start_iter();
+  bool has_next();
+  void next_iter();
+  Key *get_iter_key();
+  DataFrame *get_iter_value();
+
+  void send_status_message(size_t node_id, String &msg);
+
+  /**
    * Configures this application to other application instances that are
    * running on a different thread within the same process. connect_local()
    * can only be called once in order to configure this KVStore to
@@ -65,7 +81,8 @@ public:
    * register_local() called on other application instances in order to allow
    * other applications to communicate to this application instance.
    */
-  LocalNetworkMessageManager *connect_local(size_t node_id);
+  LocalNetworkMessageManager *connect_local(size_t node_id,
+      StatusHandler* status_handler);
 
   /**
    * Registers the provided message manager to other applications. This MUST
@@ -78,7 +95,7 @@ public:
   /**
    * Configures this application to use a real network layer.
    */
-  RealNetworkMessageManager *connect_network();
+  RealNetworkMessageManager *connect_network(StatusHandler* status_handler);
 
   /**
    * Verifies that the distributed layer has been configured properly in
@@ -119,6 +136,34 @@ public:
   static void from_scalar(Key &key, KeyValueStore *kv, String *value);
 
   /**
+   * Generates a dataframe that is distributed into dataframe segments into
+   * the provided key-value store. It will auto-generate the keys to
+   * associate with each segment of the dataframe by using the key_prefix. It
+   * will also distribute the keys fairly across all of the nodes within the
+   * key-value store.
+   * @param key_prefix The prefix of the key name that will be used to
+   * autogenerate the keys.
+   * @param kv The key-value store to store the values in.
+   * @param schema_types The schema type of the dataframe.
+   * @param writer The writer vistor that will build the dataframe.
+   * @param max_num_rows The maximum number of rows that a segment of the
+   * dataframe will contain.
+   */
+  static void from_visitor(const char *key_prefix, KeyValueStore *kv,
+      const char *schema_types, Writer &writer, size_t max_num_rows);
+
+  /**
+   * Generates a dataframe using a visitor and storing it with the key at the
+   * key-value store.
+   * @param key The key to store the generated dataframe with.
+   * @param kv The key-value store to store the dataframe
+   * @param schema_types The schema type of the dataframe
+   * @param writer The writer visitor that will build the dataframe
+   */
+  static void from_visitor(Key &key, KeyValueStore *kv,
+      const char *schema_types, Writer &writer);
+
+  /**
    * Gets the home node id of this KV store ONLY if the distributed
    * application layer has already been configured.
    * @return The home node id.
@@ -141,6 +186,7 @@ private:
   };
 
   std::map<Key *, DataFrame *, KeyComp> kv_map;
+  std::map<Key *, DataFrame *, KeyComp>::iterator iter = kv_map.end();
   size_t home_node; // The id of the node this keyvalue store is running on
   size_t num_nodes;
   Lock kv_lock;

@@ -14,6 +14,7 @@ Application::Application(size_t num_nodes) {
 
   this->kv = new KeyValueStore(num_nodes);
   this->running = false;
+  this->status_handler = nullptr;
 }
 
 Application::~Application() {
@@ -26,7 +27,7 @@ size_t Application::get_node_id() { return this->kv->get_home_id(); }
 
 LocalNetworkMessageManager *Application::connect_local(size_t node_id) {
   assert(!this->running);
-  return this->kv->connect_local(node_id);
+  return this->kv->connect_local(node_id, this->status_handler);
 }
 
 void Application::register_local(LocalNetworkMessageManager *msg_manager) {
@@ -37,7 +38,7 @@ void Application::register_local(LocalNetworkMessageManager *msg_manager) {
 
 RealNetworkMessageManager *Application::connect_network() {
   assert(!this->running);
-  return this->kv->connect_network();
+  return this->kv->connect_network(this->status_handler);
 }
 
 void Application::run() {

@@ -34,7 +34,7 @@ public:
   size_t size() { return size_; }
 
   /** Return the raw char*. The result should not be modified or freed. */
-  char *c_str() override { return cstr_; }
+  char *c_str() const override { return cstr_; }
 
   /** Returns the character at index */
   char at(size_t index);

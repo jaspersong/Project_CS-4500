@@ -117,7 +117,8 @@ DataFrame *KeyValueStore::get_local(Key &key) {
   }
 }
 
-LocalNetworkMessageManager *KeyValueStore::connect_local(size_t node_id) {
+LocalNetworkMessageManager *KeyValueStore::connect_local(size_t node_id,
+                                                         StatusHandler* status_handler) {
   assert(this->local_network_layer == nullptr);
   assert(this->real_network_layer == nullptr);
   assert(this->num_nodes > 1);
@@ -125,7 +126,7 @@ LocalNetworkMessageManager *KeyValueStore::connect_local(size_t node_id) {
 
   this->home_node = node_id;
 
-  this->local_network_layer = new LocalNetworkMessageManager(this);
+  this->local_network_layer = new LocalNetworkMessageManager(this, status_handler);
   return this->local_network_layer;
 }
 
@@ -134,13 +135,14 @@ void KeyValueStore::register_local(LocalNetworkMessageManager *msg_manager) {
   this->local_network_layer->register_local(msg_manager);
 }
 
-RealNetworkMessageManager *KeyValueStore::connect_network() {
+RealNetworkMessageManager *KeyValueStore::connect_network(
+    StatusHandler* status_handler) {
   assert(this->local_network_layer == nullptr);
   assert(this->real_network_layer == nullptr);
   assert(this->num_nodes > 1);
   assert(this->home_node == -1);
 
-  this->real_network_layer = new RealNetworkMessageManager(this);
+  this->real_network_layer = new RealNetworkMessageManager(this, status_handler);
   return this->real_network_layer;
 }
 
@@ -329,3 +331,122 @@ bool KeyValueStore::verify_distributed_layer() {
 }
 
 size_t KeyValueStore::get_home_id() { return this->home_node; }
+
+void KeyValueStore::from_visitor(const char *key_prefix, KeyValueStore *kv,
+    const char *schema_types, Writer &writer, size_t max_num_rows) {
+  assert(key_prefix && kv && schema_types);
+
+  Schema schema(schema_types);
+
+  // Iterate through using the writer. Whenever it reaches the maximum number
+  // of rows within a dataframe, it will store the dataframe into the
+  // kv-store and then move to the new node.
+  size_t node_id = 0;
+  size_t num_segments = 0;
+  size_t curr_row_num = 0;
+  DataFrame *df = nullptr;
+  while (!writer.done()) {
+    if (df == nullptr) {
+      df = new DataFrame(schema);
+    }
+
+    // Create the row from the writer
+    Row r(schema);
+    writer.visit(r);
+    df->add_row(r);
+
+    // Increment the row counter
+    curr_row_num += 1;
+
+    // Store the dataframe if we've reached the maximum number of rows
+    if (curr_row_num >= max_num_rows) {
+      // Generate the key
+      char key_name[strlen(key_prefix) + 16];
+      strcpy(key_name, key_prefix);
+      sprintf(key_name + strlen(key_prefix), "wc-%zu", num_segments);
+      Key new_key(key_name, node_id);
+
+      // Add the dataframe
+      kv->put(new_key, df);
+      // Delete the created dataframe if we had to send it to a different node
+      if (new_key.get_home_id() != kv->get_home_id()) {
+        delete df;
+      }
+      num_segments += 1;
+
+      // Now reset everything and prepare for the next dataframe segment
+      node_id += 1;
+      if (node_id >= kv->get_num_nodes()) {
+        node_id = 0;
+      }
+      curr_row_num = 0;
+      df = nullptr;
+    }
+  }
+
+  // Add the last dataframe if applicable
+  if (df != nullptr) {
+    // Generate the key
+    char key_name[strlen(key_prefix) + 16];
+    strcpy(key_name, key_prefix);
+    sprintf(key_name + strlen(key_prefix), "wc-%zu", num_segments);
+    Key new_key(key_name, node_id);
+
+    // Add the dataframe
+    kv->put(new_key, df);
+    // Delete the created dataframe if we had to send it to a different node
+    if (new_key.get_home_id() != kv->get_home_id()) {
+      delete df;
+    }
+  }
+}
+
+void KeyValueStore::from_visitor(Key &key, KeyValueStore *kv,
+                                 const char *schema_types, Writer &writer) {
+  assert(kv && schema_types);
+  assert(key.get_home_id() < kv->num_nodes);
+
+  Schema schema(schema_types);
+  auto *df = new DataFrame(schema);
+
+  // Iterate through using the writer
+  while (!writer.done()) {
+    Row r(schema);
+    writer.visit(r);
+    df->add_row(r);
+  }
+
+  // Add the df to the kvstore now at the specified key
+  kv->put(key, df);
+  // Delete the dataframe if it was put in a different kvstore
+  if (key.get_home_id() != kv->get_home_id()) {
+    delete df;
+  }
+}
+
+void KeyValueStore::send_status_message(size_t node_id, String &msg) {
+  if (this->local_network_layer != nullptr) {
+    this->local_network_layer->send_status(node_id, msg);
+  } else if (this->real_network_layer != nullptr) {
+    this->real_network_layer->send_status(node_id, msg);
+  }
+}
+
+void KeyValueStore::start_iter() {
+  this->iter = this->kv_map.begin();
+}
+
+bool KeyValueStore::has_next() {
+  return this->iter != this->kv_map.end();
+}
+
+void KeyValueStore::next_iter() {
+  std::next(this->iter);
+}
+
+Key *KeyValueStore::get_iter_key() {
+  return this->iter->first;
+}
+DataFrame *KeyValueStore::get_iter_value() {
+  return this->iter->second;
+}

@@ -9,9 +9,11 @@
 
 #include "application_network_interface.h"
 
-ApplicationNetworkInterface::ApplicationNetworkInterface(KeyValueStore *kv_store) {
+ApplicationNetworkInterface::ApplicationNetworkInterface(
+    KeyValueStore *kv_store, StatusHandler *status_handler) {
   assert(kv_store != nullptr);
   this->kv_store = kv_store;
+  this->status_handler = status_handler;
 }
 
 bool ApplicationNetworkInterface::handle_put(Put *msg) {
@@ -46,6 +48,15 @@ bool ApplicationNetworkInterface::handle_waitandget(WaitAndGet *msg) {
 bool ApplicationNetworkInterface::handle_reply(Reply *msg) {
   this->reply_queue.enqueue(msg);
   return true;
+}
+
+bool ApplicationNetworkInterface::handle_status(Status *msg) {
+  if (this->status_handler != nullptr) {
+    return this->status_handler->handle_status(msg);
+  }
+  else {
+    return false;
+  }
 }
 
 void ApplicationNetworkInterface::wait_for_reply() {

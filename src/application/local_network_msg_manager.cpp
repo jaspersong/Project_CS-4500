@@ -9,8 +9,9 @@
 
 #include "local_network_msg_manager.h"
 
-LocalNetworkMessageManager::LocalNetworkMessageManager(KeyValueStore *kv_store)
-    : ApplicationNetworkInterface(kv_store) {
+LocalNetworkMessageManager::LocalNetworkMessageManager(KeyValueStore *kv_store,
+                                                       StatusHandler *status_handler)
+    : ApplicationNetworkInterface(kv_store, status_handler) {
   // Fill the app list with nullptrs to the number of expected nodes to be
   // connected.
   this->all_apps_registered = false;

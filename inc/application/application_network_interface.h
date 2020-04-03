@@ -16,17 +16,29 @@
 class KeyValueStore;
 
 /**
+ * An interface that can be implemented in order to pass to an
+ * ApplicationNetworkInterface so it can specify how to handle incoming Status
+ * messages.
+ */
+class StatusHandler {
+public:
+  virtual bool handle_status(Status *msg) { return false; }
+};
+
+/**
  * An implementation of the received message manager that can be used to
  * communicate over a specified network layer that is configured by
  * implementing the virtual functions.
  */
 class ApplicationNetworkInterface : public ReceivedMessageManager {
 public:
-  explicit ApplicationNetworkInterface(KeyValueStore *kv_store);
+  ApplicationNetworkInterface(KeyValueStore *kv_store,
+      StatusHandler *status_handler);
 
   bool handle_put(Put *msg) override;
   bool handle_waitandget(WaitAndGet *msg) override;
   bool handle_reply(Reply *msg) override;
+  bool handle_status(Status *msg) override;
 
   /**
    * Sends the messages of the specified type with the provided content.
@@ -43,6 +55,10 @@ public:
     assert(false);
   }
 
+  virtual void send_status(size_t node_id, String &msg) {
+    assert(false);
+  }
+
   DataFrame *get_requested_dataframe();
 
   virtual size_t get_home_id();
@@ -50,6 +66,7 @@ public:
 protected:
   KeyValueStore *kv_store;
   Queue reply_queue;
+  StatusHandler *status_handler;
 
   void wait_for_reply() override;
   Reply *get_reply() override;

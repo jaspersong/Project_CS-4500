@@ -9,8 +9,9 @@
 
 #include "networked_msg_manager.h"
 
-RealNetworkMessageManager::RealNetworkMessageManager(KeyValueStore *kv_store)
-    : ApplicationNetworkInterface(kv_store) {
+RealNetworkMessageManager::RealNetworkMessageManager(KeyValueStore *kv_store,
+                                                     StatusHandler *status_handler)
+    : ApplicationNetworkInterface(kv_store, status_handler) {
   this->network_layer = nullptr;
 }
 

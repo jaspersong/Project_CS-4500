@@ -20,7 +20,8 @@
  */
 class LocalNetworkMessageManager : public ApplicationNetworkInterface {
 public:
-  explicit LocalNetworkMessageManager(KeyValueStore *kv_store);
+  LocalNetworkMessageManager(KeyValueStore *kv_store,
+      StatusHandler *status_handler);
 
   /**
    * Registers the provided message manager to other applications. This MUST

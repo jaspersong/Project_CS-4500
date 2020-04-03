@@ -25,10 +25,31 @@ public:
       call. The return value is used in filters to indicate that a row
       should be kept. */
   virtual bool accept(Row &r) { return false; }
-
-  /** Once traversal of the data frame is complete the rowers that were
-      split off will be joined.  There will be one join per split. The
-      original object will be the last to be called join on. The join method
-      is reponsible for cleaning up memory. */
-  virtual void join_delete(Rower *other) { delete other; }
 };
+
+/**
+ * A rower that goes down the rows and populates the row to the particular
+ * schema.
+ */
+class Writer {
+public:
+  /**
+   * This method is called once per row. The row object will be used to
+   * populate a dataframe. It should not be retained, as it can be reused in
+   * the next call.
+   * @param r The row to populate
+   */
+  virtual void visit(Row& r) {}
+
+  /**
+   * Returns whether or not there is any more data to write into a dataframe.
+   * @return True if there is no more data. False if otherwise.
+   */
+  virtual bool done() { return true; }
+};
+
+/**
+ * A rower that goes down the rows of a pre-existing dataframe and reads the
+ * data.
+ */
+class Reader : public Rower {};

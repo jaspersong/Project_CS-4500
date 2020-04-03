@@ -29,7 +29,7 @@ public:
   virtual size_t hash_me() { return 1; };
 
   /** Returned c_str is owned by the object, don't modify nor delete. */
-  virtual char *c_str() { return nullptr; }
+  virtual char *c_str() const { return nullptr; }
 
   /**
    * Calculates the number of bytes is needed in order to serialize this object.

@@ -20,7 +20,7 @@
  */
 class RealNetworkMessageManager : public ApplicationNetworkInterface {
 public:
-  explicit RealNetworkMessageManager(KeyValueStore *kv_store);
+  RealNetworkMessageManager(KeyValueStore *kv_store, StatusHandler *status_handler);
 
   // Attaches a network layer to this interface for an application. Only a
   // Node is a valid client that can be attached to this interface. If a
