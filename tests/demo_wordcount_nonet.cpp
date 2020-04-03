@@ -13,15 +13,21 @@
 static const size_t NUM_COUNTERS = 2;
 
 int main(int argc, char **argv) {
-  WordCount main_node;
-  WordCount counters[NUM_COUNTERS];
+  assert(argc == 2);
+  String file_name(argv[1]);
+
+  WordCount main_node(file_name);
+  WordCount *counters[NUM_COUNTERS];
+  for (auto & counter : counters) {
+    counter = new WordCount(file_name);
+  }
 
   LocalNetworkMessageManager *main_network_manager;
   LocalNetworkMessageManager *counter_network_managers[NUM_COUNTERS];
 
   main_network_manager = main_node.connect_local(0);
   for (size_t i = 0; i < NUM_COUNTERS; i++) {
-    counter_network_managers[i] = counters[i].connect_local(i + 1);
+    counter_network_managers[i] = counters[i]->connect_local(i + 1);
 
     // Connect the counter's network manager to the main network manager
     main_node.register_local(counter_network_managers[i]);
@@ -30,10 +36,10 @@ int main(int argc, char **argv) {
   // Now connect all of the counters to each other to establish direct
   // communication
   for (size_t i = 0; i < NUM_COUNTERS; i++) {
-    counters[i].register_local(main_network_manager);
+    counters[i]->register_local(main_network_manager);
     for (size_t j = 0; j < NUM_COUNTERS; j++) {
       if (i != j) {
-        counters[i].register_local(counter_network_managers[j]);
+        counters[i]->register_local(counter_network_managers[j]);
       }
     }
   }
@@ -41,18 +47,19 @@ int main(int argc, char **argv) {
   // Start up all of the applications
   main_node.start();
   for (auto & counter : counters) {
-    counter.start();
+    counter->start();
   }
 
   // Now wait for them all to finish
   main_node.join();
   for (auto & counter : counters) {
-    counter.join();
+    counter->join();
   }
-
+  
   delete main_network_manager;
-  for (auto & counter_network_manager : counter_network_managers) {
-    delete counter_network_manager;
+  for (size_t i = 0; i < NUM_COUNTERS; i++) {
+    delete counters[i];
+    delete counter_network_managers[i];
   }
 
   return 0;

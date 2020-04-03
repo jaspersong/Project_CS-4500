@@ -227,7 +227,8 @@ bool WordCountStatusHandler::handle_status(Status *msg) {
 
 /****************************************************************************/
 
-WordCount::WordCount() : Application(WordCount::NUM_NODES) {
+WordCount::WordCount(String &file_name) :
+  Application(WordCount::NUM_NODES), file_name(file_name) {
   // Dynamically create the keys containing the final word count dataframe
   for (size_t i = 0; i < WordCount::NUM_NODES; i++) {
     char key_name[16];
@@ -248,9 +249,8 @@ WordCount::~WordCount() {
 void WordCount::main() {
   if (this->get_node_id() == 0) {
     // Create the dataframe from the text file
-    String file_name("../data/shakespeare.txt");
-    FileReader fr(&file_name);
-    KeyValueStore::from_visitor("txt-part-", this->kv, "S", fr, 5);
+    FileReader fr(&this->file_name);
+    KeyValueStore::from_visitor("txt-part-", this->kv, "S", fr, 50);
 
     // Now notify that the dataframe has been distributed
     String distro_done_msg(expected_signal_message);

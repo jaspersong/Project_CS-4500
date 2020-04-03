@@ -149,13 +149,14 @@ public:
   //  from the server
   static const size_t NUM_NODES = 3;
 
-  explicit WordCount();
+  explicit WordCount(String &file_name);
   ~WordCount() override;
   void main() override;
 
 private:
   static const size_t BUFSIZE = 1024;
 
+  String &file_name;
   Key *wordcount_keys[NUM_NODES] = {};
   Lock distribution_signal;
 

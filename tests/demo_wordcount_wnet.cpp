@@ -15,8 +15,14 @@
 static const size_t NUM_COUNTERS = 2;
 
 int main(int argc, char **argv) {
-  WordCount main_node;
-  WordCount counters[NUM_COUNTERS];
+  assert(argc == 2);
+  String file_name(argv[1]);
+
+  WordCount main_node(file_name);
+  WordCount *counters[NUM_COUNTERS];
+  for (auto & counter : counters) {
+    counter = new WordCount(file_name);
+  }
 
   RealNetworkMessageManager *main_network_manager;
   RealNetworkMessageManager *counter_network_managers[NUM_COUNTERS];
@@ -24,7 +30,7 @@ int main(int argc, char **argv) {
   // Register each node for the real network
   main_network_manager = main_node.connect_network();
   for (size_t i = 0; i < NUM_COUNTERS; i++) {
-    counter_network_managers[i] = counters[i].connect_network();
+    counter_network_managers[i] = counters[i]->connect_network();
   }
 
   // Now connect each node to its network layer
@@ -36,7 +42,7 @@ int main(int argc, char **argv) {
   Node prod_node(new String("127.0.0.1"), 1234,
                  new String("127.0.0.1"), 1235, NUM_COUNTERS + 1,
                  *main_network_manager, *main_network_manager);
-  Node **counter_nodes = new Node*[NUM_COUNTERS];
+  Node *counter_nodes[NUM_COUNTERS];
   for (size_t i = 0; i < NUM_COUNTERS; i++) {
     counter_nodes[i] = new Node(new String("127.0.0.1"), 1234,
                                 new String("127.0.0.1"),
@@ -50,39 +56,39 @@ int main(int argc, char **argv) {
   server.start();
   sleep(10); // Give the registrar time to start up
   prod_node.start();
-  for (size_t i = 0; i < NUM_COUNTERS; i++) {
+  for (auto & counter_node : counter_nodes) {
     sleep(10);
-    counter_nodes[i]->start();
+    counter_node->start();
   }
   sleep(10);
 
   // Start up all of the applications
   main_node.start();
   for (auto & counter : counters) {
-    counter.start();
+    counter->start();
   }
 
   // Now wait for them all to finish
   main_node.join();
   for (auto & counter : counters) {
-    counter.join();
+    counter->join();
   }
 
   // Now close all of the network layers
-  for (size_t i = 0; i < NUM_COUNTERS; i++) {
-    counter_nodes[i]->close_client();
+  for (auto & counter_node : counter_nodes) {
+    counter_node->close_client();
   }
   prod_node.close_client();
   sleep(5);
   server.close_server();
 
-  for (size_t i = 0; i < NUM_COUNTERS; i++) {
-    delete counter_nodes[i];
+  for (auto & counter_node : counter_nodes) {
+    delete counter_node;
   }
-  delete[] counter_nodes;
   delete main_network_manager;
-  for (auto & counter_network_manager : counter_network_managers) {
-    delete counter_network_manager;
+  for (size_t i = 0; i < NUM_COUNTERS; i++) {
+    delete counters[i];
+    delete counter_network_managers[i];
   }
 
   return 0;
