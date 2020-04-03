@@ -148,3 +148,11 @@ add_executable(demo_wordcount_nonet
         "${APP_SRC}"
         inc/application/word_count_app.h
         src/application/word_count_app.cpp)
+add_executable(demo_wordcount_wnet
+        tests/demo_wordcount_wnet.cpp
+        "${UTILITY_SRC}"
+        "${DATAFRAME_SRC}"
+        "${NETWORK_SRC}"
+        "${APP_SRC}"
+        inc/application/word_count_app.h
+        src/application/word_count_app.cpp)

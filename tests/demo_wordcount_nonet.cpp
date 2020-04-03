@@ -10,7 +10,7 @@
 #include "word_count_app.h"
 #include "local_network_msg_manager.h"
 
-static const size_t NUM_COUNTERS = 7;
+static const size_t NUM_COUNTERS = 2;
 
 int main(int argc, char **argv) {
   WordCount main_node;

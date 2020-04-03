@@ -28,6 +28,9 @@ test_valgrind: build_all
 demo_demo_net_app: build_all
 	-cd ./build; ./demo_app_wnet
 
+demo_wordcount_net_app: build_all
+	-cd ./build; ./demo_wordcount_wnet
+
 demo_distro_app: build_all
 	cd ./build; ./demo_registrar & ./demo_node hello world
 

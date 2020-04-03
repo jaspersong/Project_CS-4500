@@ -55,7 +55,7 @@ public:
 
   /** Creates the reader and opens the file for reading.  */
   explicit FileReader(String *file_name);
-  ~FileReader();
+  ~FileReader() override;
 
   /** Reads next word and stores it in the row. Actually read the word.
       While reading the word, we may have to re-fill the buffer  */
@@ -145,7 +145,9 @@ private:
  ****************************************************************************/
 class WordCount: public Application {
 public:
-  static const size_t NUM_NODES = 8;
+  // TODO: 8 and above nodes causes problems with sending directory messages
+  //  from the server
+  static const size_t NUM_NODES = 3;
 
   explicit WordCount();
   ~WordCount() override;
