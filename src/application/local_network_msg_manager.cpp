@@ -85,17 +85,17 @@ void LocalNetworkMessageManager::send_reply(size_t node_id, Key &key,
 
 void LocalNetworkMessageManager::send_status(size_t node_id, String &msg) {
   // Construct the reply
-  auto *status = new Status(msg);
+  Status status(msg);
 
   // Manually add the target and sender id because we aren't being managed
   // by the network layer
-  status->set_sender_id(this->kv_store->get_home_id());
-  status->set_target_id(node_id);
+  status.set_sender_id(this->kv_store->get_home_id());
+  status.set_target_id(node_id);
 
   // Now pass it over to the target network
   DataItem_ item = this->app_list.get_item(node_id);
   auto *other_kv = reinterpret_cast<LocalNetworkMessageManager *>(item.o);
-  other_kv->handle_status(status);
+  other_kv->handle_status(&status);
 }
 
 void LocalNetworkMessageManager::register_local(LocalNetworkMessageManager *msg_manager) {

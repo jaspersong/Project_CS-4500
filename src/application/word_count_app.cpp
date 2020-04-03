@@ -9,7 +9,6 @@
 
 #include "word_count_app.h"
 
-Sys helper;
 const char *expected_signal_message = "distribution done";
 
 SIMap::~SIMap() {
@@ -29,8 +28,14 @@ int SIMap::get(String &key) {
 }
 
 void SIMap::set(String &key, int value) {
-  auto *new_key = new String(key);
-  this->map[new_key] = value;
+  if (this->contains(key)) {
+    // This is to replace a value of a pre-existing key. Just set the value
+    this->map[&key] = value;
+  } else {
+    // this is a brand new key. Create an instance and set the value accordingly
+    auto *new_key = new String(key);
+    this->map[new_key] = value;
+  }
 }
 
 void SIMap::start_iteration() {
@@ -55,7 +60,7 @@ int SIMap::get_iter_value() {
 
 void SIMap::print_vals() {
   for (auto const& kv : this->map) {
-    helper.p(kv.first->c_str()).p(": ").pln(kv.second);
+    printf("%s: %d\n", kv.first->c_str(), kv.second);
   }
 }
 size_t SIMap::size() {
@@ -66,13 +71,14 @@ size_t SIMap::size() {
 
 FileReader::FileReader(String *file_name) {
   file_ = fopen(file_name->c_str(), "r");
-  if (file_ == nullptr) {
-    helper.p("Cannot open file ").pln(file_name->c_str());
-  }
+  assert(this->file_);
 
-  buf_ = new char[BUFSIZE + 1]; //  null terminator
   fillBuffer_();
   skipWhitespace_();
+}
+
+FileReader::~FileReader() {
+  fclose(this->file_);
 }
 
 void FileReader::visit(Row &r) {
@@ -272,7 +278,7 @@ void WordCount::local_count() {
   DFWordCounter word_counter(&word_count);
 
   // Iterate through all of the local dataframes to get the wordcount
-  helper.p("Node ").p(this->kv->get_home_id()).pln(": starting local count...");
+  printf("Node %zu: starting local count...\n", this->kv->get_home_id());
   for (this->kv->start_iter(); this->kv->has_next(); this->kv->next_iter()) {
     DataFrame *df = this->kv->get_iter_value();
     df->map(word_counter);
@@ -282,7 +288,7 @@ void WordCount::local_count() {
   // node's word count key
   SIMapToDF map_to_df(&word_count);
   String *key_name = this->wordcount_keys[this->kv->get_home_id()]->get_name();
-  helper.p("Storing count to key ").pln(key_name->c_str());
+  printf("Storing count to key %s\n", key_name->c_str());
   KeyValueStore::from_visitor(*this->wordcount_keys[this->kv->get_home_id()],
       this->kv, "SI", map_to_df);
 }
@@ -300,6 +306,6 @@ void WordCount::merge_counts() {
   }
 
   // Now print out the word counter
-  helper.p("Different words: ").pln(total_word_count.size());
+  printf("Different words: %zu\n", total_word_count.size());
   total_word_count.print_vals();
 }

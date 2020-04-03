@@ -521,9 +521,6 @@ void test6() {
   }
 
   delete[] buffer;
-  for (size_t i = 0; i < 5; i++) {
-    delete ret_df->get_string(3, i);
-  }
   delete ret_df;
 
   helper.OK("Test 6 passed");

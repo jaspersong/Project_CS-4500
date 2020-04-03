@@ -12,7 +12,7 @@
 
 /** Build a row following a schema. */
 Row::Row(Schema &scm) {
-  this->schema = &scm;
+  this->schema = new Schema(scm);
   this->value_list = new ArrayOfArrays();
 
   // Default the row index to 0 for now.
@@ -31,13 +31,13 @@ Row::Row(Schema &scm) {
 }
 
 Row::~Row() {
-  for (size_t i = 0; i < this->value_list->size(); i++) {
+  for (size_t i = 0; i < this->width(); i++) {
     if (this->schema->col_type(i) == ColumnType_String) {
-      DataItem_ value = this->value_list->get_item(i);
-      delete value.s;
+      delete this->get_string(i);
     }
   }
   delete this->value_list;
+  delete this->schema;
 }
 
 void Row::set(size_t col, int val) {
@@ -83,6 +83,8 @@ void Row::set(size_t col, String *val) {
     exit(1);
   }
 
+  // Replace the old string
+  delete this->get_string(col);
   DataItem_ value;
   if (val != nullptr) {
     value.s = new String(*val);

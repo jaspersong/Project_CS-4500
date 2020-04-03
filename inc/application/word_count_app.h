@@ -55,6 +55,7 @@ public:
 
   /** Creates the reader and opens the file for reading.  */
   explicit FileReader(String *file_name);
+  ~FileReader();
 
   /** Reads next word and stores it in the row. Actually read the word.
       While reading the word, we may have to re-fill the buffer  */
@@ -66,7 +67,7 @@ public:
   bool done() override;
 
 private:
-  char * buf_;
+  char buf_[BUFSIZE + 1] = {0};
   size_t end_ = 0;
   size_t i_ = 0;
   FILE * file_;

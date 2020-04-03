@@ -128,7 +128,9 @@ public:
         case ColumnType::STRING: {
           auto *str_col = (StringColumn *)col;
           if (str_col->isEntryPresent(r)) {
-            row.set(c, new String(str_col->getEntry(r)));
+            auto *str = new String(str_col->getEntry(r));
+            row.set(c, str);
+            delete str;
           } else {
             row.set(c, nullptr);
           }

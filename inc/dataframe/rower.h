@@ -31,7 +31,7 @@ public:
  * A rower that goes down the rows and populates the row to the particular
  * schema.
  */
-class Writer {
+class Writer : public CustomObject {
 public:
   /**
    * This method is called once per row. The row object will be used to

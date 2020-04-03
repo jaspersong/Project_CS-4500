@@ -4,19 +4,17 @@ build_all:
 	cd ./build; make
 
 test_all: build_all
-	-cd ./build; ./test_suite_queue
-	-cd ./build; ./test_suite_map
-	-cd ./build; ./test_suite_dataframe
-	-cd ./build; ./test_suite_messages
-	-cd ./build; ./test_suite_network
-	-cd ./build; ./test_suite_sorer
-	-cd ./build; ./test_suite_kv_store
-	-cd ./build; ./demo_trivial_app_nonet
-	-cd ./build; ./demo_app_nonet
-	-cd ./build; ./demo_wordcount_nonet
+	-cd ./build; ./test_suite_queue && echo "SUCCESS"
+	-cd ./build; ./test_suite_dataframe && echo "SUCCESS"
+	-cd ./build; ./test_suite_messages && echo "SUCCESS"
+	-cd ./build; ./test_suite_network && echo "SUCCESS"
+	-cd ./build; ./test_suite_sorer && echo "SUCCESS"
+	-cd ./build; ./test_suite_kv_store && echo "SUCCESS"
+	-cd ./build; ./demo_trivial_app_nonet && echo "SUCCESS"
+	-cd ./build; ./demo_app_nonet && echo "SUCCESS"
+	-cd ./build; ./demo_wordcount_nonet && echo "SUCCESS"
 
 test_valgrind: build_all
-	-cd ./build; valgrind --leak-check=yes ./test_suite_map
 	-cd ./build; valgrind --leak-check=yes ./test_suite_queue
 	-cd ./build; valgrind --leak-check=yes ./test_suite_dataframe
 	-cd ./build; valgrind --leak-check=yes ./test_suite_messages
