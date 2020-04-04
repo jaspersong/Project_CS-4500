@@ -33,3 +33,5 @@
 cmake-build-debug
 .DS_Store
 build
+*.ltgt
+data/3.sor
