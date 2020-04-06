@@ -13,6 +13,7 @@ test_all: build_all
 	-cd ./build; ./demo_trivial_app_nonet && echo "SUCCESS"
 	-cd ./build; ./demo_app_nonet && echo "SUCCESS"
 	-cd ./build; ./demo_wordcount_nonet ../data/shakespeare.txt && echo "SUCCESS"
+	-cd ./build; ./demo_wordcount_nonet ../data/harrypotter.txt && echo "SUCCESS"
 
 test_valgrind: build_all
 	-cd ./build; valgrind --leak-check=yes ./test_suite_queue
@@ -24,12 +25,14 @@ test_valgrind: build_all
 	-cd ./build; valgrind --leak-check=yes ./demo_trivial_app_nonet
 	-cd ./build; valgrind --leak-check=yes ./demo_app_nonet
 	-cd ./build; valgrind --leak-check=yes ./demo_wordcount_nonet ../data/shakespeare.txt
+	-cd ./build; valgrind --leak-check=yes ./demo_wordcount_nonet ../data/harrypotter.txt
 
 demo_demo_net_app: build_all
 	-cd ./build; ./demo_app_wnet
 
 demo_wordcount_net_app: build_all
 	-cd ./build; ./demo_wordcount_wnet ../data/shakespeare.txt
+	-cd ./build; ./demo_wordcount_wnet ../data/harrypotter.txt
 
 demo_distro_app: build_all
 	cd ./build; ./demo_registrar & ./demo_node hello world
