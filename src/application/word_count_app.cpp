@@ -250,7 +250,7 @@ void WordCount::main() {
   if (this->get_node_id() == 0) {
     // Create the dataframe from the text file
     FileReader fr(&this->file_name);
-    KeyValueStore::from_visitor("txt-part-", this->kv, "S", fr, 50);
+    KeyValueStore::from_visitor(this->txt, this->kv, "S", fr);
 
     // Now notify that the dataframe has been distributed
     String distro_done_msg(expected_signal_message);
@@ -279,10 +279,7 @@ void WordCount::local_count() {
 
   // Iterate through all of the local dataframes to get the wordcount
   printf("Node %zu: starting local count...\n", this->kv->get_home_id());
-  for (this->kv->start_iter(); this->kv->has_next(); this->kv->next_iter()) {
-    DataFrame *df = this->kv->get_iter_value();
-    df->map(word_counter);
-  }
+  this->kv->local_map(this->txt, word_counter);
 
   // Now transform the word counter into a dataframe associated with this
   // node's word count key

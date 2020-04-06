@@ -14,6 +14,8 @@ Key::Key(const char *name, size_t home_id) {
   this->home_id = home_id;
 }
 
+Key::Key(const char *name) : Key(name, -1) {}
+
 Key::~Key() { delete this->name; }
 
 size_t Key::hash_me() { return this->home_id + this->name->hash(); }

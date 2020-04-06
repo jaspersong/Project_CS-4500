@@ -41,7 +41,7 @@ KeyValueStore::~KeyValueStore() {
 }
 
 void KeyValueStore::put(Key &key, DataFrame *value) {
-  assert(key.get_home_id() < this->num_nodes);
+  assert((key.get_home_id() == -1) || (key.get_home_id() < this->num_nodes));
   assert(value != nullptr);
   assert(this->verify_distributed_layer());
 
@@ -59,7 +59,7 @@ void KeyValueStore::put(Key &key, DataFrame *value) {
 }
 
 DataFrame *KeyValueStore::wait_and_get(Key &key) {
-  assert(key.get_home_id() < this->num_nodes);
+  assert((key.get_home_id() == -1) || (key.get_home_id() < this->num_nodes));
   assert(this->verify_distributed_layer());
 
   if (key.get_home_id() == this->home_node) {
@@ -117,6 +117,27 @@ DataFrame *KeyValueStore::get_local(Key &key) {
   }
 }
 
+void KeyValueStore::local_map(Key &key, Rower &rower) {
+  if (key.get_home_id() == this->home_node) {
+    // This dataframe is exclusive on this node
+    DataFrame *df = this->get_local(key);
+    df->map(rower);
+  } else if (key.get_home_id() == -1) {
+    // This dataframe is distributed. As a result, the dataframes segments
+    // that match this key contains the same first couple of letters.
+    String *prefix = key.get_name();
+
+    for (this->start_iter(); this->has_next(); this->next_iter()) {
+      String other_prefix(this->get_iter_key()->get_name()->c_str(), prefix->size());
+      if (other_prefix.equals(prefix)) {
+        // this prefix matches. Map through it with the rower
+        DataFrame *df = this->get_iter_value();
+        df->map(rower);
+      }
+    }
+  }
+}
+
 LocalNetworkMessageManager *KeyValueStore::connect_local(size_t node_id,
                                                          StatusHandler* status_handler) {
   assert(this->local_network_layer == nullptr);
@@ -149,7 +170,7 @@ RealNetworkMessageManager *KeyValueStore::connect_network(
 void KeyValueStore::from_array(Key &key, KeyValueStore *kv,
                                      size_t num_values, float *values) {
   assert(kv && values);
-  assert(key.get_home_id() < kv->num_nodes);
+  assert((key.get_home_id() == -1) || (key.get_home_id() < kv->num_nodes));
 
   // Create the dataframe
   Schema schema("F");
@@ -171,7 +192,7 @@ void KeyValueStore::from_array(Key &key, KeyValueStore *kv,
 void KeyValueStore::from_array(Key &key, KeyValueStore *kv,
                                      size_t num_values, int *values) {
   assert(kv && values);
-  assert(key.get_home_id() < kv->num_nodes);
+  assert((key.get_home_id() == -1) || (key.get_home_id() < kv->num_nodes));
 
   // Create the dataframe
   Schema schema("I");
@@ -193,7 +214,7 @@ void KeyValueStore::from_array(Key &key, KeyValueStore *kv,
 void KeyValueStore::from_array(Key &key, KeyValueStore *kv,
                                      size_t num_values, bool *values) {
   assert(kv && values);
-  assert(key.get_home_id() < kv->num_nodes);
+  assert((key.get_home_id() == -1) || (key.get_home_id() < kv->num_nodes));
 
   // Create the dataframe
   Schema schema("B");
@@ -215,7 +236,7 @@ void KeyValueStore::from_array(Key &key, KeyValueStore *kv,
 void KeyValueStore::from_array(Key &key, KeyValueStore *kv,
                                      size_t num_values, String **values) {
   assert(kv && values);
-  assert(key.get_home_id() < kv->num_nodes);
+  assert((key.get_home_id() == -1) || (key.get_home_id() < kv->num_nodes));
 
   // Create the dataframe
   Schema schema("S");
@@ -236,7 +257,7 @@ void KeyValueStore::from_array(Key &key, KeyValueStore *kv,
 
 void KeyValueStore::from_scalar(Key &key, KeyValueStore *kv, bool value) {
   assert(kv != nullptr);
-  assert(key.get_home_id() < kv->num_nodes);
+  assert((key.get_home_id() == -1) || (key.get_home_id() < kv->num_nodes));
 
   // Create the dataframe
   Schema schema("B");
@@ -256,7 +277,7 @@ void KeyValueStore::from_scalar(Key &key, KeyValueStore *kv, bool value) {
 
 void KeyValueStore::from_scalar(Key &key, KeyValueStore *kv, int value) {
   assert(kv != nullptr);
-  assert(key.get_home_id() < kv->num_nodes);
+  assert((key.get_home_id() == -1) || (key.get_home_id() < kv->num_nodes));
 
   // Create the dataframe
   Schema schema("I");
@@ -277,7 +298,7 @@ void KeyValueStore::from_scalar(Key &key, KeyValueStore *kv, int value) {
 void KeyValueStore::from_scalar(Key &key, KeyValueStore *kv,
                                       float value) {
   assert(kv != nullptr);
-  assert(key.get_home_id() < kv->num_nodes);
+  assert((key.get_home_id() == -1) || (key.get_home_id() < kv->num_nodes));
 
   // Create the dataframe
   Schema schema("F");
@@ -298,7 +319,7 @@ void KeyValueStore::from_scalar(Key &key, KeyValueStore *kv,
 void KeyValueStore::from_scalar(Key &key, KeyValueStore *kv,
                                       String *value) {
   assert(kv != nullptr);
-  assert(key.get_home_id() < kv->num_nodes);
+  assert((key.get_home_id() == -1) || (key.get_home_id() < kv->num_nodes));
 
   // Create the dataframe
   Schema schema("S");
@@ -332,8 +353,9 @@ bool KeyValueStore::verify_distributed_layer() {
 
 size_t KeyValueStore::get_home_id() { return this->home_node; }
 
-void KeyValueStore::from_visitor(const char *key_prefix, KeyValueStore *kv,
-    const char *schema_types, Writer &writer, size_t max_num_rows) {
+void KeyValueStore::from_visitor_distributed(const char *key_prefix,
+    KeyValueStore *kv, const char *schema_types, Writer &writer, size_t
+    max_num_rows) {
   assert(key_prefix && kv && schema_types);
 
   Schema schema(schema_types);
@@ -363,7 +385,7 @@ void KeyValueStore::from_visitor(const char *key_prefix, KeyValueStore *kv,
       // Generate the key
       char key_name[strlen(key_prefix) + 16];
       strcpy(key_name, key_prefix);
-      sprintf(key_name + strlen(key_prefix), "%zu", num_segments);
+      sprintf(key_name + strlen(key_prefix), "-%zu", num_segments);
       Key new_key(key_name, node_id);
 
       // Add the dataframe
@@ -404,23 +426,28 @@ void KeyValueStore::from_visitor(const char *key_prefix, KeyValueStore *kv,
 void KeyValueStore::from_visitor(Key &key, KeyValueStore *kv,
                                  const char *schema_types, Writer &writer) {
   assert(kv && schema_types);
-  assert(key.get_home_id() < kv->num_nodes);
+  assert((key.get_home_id() == -1) || (key.get_home_id() < kv->num_nodes));
 
-  Schema schema(schema_types);
-  auto *df = new DataFrame(schema);
+  if (key.get_home_id() == -1) {
+    kv->from_visitor_distributed(key.get_name()->c_str(), kv, schema_types,
+        writer, KeyValueStore::MAX_NUM_DISTRIBUTED_ROWS);
+  } else {
+    Schema schema(schema_types);
+    auto *df = new DataFrame(schema);
 
-  // Iterate through using the writer
-  while (!writer.done()) {
-    Row r(schema);
-    writer.visit(r);
-    df->add_row(r);
-  }
+    // Iterate through using the writer
+    while (!writer.done()) {
+      Row r(schema);
+      writer.visit(r);
+      df->add_row(r);
+    }
 
-  // Add the df to the kvstore now at the specified key
-  kv->put(key, df);
-  // Delete the dataframe if it was put in a different kvstore
-  if (key.get_home_id() != kv->get_home_id()) {
-    delete df;
+    // Add the df to the kvstore now at the specified key
+    kv->put(key, df);
+    // Delete the dataframe if it was put in a different kvstore
+    if (key.get_home_id() != kv->get_home_id()) {
+      delete df;
+    }
   }
 }
 

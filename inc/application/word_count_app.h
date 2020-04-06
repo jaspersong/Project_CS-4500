@@ -148,6 +148,7 @@ public:
   // TODO: 8 and above nodes causes problems with sending directory messages
   //  from the server
   static const size_t NUM_NODES = 3;
+  Key txt = Key("txt");
 
   explicit WordCount(String &file_name);
   ~WordCount() override;

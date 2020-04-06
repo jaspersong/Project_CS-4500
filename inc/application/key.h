@@ -18,6 +18,7 @@
 class Key : public CustomObject {
 public:
   Key(const char *name, size_t home_id);
+  explicit Key(const char *name);
   ~Key() override;
 
   size_t hash_me() override;
