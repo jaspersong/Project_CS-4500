@@ -32,6 +32,8 @@ demo_demo_net_app: build_all
 
 demo_wordcount_net_app: build_all
 	-cd ./build; ./demo_wordcount_wnet ../data/shakespeare.txt
+
+demo_wordcount_net_app_hp: build_all
 	-cd ./build; ./demo_wordcount_wnet ../data/harrypotter.txt
 
 demo_distro_app: build_all
