@@ -54,7 +54,7 @@ int main(int argc, char **argv) {
   counter.join();
   summarizer.join();
 
-  // Now close everthing one by one
+  // Now close everything one by one
   summarizer_node.close_client();
   counter_node.close_client();
   prod_node.close_client();
