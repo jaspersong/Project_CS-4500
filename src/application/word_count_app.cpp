@@ -9,7 +9,7 @@
 
 #include "word_count_app.h"
 
-const char *expected_signal_message = "distribution done";
+const char *prod_signal_msg = "done";
 
 SIMap::~SIMap() {
   for (this->start_iteration(); this->has_next(); this->next_iter()) {
@@ -212,7 +212,7 @@ WordCountStatusHandler::WordCountStatusHandler(Lock *distro_complete_signal) {
 
 bool WordCountStatusHandler::handle_status(Status *msg) {
   String *message = msg->get_message();
-  String expected_msg(expected_signal_message);
+  String expected_msg(prod_signal_msg);
 
   if (expected_msg.equals(message)) {
     // We got the expected message stating that the distribution of the
@@ -252,10 +252,10 @@ void WordCount::main() {
     FileReader fr(&this->file_name);
     KeyValueStore::from_visitor(this->txt, this->kv, "S", fr);
 
-    // Now notify that the dataframe has been distributed
-    String distro_done_msg(expected_signal_message);
+    // Now notify that the dataframe has finished being produced.
+    String production_done_msg(prod_signal_msg);
     for (size_t i = 1; i < NUM_NODES; i++) {
-      this->kv->send_status_message(i, distro_done_msg);
+      this->kv->send_status_message(i, production_done_msg);
     }
   }
   else {
