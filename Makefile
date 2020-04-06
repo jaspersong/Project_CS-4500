@@ -14,6 +14,7 @@ test_all: build_all
 	-cd ./build; ./demo_app_nonet && echo "SUCCESS"
 	-cd ./build; ./demo_wordcount_nonet ../data/shakespeare.txt && echo "SUCCESS"
 	-cd ./build; ./demo_wordcount_nonet ../data/harrypotter.txt && echo "SUCCESS"
+	-cd ./build; ./demo_wordcount_nonet ../data/100k.txt && echo "SUCCESS"
 
 test_valgrind: build_all
 	-cd ./build; valgrind --leak-check=yes ./test_suite_queue
