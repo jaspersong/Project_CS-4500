@@ -588,4 +588,7 @@ the direct communication between nodes
 over the network
 - Update the schema field in the dataframe to not be a pointer
 - Minimize copying strings when going when adding them to dataframes
+- Get Linux app to work over network (seems to be freezing at some point)
+- Move the distributed dataframe code out of the key-value store/application
+layer and into a new interface called the DistributedDataframe
  

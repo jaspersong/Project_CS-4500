@@ -47,8 +47,8 @@ set(DATAFRAME_SRC
         src/dataframe/dataframe.cpp
         inc/dataframe/fielder.h
         inc/dataframe/rower.h
-        inc/dataframe/copy_rower.h
-        src/dataframe/copy_rower.cpp)
+        inc/dataframe/copy_writer.h
+        src/dataframe/copy_writer.cpp)
 set(NETWORK_SRC
         inc/messages/serial.h
         src/messages/serial.cpp
@@ -156,3 +156,19 @@ add_executable(demo_wordcount_wnet
         "${APP_SRC}"
         inc/application/word_count_app.h
         src/application/word_count_app.cpp)
+add_executable(demo_linus_nonet
+        tests/demo_linus_nonet.cpp
+        "${UTILITY_SRC}"
+        "${DATAFRAME_SRC}"
+        "${NETWORK_SRC}"
+        "${APP_SRC}"
+        inc/application/linus_app.h
+        src/application/linus_app.cpp)
+add_executable(demo_linus_wnet
+        tests/demo_linus_wnet.cpp
+        "${UTILITY_SRC}"
+        "${DATAFRAME_SRC}"
+        "${NETWORK_SRC}"
+        "${APP_SRC}"
+        inc/application/linus_app.h
+        src/application/linus_app.cpp)

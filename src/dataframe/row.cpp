@@ -44,7 +44,7 @@ void Row::set(size_t col, int val) {
   // Verify that this column index takes in an integer
   if (this->schema->col_type(col) != static_cast<char>(ColumnType_Integer)) {
     printf("Attempted to insert the wrong data type to column.\n");
-    exit(1);
+    assert(false);
   }
 
   DataItem_ value;
@@ -56,7 +56,7 @@ void Row::set(size_t col, float val) {
   // Verify that this column index takes in a float
   if (this->schema->col_type(col) != static_cast<char>(ColumnType_Float)) {
     printf("Attempted to insert the wrong data type to column.\n");
-    exit(1);
+    assert(false);
   }
 
   DataItem_ value;
@@ -68,7 +68,7 @@ void Row::set(size_t col, bool val) {
   // Verify that this column index takes in a bool
   if (this->schema->col_type(col) != static_cast<char>(ColumnType_Bool)) {
     printf("Attempted to insert the wrong data type to column.\n");
-    exit(1);
+    assert(false);
   }
 
   DataItem_ value;
@@ -80,7 +80,7 @@ void Row::set(size_t col, String *val) {
   // Verify that this column index takes in a string
   if (this->schema->col_type(col) != static_cast<char>(ColumnType_String)) {
     printf("Attempted to insert the wrong data type to column.\n");
-    exit(1);
+    assert(false);
   }
 
   // Replace the old string
@@ -102,7 +102,7 @@ int Row::get_int(size_t col) {
   // Verify that this column index takes in an integer
   if (this->schema->col_type(col) != static_cast<char>(ColumnType_Integer)) {
     printf("Attempted to get an integer from a non-integer column.\n");
-    exit(1);
+    assert(false);
   }
 
   DataItem_ item = this->value_list->get_item(col);
@@ -113,7 +113,7 @@ bool Row::get_bool(size_t col) {
   // Verify that this column index takes in a bool
   if (this->schema->col_type(col) != static_cast<char>(ColumnType_Bool)) {
     printf("Attempted to get a bool from a non-bool column.\n");
-    exit(1);
+    assert(false);
   }
 
   DataItem_ item = this->value_list->get_item(col);
@@ -124,7 +124,7 @@ float Row::get_float(size_t col) {
   // Verify that this column index takes in a float
   if (this->schema->col_type(col) != static_cast<char>(ColumnType_Float)) {
     printf("Attempted to get a float from a non-float column.\n");
-    exit(1);
+    assert(false);
   }
 
   DataItem_ item = this->value_list->get_item(col);
@@ -135,7 +135,7 @@ String *Row::get_string(size_t col) {
   // Verify that this column index takes in a string
   if (this->schema->col_type(col) != static_cast<char>(ColumnType_String)) {
     printf("Attempted to get a string from a non-string column.\n");
-    exit(1);
+    assert(false);
   }
 
   DataItem_ item = this->value_list->get_item(col);

@@ -167,10 +167,6 @@ SIMapToDF::SIMapToDF(SIMap *map) {
   this->map->start_iteration();
 }
 
-void SIMapToDF::next() {
-  this->map->next_iter();
-}
-
 void SIMapToDF::visit(Row& r) {
   r.set(0, this->map->get_iter_key());
   r.set(1, this->map->get_iter_value());
@@ -231,9 +227,9 @@ WordCount::WordCount(String &file_name) :
   Application(WordCount::NUM_NODES), file_name(file_name) {
   // Dynamically create the keys containing the final word count dataframe
   for (size_t i = 0; i < WordCount::NUM_NODES; i++) {
-    char key_name[16];
-    snprintf(key_name, 16, "wc-%zu", i);
-    this->wordcount_keys[i] = new Key(key_name, i);
+    String * key_name = StrBuff().c("wc-").c(i).get();
+    this->wordcount_keys[i] = new Key(key_name->c_str(), i);
+    delete key_name;
   }
 
   this->status_handler = new WordCountStatusHandler(&this->distribution_signal);

@@ -22,11 +22,13 @@
  * into the end of another dataframe with the exact same schema. Copying
  * dataframes with differing schemas will result in undefined behavior.
  */
-class CopyRower : public Rower {
+class CopyWriter : public Writer {
 public:
-  explicit CopyRower(DataFrame *dest_dataframe);
-  bool accept(Row &r) override;
+  explicit CopyWriter(DataFrame *source_dataframe);
+  void visit(Row& r) override;
+  bool done() override;
 
 private:
-  DataFrame *dest_dataframe;
+  DataFrame *source_dataframe;
+  size_t curr_row;
 };

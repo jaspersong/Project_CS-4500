@@ -118,7 +118,7 @@ void ArrayOfArrays::set_new_item(size_t index, DataItem_ item) {
   // Check to make sure that the item is within bounds
   if ((index >= this->offset) || (index < 0)) {
     printf("Index %zu is out of bounds.\n", index);
-    exit(1);
+    assert(false);
   }
 
   // Calculate the node index and the node offset
@@ -134,7 +134,7 @@ DataItem_ ArrayOfArrays::get_item(size_t index) {
   // Check to make sure that the item is within bounds
   if ((index >= this->offset) || (index < 0)) {
     printf("Index %zu is out of bounds for this column.\n", index);
-    exit(1);
+    assert(false);
   }
 
   // Calculate the node index and the node offset

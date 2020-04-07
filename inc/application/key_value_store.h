@@ -121,15 +121,15 @@ public:
    * @param kv The map that will store the dataframe at the specified key.
    * @param num_values The number of values of the provided array.
    * @param values The array of valuas that will be used to create a dataframe
-   * @return The newly created dataframe
+   * @return The number of rows of the dataframe created
    */
-  static void from_array(Key &key, KeyValueStore *kv, size_t num_values,
+  static size_t from_array(Key &key, KeyValueStore *kv, size_t num_values,
                                float *values);
-  static void from_array(Key &key, KeyValueStore *kv, size_t num_values,
+  static size_t from_array(Key &key, KeyValueStore *kv, size_t num_values,
                                int *values);
-  static void from_array(Key &key, KeyValueStore *kv, size_t num_values,
+  static size_t from_array(Key &key, KeyValueStore *kv, size_t num_values,
                                bool *values);
-  static void from_array(Key &key, KeyValueStore *kv, size_t num_values,
+  static size_t from_array(Key &key, KeyValueStore *kv, size_t num_values,
                                String **values);
 
   /**
@@ -138,11 +138,12 @@ public:
    * @param key The key associated with the new dataframe.
    * @param map The map that will store the dataframe at the specified key.
    * @param value The value that the dataframe will store.
+   * @return The number of rows of the dataframe created
    */
-  static void from_scalar(Key &key, KeyValueStore *kv, bool value);
-  static void from_scalar(Key &key, KeyValueStore *kv, int value);
-  static void from_scalar(Key &key, KeyValueStore *kv, float value);
-  static void from_scalar(Key &key, KeyValueStore *kv, String *value);
+  static size_t from_scalar(Key &key, KeyValueStore *kv, bool value);
+  static size_t from_scalar(Key &key, KeyValueStore *kv, int value);
+  static size_t from_scalar(Key &key, KeyValueStore *kv, float value);
+  static size_t from_scalar(Key &key, KeyValueStore *kv, String *value);
 
   /**
    * Generates a dataframe using a visitor and storing it with the key at the
@@ -151,9 +152,21 @@ public:
    * @param kv The key-value store to store the dataframe
    * @param schema_types The schema type of the dataframe
    * @param writer The writer visitor that will build the dataframe
+   * @return The number of rows of the dataframe created
    */
-  static void from_visitor(Key &key, KeyValueStore *kv,
+  static size_t from_visitor(Key &key, KeyValueStore *kv,
       const char *schema_types, Writer &writer);
+
+  /**
+   * Generates a dataframe using a visitor and storing it with the key into
+   * the key-value store
+   * @param key  The key to store the generated dataframe with
+   * @param kv The key-value store to store the dataframe
+   * @param file_name The name of the file to read from in order to get a
+   * dataframe
+   * @return The number of rows of the dataframe created
+   */
+  static size_t from_file(Key &key, KeyValueStore *kv, const char *file_name);
 
   /**
    * Gets the home node id of this KV store ONLY if the distributed
@@ -187,22 +200,4 @@ private:
 
   LocalNetworkMessageManager *local_network_layer;
   RealNetworkMessageManager *real_network_layer;
-
-  /**
-   * Generates a dataframe that is distributed into dataframe segments into
-   * the provided key-value store. It will auto-generate the keys to
-   * associate with each segment of the dataframe by using the key_prefix. It
-   * will also distribute the keys fairly across all of the nodes within the
-   * key-value store.
-   * @param key_prefix The prefix of the key name that will be used to
-   * autogenerate the keys.
-   * @param kv The key-value store to store the values in.
-   * @param schema_types The schema type of the dataframe.
-   * @param writer The writer vistor that will build the dataframe.
-   * @param max_num_rows The maximum number of rows that a segment of the
-   * dataframe will contain.
-   */
-  static void from_visitor_distributed(const char *key_prefix,
-      KeyValueStore *kv, const char *schema_types, Writer &writer,
-      size_t max_num_rows);
 };

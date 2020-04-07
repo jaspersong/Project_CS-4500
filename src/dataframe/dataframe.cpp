@@ -58,7 +58,7 @@ void DataFrame::add_column(DF_Column *col) {
   // Verify that the column is valid
   if (col == nullptr) {
     printf("Invalid column provided to the dataframe.\n");
-    exit(1);
+    assert(false);
   } else {
     // Add the new column information to the schema
     this->schema->add_column(col->get_type());
@@ -110,7 +110,7 @@ bool DataFrame::verify_col_row_parameters(size_t col, size_t row,
 int DataFrame::get_int(size_t col, size_t row) {
   // Verify that these values are within bounds
   if (!this->verify_col_row_parameters(col, row, ColumnType_Integer)) {
-    exit(1);
+    assert(false);
   } else {
     // Get the column
     DataItem_ item = this->col_list->get_item(col);
@@ -125,7 +125,7 @@ int DataFrame::get_int(size_t col, size_t row) {
 bool DataFrame::get_bool(size_t col, size_t row) {
   // Verify that these values are within bounds
   if (!this->verify_col_row_parameters(col, row, ColumnType_Bool)) {
-    exit(1);
+    assert(false);
   } else {
     // Get the column
     DataItem_ item = this->col_list->get_item(col);
@@ -140,7 +140,7 @@ bool DataFrame::get_bool(size_t col, size_t row) {
 float DataFrame::get_float(size_t col, size_t row) {
   // Verify that these values are within bounds
   if (!this->verify_col_row_parameters(col, row, ColumnType_Float)) {
-    exit(1);
+    assert(false);
   } else {
     // Get the column
     DataItem_ item = this->col_list->get_item(col);
@@ -155,7 +155,7 @@ float DataFrame::get_float(size_t col, size_t row) {
 String *DataFrame::get_string(size_t col, size_t row) {
   // Verify that these values are within bounds
   if (!this->verify_col_row_parameters(col, row, ColumnType_String)) {
-    exit(1);
+    assert(false);
   } else {
     // Get the column
     DataItem_ item = this->col_list->get_item(col);
@@ -170,7 +170,7 @@ String *DataFrame::get_string(size_t col, size_t row) {
 void DataFrame::set(size_t col, size_t row, int val) {
   // Verify that these values are within bounds
   if (!this->verify_col_row_parameters(col, row, ColumnType_Integer)) {
-    exit(1);
+    assert(false);
   } else {
     // Get the column
     DataItem_ item = this->col_list->get_item(col);
@@ -185,7 +185,7 @@ void DataFrame::set(size_t col, size_t row, int val) {
 void DataFrame::set(size_t col, size_t row, bool val) {
   // Verify that these values are within bounds
   if (!this->verify_col_row_parameters(col, row, ColumnType_Bool)) {
-    exit(1);
+    assert(false);
   } else {
     // Get the column
     DataItem_ item = this->col_list->get_item(col);
@@ -200,7 +200,7 @@ void DataFrame::set(size_t col, size_t row, bool val) {
 void DataFrame::set(size_t col, size_t row, float val) {
   // Verify that these values are within bounds
   if (!this->verify_col_row_parameters(col, row, ColumnType_Float)) {
-    exit(1);
+    assert(false);
   } else {
     // Get the column
     DataItem_ item = this->col_list->get_item(col);
@@ -215,7 +215,7 @@ void DataFrame::set(size_t col, size_t row, float val) {
 void DataFrame::set(size_t col, size_t row, String *val) {
   // Verify that these values are within bounds
   if (!this->verify_col_row_parameters(col, row, ColumnType_String)) {
-    exit(1);
+    assert(false);
   } else {
     // Get the column
     DataItem_ item = this->col_list->get_item(col);
@@ -235,14 +235,14 @@ void DataFrame::fill_row(size_t idx, Row &row) {
   // Verify that the row follows the same schema
   if (row.width() != this->schema->width()) {
     printf("Row provided does not follow the same schema.\n");
-    exit(1);
+    assert(false);
   }
   // Iterate through the row fields and make sure that the column data
   // types match with the schema
   for (size_t i = 0; i < row.width(); i++) {
     if (row.col_type(i) != this->schema->col_type(i)) {
       printf("Row provided does not follow the same schema.\n");
-      exit(1);
+      assert(false);
     }
   }
 
@@ -322,7 +322,7 @@ size_t DataFrame::nrows() { return this->num_rows; }
 
 size_t DataFrame::ncols() { return this->schema->width(); }
 
-Row *DataFrame::create_row(size_t row) {
+Row *DataFrame::copy_row(size_t row) {
   Row *new_row = new Row(*this->schema);
 
   // Go through the columns and copy the data into the row
@@ -365,7 +365,7 @@ void DataFrame::map(Rower &r) {
   // Iterate down the rows of the dataframe
   for (size_t row = 0; row < this->nrows(); row++) {
     // Create a from the row index
-    Row *new_row = this->create_row(row);
+    Row *new_row = this->copy_row(row);
 
     // Put the row through the rower
     r.accept(*new_row);

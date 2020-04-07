@@ -109,14 +109,13 @@ private:
   bool verify_col_row_parameters(size_t col, size_t row, ColumnType_t type);
 
   /**
-   * Helper function that creates a row of the contents at the specified
-   * 0-indexed row index. This function should only be called by DataFrame
-   * and RowerThread_.
+   * Helper function that copy the row of the contents at the specified
+   * 0-indexed row index.
    * @param row 0-indexed row index.
    * @return A dynamically allocated row of the contents at the specified
    *         index. The caller will own the return value.
    * @throws Prints an error message and terminates the program if the
    *         specified index is invalid
    */
-  Row *create_row(size_t row);
+  Row *copy_row(size_t row);
 };

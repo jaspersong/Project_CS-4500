@@ -8,9 +8,10 @@
 // Lang::Cpp
 
 #include "key_value_store.h"
-#include "copy_rower.h"
+#include "copy_writer.h"
 #include "local_network_msg_manager.h"
 #include "networked_msg_manager.h"
+#include "sorer_integrator.h"
 #include <unistd.h>
 
 KeyValueStore::KeyValueStore(size_t num_nodes) {
@@ -45,7 +46,70 @@ void KeyValueStore::put(Key &key, DataFrame *value) {
   assert(value != nullptr);
   assert(this->verify_distributed_layer());
 
-  if (key.get_home_id() == this->home_node) {
+  if (key.get_home_id() == -1) {
+    // Copy the dataframe into different segments
+    CopyWriter writer(value);
+    size_t node_id = 0;
+    size_t num_segments = 0;
+    size_t curr_row_num = 0;
+    DataFrame *df = nullptr;
+    size_t total_rows = 0;
+    while (!writer.done()) {
+      if (df == nullptr) {
+        df = new DataFrame(value->get_schema());
+      }
+
+      // Create the row from the writer
+      total_rows += 1;
+      Row r(value->get_schema());
+      writer.visit(r);
+      df->add_row(r);
+
+      // Increment the row counter
+      curr_row_num += 1;
+
+      // Store the dataframe if we've reached the maximum number of rows
+      if (curr_row_num >= KeyValueStore::MAX_NUM_DISTRIBUTED_ROWS) {
+        // Generate the key
+        String *key_name = StrBuff().c(key.get_name()->c_str()).c("-").
+            c(num_segments).get();
+        Key new_key(key_name->c_str(), node_id);
+        delete key_name;
+
+        // Add the dataframe
+        this->put(new_key, df);
+        // Delete the created dataframe if we had to send it to a different node
+        if (new_key.get_home_id() != this->get_home_id()) {
+          delete df;
+        }
+        num_segments += 1;
+
+        // Now reset everything and prepare for the next dataframe segment
+        node_id += 1;
+        if (node_id >= this->get_num_nodes()) {
+          node_id = 0;
+        }
+        curr_row_num = 0;
+        df = nullptr;
+      }
+    }
+
+    // Add the last dataframe if applicable
+    if (df != nullptr) {
+      // Generate the key
+      String *key_name = StrBuff().c(key.get_name()->c_str()).c("-").
+          c(num_segments).get();
+      Key new_key(key_name->c_str(), node_id);
+      delete key_name;
+
+      // Add the dataframe
+      this->put(new_key, df);
+      // Delete the created dataframe if we had to send it to a different node
+      if (new_key.get_home_id() != this->get_home_id()) {
+        delete df;
+      }
+    }
+  } else if (key.get_home_id() == this->home_node) {
     Key *owned_key = new Key(key.get_name()->c_str(), key.get_home_id());
 
     this->kv_lock.lock();
@@ -76,13 +140,20 @@ DataFrame *KeyValueStore::wait_and_get(Key &key) {
     auto *value = this->kv_map[&key];
 
     // Now copy the value so it can be owned by the caller.
-    auto *ret_value = new DataFrame(*value);
-    CopyRower copier(ret_value);
-    value->map(copier);
+    auto *ret_value = new DataFrame(value->get_schema());
+    CopyWriter copier(value);
+    while (!copier.done()) {
+      Row r(value->get_schema());
+      copier.visit(r);
+      ret_value->add_row(r);
+    }
 
     this->kv_lock.unlock();
 
     return ret_value;
+  } else if (key.get_home_id() == -1) {
+    // TODO??
+    assert(false);
   } else if (this->local_network_layer != nullptr) {
     this->local_network_layer->send_waitandget(key.get_home_id(), key);
 
@@ -167,7 +238,7 @@ RealNetworkMessageManager *KeyValueStore::connect_network(
   return this->real_network_layer;
 }
 
-void KeyValueStore::from_array(Key &key, KeyValueStore *kv,
+size_t KeyValueStore::from_array(Key &key, KeyValueStore *kv,
                                      size_t num_values, float *values) {
   assert(kv && values);
   assert((key.get_home_id() == -1) || (key.get_home_id() < kv->num_nodes));
@@ -187,9 +258,11 @@ void KeyValueStore::from_array(Key &key, KeyValueStore *kv,
   if (key.get_home_id() != kv->get_home_id()) {
     delete ret_value;
   }
+
+  return num_values;
 }
 
-void KeyValueStore::from_array(Key &key, KeyValueStore *kv,
+size_t KeyValueStore::from_array(Key &key, KeyValueStore *kv,
                                      size_t num_values, int *values) {
   assert(kv && values);
   assert((key.get_home_id() == -1) || (key.get_home_id() < kv->num_nodes));
@@ -209,9 +282,11 @@ void KeyValueStore::from_array(Key &key, KeyValueStore *kv,
   if (key.get_home_id() != kv->get_home_id()) {
     delete ret_value;
   }
+
+  return num_values;
 }
 
-void KeyValueStore::from_array(Key &key, KeyValueStore *kv,
+size_t KeyValueStore::from_array(Key &key, KeyValueStore *kv,
                                      size_t num_values, bool *values) {
   assert(kv && values);
   assert((key.get_home_id() == -1) || (key.get_home_id() < kv->num_nodes));
@@ -231,9 +306,11 @@ void KeyValueStore::from_array(Key &key, KeyValueStore *kv,
   if (key.get_home_id() != kv->get_home_id()) {
     delete ret_value;
   }
+
+  return num_values;
 }
 
-void KeyValueStore::from_array(Key &key, KeyValueStore *kv,
+size_t KeyValueStore::from_array(Key &key, KeyValueStore *kv,
                                      size_t num_values, String **values) {
   assert(kv && values);
   assert((key.get_home_id() == -1) || (key.get_home_id() < kv->num_nodes));
@@ -253,9 +330,11 @@ void KeyValueStore::from_array(Key &key, KeyValueStore *kv,
   if (key.get_home_id() != kv->get_home_id()) {
     delete ret_value;
   }
+
+  return num_values;
 }
 
-void KeyValueStore::from_scalar(Key &key, KeyValueStore *kv, bool value) {
+size_t KeyValueStore::from_scalar(Key &key, KeyValueStore *kv, bool value) {
   assert(kv != nullptr);
   assert((key.get_home_id() == -1) || (key.get_home_id() < kv->num_nodes));
 
@@ -273,9 +352,11 @@ void KeyValueStore::from_scalar(Key &key, KeyValueStore *kv, bool value) {
   if (key.get_home_id() != kv->get_home_id()) {
     delete ret_value;
   }
+
+  return 1;
 }
 
-void KeyValueStore::from_scalar(Key &key, KeyValueStore *kv, int value) {
+size_t KeyValueStore::from_scalar(Key &key, KeyValueStore *kv, int value) {
   assert(kv != nullptr);
   assert((key.get_home_id() == -1) || (key.get_home_id() < kv->num_nodes));
 
@@ -293,9 +374,11 @@ void KeyValueStore::from_scalar(Key &key, KeyValueStore *kv, int value) {
   if (key.get_home_id() != kv->get_home_id()) {
     delete ret_value;
   }
+
+  return 1;
 }
 
-void KeyValueStore::from_scalar(Key &key, KeyValueStore *kv,
+size_t KeyValueStore::from_scalar(Key &key, KeyValueStore *kv,
                                       float value) {
   assert(kv != nullptr);
   assert((key.get_home_id() == -1) || (key.get_home_id() < kv->num_nodes));
@@ -314,9 +397,11 @@ void KeyValueStore::from_scalar(Key &key, KeyValueStore *kv,
   if (key.get_home_id() != kv->get_home_id()) {
     delete ret_value;
   }
+
+  return 1;
 }
 
-void KeyValueStore::from_scalar(Key &key, KeyValueStore *kv,
+size_t KeyValueStore::from_scalar(Key &key, KeyValueStore *kv,
                                       String *value) {
   assert(kv != nullptr);
   assert((key.get_home_id() == -1) || (key.get_home_id() < kv->num_nodes));
@@ -335,6 +420,8 @@ void KeyValueStore::from_scalar(Key &key, KeyValueStore *kv,
   if (key.get_home_id() != kv->get_home_id()) {
     delete ret_value;
   }
+
+  return 1;
 }
 
 bool KeyValueStore::verify_distributed_layer() {
@@ -353,102 +440,48 @@ bool KeyValueStore::verify_distributed_layer() {
 
 size_t KeyValueStore::get_home_id() { return this->home_node; }
 
-void KeyValueStore::from_visitor_distributed(const char *key_prefix,
-    KeyValueStore *kv, const char *schema_types, Writer &writer, size_t
-    max_num_rows) {
-  assert(key_prefix && kv && schema_types);
-
-  Schema schema(schema_types);
-
-  // Iterate through using the writer. Whenever it reaches the maximum number
-  // of rows within a dataframe, it will store the dataframe into the
-  // kv-store and then move to the new node.
-  size_t node_id = 0;
-  size_t num_segments = 0;
-  size_t curr_row_num = 0;
-  DataFrame *df = nullptr;
-  while (!writer.done()) {
-    if (df == nullptr) {
-      df = new DataFrame(schema);
-    }
-
-    // Create the row from the writer
-    Row r(schema);
-    writer.visit(r);
-    df->add_row(r);
-
-    // Increment the row counter
-    curr_row_num += 1;
-
-    // Store the dataframe if we've reached the maximum number of rows
-    if (curr_row_num >= max_num_rows) {
-      // Generate the key
-      char key_name[strlen(key_prefix) + 16];
-      strcpy(key_name, key_prefix);
-      sprintf(key_name + strlen(key_prefix), "-%zu", num_segments);
-      Key new_key(key_name, node_id);
-
-      // Add the dataframe
-      kv->put(new_key, df);
-      // Delete the created dataframe if we had to send it to a different node
-      if (new_key.get_home_id() != kv->get_home_id()) {
-        delete df;
-      }
-      num_segments += 1;
-
-      // Now reset everything and prepare for the next dataframe segment
-      node_id += 1;
-      if (node_id >= kv->get_num_nodes()) {
-        node_id = 0;
-      }
-      curr_row_num = 0;
-      df = nullptr;
-    }
-  }
-
-  // Add the last dataframe if applicable
-  if (df != nullptr) {
-    // Generate the key
-    char key_name[strlen(key_prefix) + 16];
-    strcpy(key_name, key_prefix);
-    sprintf(key_name + strlen(key_prefix), "%zu", num_segments);
-    Key new_key(key_name, node_id);
-
-    // Add the dataframe
-    kv->put(new_key, df);
-    // Delete the created dataframe if we had to send it to a different node
-    if (new_key.get_home_id() != kv->get_home_id()) {
-      delete df;
-    }
-  }
-}
-
-void KeyValueStore::from_visitor(Key &key, KeyValueStore *kv,
+size_t KeyValueStore::from_visitor(Key &key, KeyValueStore *kv,
                                  const char *schema_types, Writer &writer) {
   assert(kv && schema_types);
   assert((key.get_home_id() == -1) || (key.get_home_id() < kv->num_nodes));
 
-  if (key.get_home_id() == -1) {
-    kv->from_visitor_distributed(key.get_name()->c_str(), kv, schema_types,
-        writer, KeyValueStore::MAX_NUM_DISTRIBUTED_ROWS);
-  } else {
-    Schema schema(schema_types);
-    auto *df = new DataFrame(schema);
+  Schema schema(schema_types);
+  auto *df = new DataFrame(schema);
 
-    // Iterate through using the writer
-    while (!writer.done()) {
-      Row r(schema);
-      writer.visit(r);
-      df->add_row(r);
-    }
-
-    // Add the df to the kvstore now at the specified key
-    kv->put(key, df);
-    // Delete the dataframe if it was put in a different kvstore
-    if (key.get_home_id() != kv->get_home_id()) {
-      delete df;
-    }
+  // Iterate through using the writer
+  while (!writer.done()) {
+    Row r(schema);
+    writer.visit(r);
+    df->add_row(r);
   }
+
+  size_t ret_value = df->nrows();
+
+  // Add the df to the kvstore now at the specified key
+  kv->put(key, df);
+  // Delete the dataframe if it was put in a different kvstore
+  if (key.get_home_id() != kv->get_home_id()) {
+    delete df;
+  }
+
+  return ret_value;
+}
+
+size_t KeyValueStore::from_file(Key &key, KeyValueStore *kv,
+                              const char *file_name) {
+  SorerIntegrator integrator(file_name);
+  integrator.parse();
+  DataFrame *df = integrator.convert();
+
+  size_t ret_value = df->nrows();
+
+  kv->put(key, df);
+  // Delete the dataframe if it was put in a different kvstore
+  if (key.get_home_id() != kv->get_home_id()) {
+    delete df;
+  }
+
+  return ret_value;
 }
 
 void KeyValueStore::send_status_message(size_t node_id, String &msg) {

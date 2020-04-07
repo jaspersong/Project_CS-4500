@@ -4,6 +4,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <iostream>
+#include <assert.h>
 
 /** Helper class providing some C++ functionality and convenience
  *  functions. This class has no data, constructors, destructors or
@@ -97,7 +98,7 @@ public:
   //  void FAIL() {
   void myfail() {
     pln("Failing");
-    exit(1);
+    assert(false);
   }
 
   // Some utilities for lightweight testing

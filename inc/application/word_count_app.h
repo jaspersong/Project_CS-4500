@@ -101,8 +101,6 @@ class SIMapToDF : public Writer {
 public:
   explicit SIMapToDF(SIMap *map);
 
-  void next();
-
   void visit(Row& r) override;
   bool done() override;
 

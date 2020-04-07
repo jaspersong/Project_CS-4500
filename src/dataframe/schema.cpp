@@ -44,7 +44,7 @@ Schema::Schema() { this->column_list = new ArrayOfArrays(); }
 Schema::Schema(const char *types) : Schema() {
   if (types == nullptr) {
     printf("Cannot interpret provided schema data type arguments.\n");
-    exit(1);
+    assert(false);
   } else {
     // Iterate through the characters within the types until we reach the
     // null terminator.
@@ -78,7 +78,7 @@ void Schema::add_column(char typ) {
       (typ != static_cast<char>(ColumnType_Float)) &&
       (typ != static_cast<char>(ColumnType_String))) {
     printf("Unrecognized column data type %c.\n", typ);
-    exit(1);
+    assert(false);
   } else {
     // Valid column type
     ColumnInfo_ *new_col_name = new ColumnInfo_(static_cast<ColumnType_t>(typ));
