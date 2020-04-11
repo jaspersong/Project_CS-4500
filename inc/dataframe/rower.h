@@ -9,6 +9,8 @@
 
 #pragma once
 
+#include <application/distributed_value.h>
+
 #include "custom_object.h"
 #include "row.h"
 

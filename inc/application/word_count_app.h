@@ -123,18 +123,6 @@ private:
   SIMap *map;
 };
 
-/**
- * A status handler used for the WordCount application.
- */
-class WordCountStatusHandler : public StatusHandler {
-public:
-  explicit WordCountStatusHandler(Lock *distro_complete_signal);
-  bool handle_status(Status *msg) override;
-
-private:
-  Lock *signal;
-};
-
 /****************************************************************************
  * Calculate a word count for given file:
  *   1) read the data (single node)

@@ -8,10 +8,10 @@
 // Lang::Cpp
 
 #include "networked_msg_manager.h"
+#include "dataframe.h"
 
-RealNetworkMessageManager::RealNetworkMessageManager(KeyValueStore *kv_store,
-                                                     StatusHandler *status_handler)
-    : ApplicationNetworkInterface(kv_store, status_handler) {
+RealNetworkMessageManager::RealNetworkMessageManager(KeyValueStore *kv_store)
+    : ApplicationNetworkInterface(kv_store) {
   this->network_layer = nullptr;
 }
 
@@ -59,10 +59,18 @@ void RealNetworkMessageManager::send_reply(size_t node_id, Key &key,
 
   this->network_layer->send_direct_message(node_id, reply);
 }
+void RealNetworkMessageManager::broadcast_value(Key &key,
+                                                DistributedValue *value) {
+  for (size_t n = 0; n < this->kv_store->get_num_nodes(); n++) {
+    // Skip this key-value store
+    if (n != this->kv_store->get_home_id()) {
+      // Build the put command message
+      Serializer serializer;
+      key.serialize(serializer);
+      value->serialize(serializer);
+      Put put_message(serializer);
 
-void RealNetworkMessageManager::send_status(size_t node_id, String &msg) {
-  // Construct the reply
-  Status status(msg);
-
-  this->network_layer->send_direct_message(node_id, status);
+      this->network_layer->send_direct_message(n, put_message);
+    }
+  }
 }

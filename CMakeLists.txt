@@ -48,7 +48,8 @@ set(DATAFRAME_SRC
         inc/dataframe/fielder.h
         inc/dataframe/rower.h
         inc/dataframe/copy_writer.h
-        src/dataframe/copy_writer.cpp)
+        src/dataframe/copy_writer.cpp
+        inc/dataframe/sorer_integrator.h)
 set(NETWORK_SRC
         inc/messages/serial.h
         src/messages/serial.cpp
@@ -71,7 +72,9 @@ set(APP_SRC
         inc/application/application_network_interface.h
         src/application/application_network_interface.cpp
         inc/application/networked_msg_manager.h
-        src/application/networked_msg_manager.cpp)
+        src/application/networked_msg_manager.cpp
+        src/application/distributed_value.cpp
+        inc/application/distributed_value.h)
 
 # Create targets for the test suites
 add_executable(test_suite_queue
@@ -94,7 +97,6 @@ add_executable(test_suite_sorer
         tests/test_sorer.cpp
         "${UTILITY_SRC}"
         "${DATAFRAME_SRC}"
-        inc/dataframe/sorer_integrator.h
         src/dataframe/CS4500-A1-part1/column.h
         src/dataframe/CS4500-A1-part1/parser.h
         src/dataframe/CS4500-A1-part1/object.h)

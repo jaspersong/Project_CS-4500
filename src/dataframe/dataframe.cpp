@@ -356,8 +356,6 @@ Row *DataFrame::copy_row(size_t row) {
     }
   }
 
-  new_row->set_idx(row);
-
   return new_row;
 }
 

@@ -9,8 +9,6 @@
 
 #include "word_count_app.h"
 
-const char *prod_signal_msg = "done";
-
 SIMap::~SIMap() {
   for (this->start_iteration(); this->has_next(); this->next_iter()) {
     delete this->get_iter_key();
@@ -201,42 +199,17 @@ bool WordCountMerger::accept(Row &r) {
 
 /****************************************************************************/
 
-WordCountStatusHandler::WordCountStatusHandler(Lock *distro_complete_signal) {
-  assert(distro_complete_signal);
-  this->signal = distro_complete_signal;
-}
-
-bool WordCountStatusHandler::handle_status(Status *msg) {
-  String *message = msg->get_message();
-  String expected_msg(prod_signal_msg);
-
-  if (expected_msg.equals(message)) {
-    // We got the expected message stating that the distribution of the
-    // dataframe has been completed. Flip on the signal to start the local
-    // counting
-    this->signal->notify_all();
-  }
-
-  delete message;
-  return false;
-}
-
-/****************************************************************************/
-
 WordCount::WordCount(String &file_name) :
   Application(WordCount::NUM_NODES), file_name(file_name) {
   // Dynamically create the keys containing the final word count dataframe
   for (size_t i = 0; i < WordCount::NUM_NODES; i++) {
     String * key_name = StrBuff().c("wc-").c(i).get();
-    this->wordcount_keys[i] = new Key(key_name->c_str(), i);
+    this->wordcount_keys[i] = new Key(key_name->c_str());
     delete key_name;
   }
-
-  this->status_handler = new WordCountStatusHandler(&this->distribution_signal);
 }
 
 WordCount::~WordCount() {
-  delete this->status_handler;
   for (auto wordcount_key : this->wordcount_keys) {
     delete wordcount_key;
   }
@@ -247,17 +220,6 @@ void WordCount::main() {
     // Create the dataframe from the text file
     FileReader fr(&this->file_name);
     KeyValueStore::from_visitor(this->txt, this->kv, "S", fr);
-
-    // Now notify that the dataframe has finished being produced.
-    String production_done_msg(prod_signal_msg);
-    for (size_t i = 1; i < NUM_NODES; i++) {
-      this->kv->send_status_message(i, production_done_msg);
-    }
-  }
-  else {
-    // Wait for the producer to distribute the dataframes to each of the
-    // nodes before counting the values.
-    this->distribution_signal.wait();
   }
 
   // Now count the values
@@ -275,7 +237,8 @@ void WordCount::local_count() {
 
   // Iterate through all of the local dataframes to get the wordcount
   printf("Node %zu: starting local count...\n", this->kv->get_home_id());
-  this->kv->local_map(this->txt, word_counter);
+  DistributedValue *value = this->kv->wait_and_get(this->txt);
+  value->local_map(word_counter);
 
   // Now transform the word counter into a dataframe associated with this
   // node's word count key
@@ -293,9 +256,8 @@ void WordCount::merge_counts() {
   // Get all of the local word counts from the other nodes and then sum them
   // all up into the total word count
   for (auto wordcount_key : this->wordcount_keys) {
-    DataFrame *df = this->kv->wait_and_get(*wordcount_key);
+    DistributedValue *df = this->kv->wait_and_get(*wordcount_key);
     df->map(merger);
-    delete df;
   }
 
   // Now print out the word counter

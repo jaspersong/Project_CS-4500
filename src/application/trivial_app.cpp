@@ -20,14 +20,14 @@ void Trivial::main() {
     sum += i;
   }
 
-  Key key("triv", 0);
+  Key key("triv");
   KeyValueStore::from_array(key, this->kv, SZ, vals);
-  DataFrame *df = this->kv->get_local(key);
-  assert(df->get_float(0, 1) == 1);
+  DistributedValue *df = this->kv->wait_and_get(key);
 
-  auto *df2 = reinterpret_cast<DataFrame *>(this->kv->get_local(key));
-  for (size_t i = 0; i < SZ; ++i)
-    sum -= df2->get_float(0, i);
+  assert(df->get_float(0, 1) == 1);
+  for (size_t i = 0; i < SZ; ++i) {
+    sum -= df->get_float(0, i);
+  }
   assert(sum == 0);
 
   delete[] vals;

@@ -17,8 +17,12 @@
  */
 class Key : public CustomObject {
 public:
-  Key(const char *name, size_t home_id);
+  // Create a Key associated with a whole distributed value
   explicit Key(const char *name);
+
+  // Create a key associated with a chunk of a distributed value
+  Key(const char *name, size_t home_id);
+
   ~Key() override;
 
   size_t hash_me() override;
@@ -26,8 +30,12 @@ public:
   void serialize(Serializer &serializer) override;
   size_t serialization_required_bytes() override;
 
-  size_t get_home_id() const { return this->home_id; }
   String *get_name() const { return this->name; }
+
+  // Gets the home id of the value. If it's -1, then it's associated with a
+  // distributed value. If it's any other number, than it's associated with a
+  // chunk of a distributed value
+  size_t get_home_id() const { return this->home_id; }
 
   /**
    * Interprets a serialized piece of data as a key, and returns the value

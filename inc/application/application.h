@@ -10,6 +10,8 @@
 #pragma once
 
 #include "key_value_store.h"
+#include "key.h"
+#include "distributed_value.h"
 #include "thread.h"
 
 /**
@@ -32,8 +34,6 @@ public:
    * on the server.
    */
   size_t get_node_id();
-
-  bool is_running() { return this->running; }
 
   /**
    * Configures this application to other application instances that are
@@ -68,7 +68,6 @@ public:
 
 protected:
   KeyValueStore *kv;
-  StatusHandler *status_handler;
 
 private:
   bool running;

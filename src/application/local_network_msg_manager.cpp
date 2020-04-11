@@ -8,10 +8,10 @@
 // Lang::Cpp
 
 #include "local_network_msg_manager.h"
+#include "dataframe.h"
 
-LocalNetworkMessageManager::LocalNetworkMessageManager(KeyValueStore *kv_store,
-                                                       StatusHandler *status_handler)
-    : ApplicationNetworkInterface(kv_store, status_handler) {
+LocalNetworkMessageManager::LocalNetworkMessageManager(KeyValueStore *kv_store)
+    : ApplicationNetworkInterface(kv_store) {
   // Fill the app list with nullptrs to the number of expected nodes to be
   // connected.
   this->all_apps_registered = false;
@@ -83,21 +83,6 @@ void LocalNetworkMessageManager::send_reply(size_t node_id, Key &key,
   other_kv->handle_reply(reply);
 }
 
-void LocalNetworkMessageManager::send_status(size_t node_id, String &msg) {
-  // Construct the reply
-  Status status(msg);
-
-  // Manually add the target and sender id because we aren't being managed
-  // by the network layer
-  status.set_sender_id(this->kv_store->get_home_id());
-  status.set_target_id(node_id);
-
-  // Now pass it over to the target network
-  DataItem_ item = this->app_list.get_item(node_id);
-  auto *other_kv = reinterpret_cast<LocalNetworkMessageManager *>(item.o);
-  other_kv->handle_status(&status);
-}
-
 void LocalNetworkMessageManager::register_local(LocalNetworkMessageManager *msg_manager) {
   assert(this->app_list.size() == this->kv_store->get_num_nodes());
   assert(msg_manager != nullptr);
@@ -130,4 +115,28 @@ void LocalNetworkMessageManager::register_local(LocalNetworkMessageManager *msg_
 
   // Update whether or not all the apps are registered
   this->all_apps_registered = !found_unreg_slot;
+}
+void LocalNetworkMessageManager::broadcast_value(Key &key,
+                                                 DistributedValue *value) {
+  for (size_t n = 0; n < this->kv_store->get_num_nodes(); n++) {
+    // Skip this key-value store
+    if (n != this->kv_store->get_home_id()) {
+      // Build the put command message
+      Serializer serializer;
+      key.serialize(serializer);
+      value->serialize(serializer);
+      Put put_message(serializer);
+
+      // Configure the target and sender ids manually when we're not being
+      // managed by the network layer
+      put_message.set_target_id(n);
+      put_message.set_sender_id(this->kv_store->get_home_id());
+
+      // This means that we are connected directly through an application.
+      // Get the network manager for the target
+      DataItem_ item = this->app_list.get_item(n);
+      auto *other_kv = reinterpret_cast<LocalNetworkMessageManager *>(item.o);
+      other_kv->handle_put(&put_message);
+    }
+  }
 }

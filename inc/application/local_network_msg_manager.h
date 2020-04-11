@@ -10,7 +10,6 @@
 #pragma once
 
 #include "key_value_store.h"
-#include "thread.h"
 #include "application_network_interface.h"
 
 /**
@@ -20,8 +19,7 @@
  */
 class LocalNetworkMessageManager : public ApplicationNetworkInterface {
 public:
-  LocalNetworkMessageManager(KeyValueStore *kv_store,
-      StatusHandler *status_handler);
+  explicit LocalNetworkMessageManager(KeyValueStore *kv_store);
 
   /**
    * Registers the provided message manager to other applications. This MUST
@@ -41,7 +39,7 @@ public:
   void send_put(size_t node_id, Key &key, DataFrame *value) override;
   void send_waitandget(size_t node_id, Key &key) override;
   void send_reply(size_t node_id, Key &key, DataFrame *df) override;
-  void send_status(size_t node_id, String &msg) override;
+  void broadcast_value(Key &key, DistributedValue *value) override;
 
   size_t get_home_id() override;
 

@@ -16,7 +16,6 @@ Row::Row(Schema &scm) {
   this->value_list = new ArrayOfArrays();
 
   // Default the row index to 0 for now.
-  this->row_index = 0;
 
   // Initialize the values to all 0s
   while (this->value_list->size() < this->schema->width()) {
@@ -93,10 +92,6 @@ void Row::set(size_t col, String *val) {
   }
   this->value_list->set_new_item(col, value);
 }
-
-void Row::set_idx(size_t idx) { this->row_index = idx; }
-
-size_t Row::get_idx() { return this->row_index; }
 
 int Row::get_int(size_t col) {
   // Verify that this column index takes in an integer

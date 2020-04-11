@@ -12,7 +12,7 @@ void test_default() {
 
   SorerIntegrator integrator("../data/default.sor", 0, 100);
   integrator.parse();
-  DataFrame *df = integrator.convert();
+  DataFrame *df = integrator.convert_df();
 
   helper.t_true(df->get_schema().col_type(0) == ColumnType_Bool);
   helper.t_true(df->get_schema().col_type(1) == ColumnType_Integer);
@@ -32,7 +32,7 @@ void test_testfile() {
 
   SorerIntegrator integrator("../data/testfile.sor", 0);
   integrator.parse();
-  DataFrame *df = integrator.convert();
+  DataFrame *df = integrator.convert_df();
 
   helper.t_true(df->get_schema().col_type(0) == ColumnType_Integer);
   helper.t_true(df->get_schema().col_type(1) == ColumnType_Float);
@@ -54,7 +54,7 @@ void test_spaces() {
 
   SorerIntegrator integrator("../data/spacey.sor");
   integrator.parse();
-  DataFrame *df = integrator.convert();
+  DataFrame *df = integrator.convert_df();
 
   helper.t_true(df->get_string(3, 0)->equals(&bye));
   helper.t_true(df->get_float(2, 0) == 2.2f);

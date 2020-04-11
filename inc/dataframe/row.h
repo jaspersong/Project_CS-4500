@@ -38,11 +38,6 @@ public:
   /** The string is external. */
   void set(size_t col, String *val);
 
-  /** Set/get the index of this row (ie. its position in the dataframe. This is
-   *  only used for informational purposes, unused otherwise */
-  void set_idx(size_t idx);
-  size_t get_idx();
-
   /** Getters: get the value at the given column. If the column is not
    * of the requested type, the result is undefined. */
   int get_int(size_t col);
@@ -63,5 +58,4 @@ public:
 private:
   Schema *schema;
   ArrayOfArrays *value_list;
-  size_t row_index;
 };

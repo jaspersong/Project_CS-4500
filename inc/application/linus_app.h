@@ -37,7 +37,7 @@
 class Set {
 public:
   /** Creates a set of the same size as the dataframe. */
-  explicit Set(DataFrame* df);
+  explicit Set(DistributedValue* df);
 
   /** Creates a set of the given size. */
   explicit Set(size_t sz);
@@ -113,7 +113,7 @@ class ProjectsTagger : public Reader {
 public:
   Set newProjects;  // newly tagged collaborator projects
 
-  ProjectsTagger(Set& uSet, Set& pSet, size_t num_proj);
+  ProjectsTagger(Set& uSet, Set& pSet, DistributedValue* proj);
 
   /** The data frame must have at least two integer columns. The newProject
    * set keeps track of projects that were newly tagged (they will have to
@@ -137,25 +137,13 @@ class UsersTagger : public Reader {
 public:
   Set newUsers;
 
-  UsersTagger(Set& pSet,Set& uSet, size_t num_users);
+  UsersTagger(Set& pSet,Set& uSet, DistributedValue* users);
 
   bool accept(Row & row) override;
 
 private:
   Set& pSet;
   Set& uSet;
-};
-
-/**
- * A status handler used for the WordCount application.
- */
-class LinusStatusHandler : public StatusHandler {
-public:
-  explicit LinusStatusHandler(Lock *distro_complete_signal);
-  bool handle_status(Status *msg) override;
-
-private:
-  Lock *signal;
 };
 
 /*************************************************************************
@@ -169,19 +157,11 @@ public:
   //  from the server
   static const size_t NUM_NODES = 3;
 
-  static const int DEGREES = 4;  // How many degrees of separation form linus?
-  static const int LINUS = 4967;   // The uid of Linus (offset in the user df)
+  int DEGREES = 4;  // How many degrees of separation form linus?
+  int LINUS = 4967;   // The uid of Linus (offset in the user df)
   const char* PROJECT_FILENAME = "../data/projects.ltgt";
   const char* USER_FILENAME = "../data/users.ltgt";
   const char* COMMIT_FILENAME = "../data/commits.ltgt";
-
-  Key proj_key = Key("projs");
-  Key user_key = Key("usrs");
-  Key commit_key = Key("comts");
-  Key linus_id_key = Key("users-0-0", 0);
-  Key num_proj_key = Key("num_proj", 0);
-  Key num_users_key = Key("num_user", 0);
-  Key num_commit_key = Key("num_commit", 0);
 
   Linus();
   ~Linus() override;
@@ -211,11 +191,10 @@ public:
   void merge(Set& set, char const* name, int stage);
 
 private:
+  DistributedValue* projects; //  pid x project name
+  DistributedValue* users;  // uid x user name
+  DistributedValue* commits;  // pid x uid x uid
+
   Set* uSet; // Linus' collaborators
   Set* pSet; // projects of collaborators
-
-  Lock distribution_signal;
-  size_t proj_num;
-  size_t user_num;
-  size_t commit_num;
 };

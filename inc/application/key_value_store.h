@@ -10,15 +10,13 @@
 #pragma once
 
 #include <map>
-#include "dataframe.h"
-#include "distributed_app.h"
-#include "key.h"
 #include "thread.h"
+#include "key.h"
+#include "distributed_value.h"
+#include "rower.h"
 
-class Application;
 class LocalNetworkMessageManager;
 class RealNetworkMessageManager;
-class StatusHandler;
 
 class KeyValueStore : public CustomObject {
 public:
@@ -26,57 +24,45 @@ public:
   ~KeyValueStore() override;
 
   /**
-   * Puts the dataframe to the associated key. If the key-value store is not the
-   * one that is supposed to store this dataframe, it will give the dataframe to
-   * the correct home node. Once the value has been passed to the function,
-   * the KV-store will now own the value.
+   * Gets the home node id of this KV store ONLY if the distributed
+   * application layer has already been configured.
+   * @return The home node id.
+   * @throws Throws an error and terminates the program if the distributed
+   * application layer has not been properly configured.
+   */
+  size_t get_home_id();
+
+  size_t get_num_nodes() { return this->num_nodes; }
+
+  /**
+   * Puts the value to the associated key. Once the value has been passed to the
+   * function, the KV-store will now own the value.
    * @param key The key that this value will be associated with
    * @param value The value that will be stored. All dataframes put in the
    * kv-store will be owned by the kvstore
    */
-  void put(Key &key, DataFrame *value);
+  void put(Key &key, DistributedValue *value);
 
   /**
-   * Wait and gets the associated value of the key.
+   * Wait and gets the associated value of the key. The value will remain
+   * owned by the key-value store.
    * @param key The key that the desired value is associated with.
    * @return The dataframe value associated with the key. The dataframe will be
    * dynamically allocated the caller will now own the dataframe. This can be
    * called for locally stored dataframes.
    */
-  DataFrame *wait_and_get(Key &key);
+  DistributedValue *wait_and_get(Key &key);
 
   /**
-   * Gets a local dataframe stored within this KV-store.
-   * @param key The key that the desired value is associated with.
-   * @return The dataframe that is locally stored. The dataframe not owned by
-   * the caller, and should not be mutated. This is intended only to have the
-   * Dataframe read.
+   * Functions that handle distribution of the dataframe chunks of a
+   * distributed value. These functions should only be called by
+   * DistributedValue, Key, and the ApplicationNetworkInterface classes.
    */
-  DataFrame *get_local(Key &key);
-
-  /**
-   * Map through the dataframe stored at the specified key. This is only
-   * valid for keys that are local to the application. If the dataframe is
-   * not local, then it will not do anything.
-   * @param key The key that the dataframe is associated with
-   * @param rower The rower to row through the dataframe.
-   */
-  void local_map(Key &key, Rower &rower);
-
-  /**
-   * Iterates through all of the local dataframes within the key-store. Call
-   * "start_iter" in order to start the iteration. next_iter() to move to the
-   * next. has_next() to see if there is another key value pair that is
-   * available locally. get_iter_key() to get the key of the current iterator
-   * get_iter_value() to get the value of the current local key-value store.
-   */
-  void start_iter();
-  bool has_next();
-  void next_iter();
-  Key *get_iter_key();
-  DataFrame *get_iter_value();
-
-  void send_status_message(size_t node_id, String &msg);
+  void local_map(String *key_prefix, Rower &rower);
+  void put_df(Key &key, DataFrame *value);
+  DataFrame *wait_and_get_df(Key &key);
+  DataFrame *get_local_df(Key &key);
+  void broadcast_value(Key &key, DistributedValue *value);
 
   /**
    * Configures this application to other application instances that are
@@ -90,8 +76,7 @@ public:
    * register_local() called on other application instances in order to allow
    * other applications to communicate to this application instance.
    */
-  LocalNetworkMessageManager *connect_local(size_t node_id,
-      StatusHandler* status_handler);
+  LocalNetworkMessageManager *connect_local(size_t node_id);
 
   /**
    * Registers the provided message manager to other applications. This MUST
@@ -104,7 +89,7 @@ public:
   /**
    * Configures this application to use a real network layer.
    */
-  RealNetworkMessageManager *connect_network(StatusHandler* status_handler);
+  RealNetworkMessageManager *connect_network();
 
   /**
    * Verifies that the distributed layer has been configured properly in
@@ -124,13 +109,13 @@ public:
    * @return The number of rows of the dataframe created
    */
   static size_t from_array(Key &key, KeyValueStore *kv, size_t num_values,
-                               float *values);
+                           float *values);
   static size_t from_array(Key &key, KeyValueStore *kv, size_t num_values,
-                               int *values);
+                           int *values);
   static size_t from_array(Key &key, KeyValueStore *kv, size_t num_values,
-                               bool *values);
+                           bool *values);
   static size_t from_array(Key &key, KeyValueStore *kv, size_t num_values,
-                               String **values);
+                           String **values);
 
   /**
    * Generates a Dataframe value, and then stores it within the map at the
@@ -155,7 +140,7 @@ public:
    * @return The number of rows of the dataframe created
    */
   static size_t from_visitor(Key &key, KeyValueStore *kv,
-      const char *schema_types, Writer &writer);
+                             const char *schema_types, Writer &writer);
 
   /**
    * Generates a dataframe using a visitor and storing it with the key into
@@ -168,21 +153,10 @@ public:
    */
   static size_t from_file(Key &key, KeyValueStore *kv, const char *file_name);
 
-  /**
-   * Gets the home node id of this KV store ONLY if the distributed
-   * application layer has already been configured.
-   * @return The home node id.
-   * @throws Throws an error and terminates the program if the distributed
-   * application layer has not been properly configured.
-   */
-  size_t get_home_id();
-
-  size_t get_num_nodes() { return this->num_nodes; }
-
 private:
   class KeyComp {
   public:
-    bool operator() (const Key *lhs, const Key *rhs) const {
+    bool operator()(const Key *lhs, const Key *rhs) const {
       // Ensure that all of the map keys have keys that live in the same home id
       assert(lhs->get_home_id() == rhs->get_home_id());
 
@@ -190,13 +164,12 @@ private:
     }
   };
 
-  static const size_t MAX_NUM_DISTRIBUTED_ROWS = 50;
-
-  std::map<Key *, DataFrame *, KeyComp> kv_map;
-  std::map<Key *, DataFrame *, KeyComp>::iterator iter = kv_map.end();
+  std::map<Key *, DistributedValue *, KeyComp> kv_map;
+  std::map<Key *, DataFrame *, KeyComp> distro_kv_map;
   size_t home_node; // The id of the node this keyvalue store is running on
   size_t num_nodes;
   Lock kv_lock;
+  Lock distro_kv_lock;
 
   LocalNetworkMessageManager *local_network_layer;
   RealNetworkMessageManager *real_network_layer;

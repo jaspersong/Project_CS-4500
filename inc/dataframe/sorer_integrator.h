@@ -9,10 +9,25 @@
 
 #pragma once
 
+#include "dataframe.h"
+#include "parser.h"
+#include <application/distributed_value.h>
 #include <cstdio>
 #include <cstdlib>
-#include "parser.h"
-#include "dataframe.h"
+
+class SorerIntegrator;
+
+class SorerWriter : public Writer {
+public:
+  explicit SorerWriter(SorerIntegrator *sorer);
+
+  void visit(Row& r) override;
+  bool done() override;
+
+private:
+  SorerIntegrator *sorer;
+  size_t curr_row;
+};
 
 /**
  * A helper class that integrates the 4500ne team's Sorer implementation into
@@ -78,6 +93,29 @@ public:
       this->parser->guessSchema();
       this->parser->parseFile();
       this->set = this->parser->getColumnSet();
+
+      // Create the schema from the columns
+      for (size_t i = 0; i < this->set->getLength(); i++) {
+        ColumnType type = this->set->getColumn(i)->getType();
+        switch (type) {
+        case ColumnType::STRING:
+          this->schema.add_column('S');
+          break;
+        case ColumnType::INTEGER:
+          this->schema.add_column('I');
+          break;
+        case ColumnType::FLOAT:
+          this->schema.add_column('F');
+          break;
+        case ColumnType::BOOL:
+          this->schema.add_column('B');
+          break;
+        case ColumnType::UNKNOWN:
+        default:
+          // Unrecognized column type. Do nothing and skip it.
+          break;
+        }
+      }
     }
   }
 
@@ -88,95 +126,44 @@ public:
    * @throws Throws an error if parse() was not called, and terminates the
    *        program.
    */
-  DataFrame *convert() {
-    // Create the schema from the columns
-    Schema schema;
-    for (size_t i = 0; i < this->set->getLength(); i++) {
-      ColumnType type = this->set->getColumn(i)->getType();
-      switch (type) {
-      case ColumnType::STRING:
-        schema.add_column('S');
-        break;
-      case ColumnType::INTEGER:
-        schema.add_column('I');
-        break;
-      case ColumnType::FLOAT:
-        schema.add_column('F');
-        break;
-      case ColumnType::BOOL:
-        schema.add_column('B');
-        break;
-      case ColumnType::UNKNOWN:
-      default:
-        // Unrecognized column type. Do nothing and skip it.
-        break;
-      }
-    }
+  DataFrame *convert_df() {
+    assert(this->set != nullptr);
 
     // Now create a dataframe
     auto *ret_value = new DataFrame(schema);
 
     // Copy the values from the sorer to the dataframe
-    for (size_t r = 0; r < this->set->getColumn(0)->getLength(); r++) {
-      Row row(ret_value->get_schema());
-      row.set_idx(r);
-
-      for (size_t c = 0; c < this->set->getLength(); c++) {
-        BaseColumn *col = this->set->getColumn(c);
-        ColumnType type = col->getType();
-        switch (type) {
-        case ColumnType::STRING: {
-          auto *str_col = (StringColumn *)col;
-          if (str_col->isEntryPresent(r)) {
-            auto *str = new String(str_col->getEntry(r));
-            row.set(c, str);
-            delete str;
-          } else {
-            row.set(c, nullptr);
-          }
-          break;
-        }
-        case ColumnType::INTEGER: {
-          auto *int_col = (IntegerColumn *)col;
-          if (int_col->isEntryPresent(r)) {
-            row.set(c, int_col->getEntry(r));
-          } else {
-            row.set(c, (int)0);
-          }
-          break;
-        }
-        case ColumnType::FLOAT: {
-          auto *float_col = (FloatColumn *)col;
-          if (float_col->isEntryPresent(r)) {
-            row.set(c, float_col->getEntry(r));
-          } else {
-            row.set(c, 0.0f);
-          }
-          break;
-        }
-        case ColumnType::BOOL: {
-          auto *bool_col = (BoolColumn *)col;
-          if (bool_col->isEntryPresent(r)) {
-            row.set(c, bool_col->getEntry(r));
-          } else {
-            row.set(c, false);
-          }
-          break;
-        }
-        case ColumnType::UNKNOWN:
-        default:
-          // Unrecognized column type. Do nothing and skip it.
-          break;
-        }
-      }
-
-      ret_value->add_row(row);
+    SorerWriter sorer_writer(this);
+    while (!sorer_writer.done()) {
+      Row r(this->schema);
+      sorer_writer.visit(r);
+      ret_value->add_row(r);
     }
 
     return ret_value;
   }
 
+  DistributedValue *convert(Key &key, KeyValueStore *kv) {
+    assert(this->set != nullptr);
+
+    // Now create a dataframe
+    auto *ret_value = new DistributedValue(key, this->schema, kv);
+
+    // Copy the values from the sorer to the dataframe
+    SorerWriter sorer_writer(this);
+    while (!sorer_writer.done()) {
+      Row r(this->schema);
+      sorer_writer.visit(r);
+      ret_value->add_row(r);
+    }
+
+    ret_value->package_value();
+    return ret_value;
+  }
+
 private:
+  friend SorerWriter;
+
   FILE *file;
   size_t start;
   size_t len;
@@ -184,4 +171,67 @@ private:
 
   ColumnSet *set;
   SorParser *parser;
+  Schema schema;
 };
+
+SorerWriter::SorerWriter(SorerIntegrator *sorer) {
+  this->sorer = sorer;
+  this->curr_row = 0;
+}
+
+void SorerWriter::visit(Row &r) {
+  for (size_t c = 0; c < this->sorer->set->getLength(); c++) {
+    BaseColumn *col = this->sorer->set->getColumn(c);
+    ColumnType type = col->getType();
+    switch (type) {
+    case ColumnType::STRING: {
+      auto *str_col = (StringColumn *)col;
+      if (str_col->isEntryPresent(this->curr_row)) {
+        auto *str = new String(str_col->getEntry(this->curr_row));
+        r.set(c, str);
+        delete str;
+      } else {
+        r.set(c, nullptr);
+      }
+      break;
+    }
+    case ColumnType::INTEGER: {
+      auto *int_col = (IntegerColumn *)col;
+      if (int_col->isEntryPresent(this->curr_row)) {
+        r.set(c, int_col->getEntry(this->curr_row));
+      } else {
+        r.set(c, (int)0);
+      }
+      break;
+    }
+    case ColumnType::FLOAT: {
+      auto *float_col = (FloatColumn *)col;
+      if (float_col->isEntryPresent(this->curr_row)) {
+        r.set(c, float_col->getEntry(this->curr_row));
+      } else {
+        r.set(c, 0.0f);
+      }
+      break;
+    }
+    case ColumnType::BOOL: {
+      auto *bool_col = (BoolColumn *)col;
+      if (bool_col->isEntryPresent(this->curr_row)) {
+        r.set(c, bool_col->getEntry(this->curr_row));
+      } else {
+        r.set(c, false);
+      }
+      break;
+    }
+    case ColumnType::UNKNOWN:
+    default:
+      // Unrecognized column type. Do nothing and skip it.
+      break;
+    }
+  }
+
+  this->curr_row += 1;
+}
+
+bool SorerWriter::done() {
+  return this->curr_row < this->sorer->set->getColumn(0)->getLength();
+}

@@ -403,10 +403,6 @@ void test4() {
   helper.t_true(r1->col_type(5) == 'B');
   helper.t_true(r1->width() == 6);
 
-  // Test the set/get index of the row
-  r1->set_idx(1);
-  helper.t_true(r1->get_idx() == 1);
-
   // Free the memory accordingly
   delete s1;
   delete r1;
