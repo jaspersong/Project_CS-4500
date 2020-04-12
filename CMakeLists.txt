@@ -45,7 +45,6 @@ set(DATAFRAME_SRC
         src/dataframe/schema.cpp
         inc/dataframe/dataframe.h
         src/dataframe/dataframe.cpp
-        inc/dataframe/fielder.h
         inc/dataframe/rower.h
         inc/dataframe/copy_writer.h
         src/dataframe/copy_writer.cpp

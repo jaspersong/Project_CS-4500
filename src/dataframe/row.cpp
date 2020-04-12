@@ -144,25 +144,3 @@ size_t Row::width() {
 }
 
 char Row::col_type(size_t idx) { return this->schema->col_type(idx); }
-
-void Row::visit(size_t idx, Fielder &f) {
-  // Get the item and then pass it into the fielder
-  DataItem_ item = this->value_list->get_item(idx);
-
-  // Now pass it to the fielder according to the column type
-  switch (this->schema->col_type(idx)) {
-  case ColumnType_Bool:
-    f.accept(item.b);
-    break;
-  case ColumnType_Integer:
-    f.accept(item.i);
-    break;
-  case ColumnType_Float:
-    f.accept(item.f);
-    break;
-  case ColumnType_String:
-  default:
-    f.accept(item.s);
-    break;
-  }
-}

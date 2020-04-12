@@ -12,7 +12,6 @@
 #include "custom_object.h"
 #include "custom_string.h"
 
-#include "fielder.h"
 #include "row.h"
 #include "rower.h"
 #include "dataframe.h"

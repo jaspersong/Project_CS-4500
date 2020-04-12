@@ -13,7 +13,6 @@
 #include "custom_string.h"
 
 #include "dataframe_helper.h"
-#include "fielder.h"
 #include "schema.h"
 
 /*************************************************************************
@@ -50,10 +49,6 @@ public:
 
   /** Type of the field at the given position. An idx >= width is  undefined. */
   char col_type(size_t idx);
-
-  /** Given a Fielder, visit every field of this row.
-   * Calling this method before the row's fields have been set is undefined. */
-  void visit(size_t idx, Fielder &f);
 
 private:
   Schema *schema;
