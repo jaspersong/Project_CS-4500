@@ -22,11 +22,11 @@ void test_from_array() {
   String str3(":(");
   String str4(":)");
 
-  Key key0("0", 0);
-  Key key1("1", 0);
-  Key key2("2", 0);
-  Key key3("3", 0);
-  Key key4("4", 0);
+  Key key0("0");
+  Key key1("1");
+  Key key2("2");
+  Key key3("3");
+  Key key4("4");
 
   KeyValueStore map(1);
 
@@ -55,10 +55,10 @@ void test_from_array() {
   KeyValueStore::from_array(key1, &map, SZ, int_vals);
   KeyValueStore::from_array(key2, &map, SZ, float_vals);
   KeyValueStore::from_array(key3, &map, SZ, str_vals);
-  DataFrame *df0 = map.get_local_df(key0);
-  DataFrame *df1 = map.get_local_df(key1);
-  DataFrame *df2 = map.get_local_df(key2);
-  DataFrame *df3 = map.get_local_df(key3);
+  DistributedValue *df0 = map.wait_and_get(key0);
+  DistributedValue *df1 = map.wait_and_get(key1);
+  DistributedValue *df2 = map.wait_and_get(key2);
+  DistributedValue *df3 = map.wait_and_get(key3);
 
   helper.t_true(df0->get_schema().width() == 1);
   helper.t_true(df1->get_schema().width() == 1);
@@ -87,29 +87,17 @@ void test_from_array() {
   // TODO: Create and test functions for if the KV-store contains the key
   //  locally, or if it's in a different KV-store
 
-  auto *exp_df0 = map.get_local_df(key0);
-  auto *exp_df1 = map.get_local_df(key1);
-  auto *exp_df2 = map.get_local_df(key2);
-  auto *exp_df3 = map.get_local_df(key3);
-
-  // Should be true with pointer equality, since they should be pointing to
-  // the same exact objects.
-  helper.t_true(exp_df0->equals(df0));
-  helper.t_true(exp_df1->equals(df1));
-  helper.t_true(exp_df2->equals(df2));
-  helper.t_true(exp_df3->equals(df3));
-
   helper.OK("Test 1 passed");
 }
 
 void test_from_scalar() {
   String str0("Then the fire nation attacked.");
 
-  Key key0("0", 0);
-  Key key1("1", 0);
-  Key key2("2", 0);
-  Key key3("3", 0);
-  Key key4("4", 0);
+  Key key0("0");
+  Key key1("1");
+  Key key2("2");
+  Key key3("3");
+  Key key4("4");
 
   KeyValueStore map(1);
 
@@ -118,10 +106,10 @@ void test_from_scalar() {
   KeyValueStore::from_scalar(key1, &map, 5);
   KeyValueStore::from_scalar(key2, &map, 6.3f);
   KeyValueStore::from_scalar(key3, &map, &str0);
-  DataFrame *df0 = map.get_local_df(key0);
-  DataFrame *df1 = map.get_local_df(key1);
-  DataFrame *df2 = map.get_local_df(key2);
-  DataFrame *df3 = map.get_local_df(key3);
+  DistributedValue *df0 = map.wait_and_get(key0);
+  DistributedValue *df1 = map.wait_and_get(key1);
+  DistributedValue *df2 = map.wait_and_get(key2);
+  DistributedValue *df3 = map.wait_and_get(key3);
 
   helper.t_true(df0->get_schema().width() == 1);
   helper.t_true(df1->get_schema().width() == 1);
@@ -144,37 +132,21 @@ void test_from_scalar() {
   // TODO: Create and test functions for if the KV-store contains the key
   //  locally, or if it's in a different KV-store
 
-  auto *exp_df0 = map.get_local_df(key0);
-  auto *exp_df1 = map.get_local_df(key1);
-  auto *exp_df2 = map.get_local_df(key2);
-  auto *exp_df3 = map.get_local_df(key3);
-
-  // Should be true with pointer equality, since they should be pointing to
-  // the same exact objects.
-  helper.t_true(exp_df0->equals(df0));
-  helper.t_true(exp_df1->equals(df1));
-  helper.t_true(exp_df2->equals(df2));
-  helper.t_true(exp_df3->equals(df3));
-
   helper.OK("Test 2 passed");
 }
 
 void test_wait_get() {
   String str0("Then the fire nation attacked.");
-  Key key0("0", 0);
+  Key key0("0");
   KeyValueStore map(1);
 
   KeyValueStore::from_scalar(key0, &map, &str0);
-  DataFrame *df = map.get_local_df(key0);
-  DataFrame *copy_df = map.wait_and_get_df(key0);
+  DistributedValue *df = map.wait_and_get(key0);
 
-  helper.t_false(df == copy_df);
-  helper.t_true(df->get_schema().col_type(0) == copy_df->get_schema().col_type(0));
-  helper.t_true(df->nrows() == copy_df->nrows());
-  helper.t_true(df->ncols() == copy_df->ncols());
-  helper.t_true(df->get_string(0, 0)->equals(copy_df->get_string(0, 0)));
-
-  delete copy_df;
+  helper.t_true(df->get_schema().col_type(0) == ColumnType_String);
+  helper.t_true(df->nrows() == 1);
+  helper.t_true(df->ncols() == 1);
+  helper.t_true(df->get_string(0, 0)->equals(&str0));
 
   helper.OK("Test 3 passed");
 }

@@ -60,6 +60,9 @@ void DistributedValue::cache_df(size_t row) {
 
     this->cached_key = target_key;
     this->cached_df = this->kv->wait_and_get_df(*this->cached_key);
+  } else {
+    // No need for this since we already have the cached df
+    delete target_key;
   }
 }
 

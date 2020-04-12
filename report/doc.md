@@ -574,9 +574,12 @@ structure in regard to a growing buffer of large amounts of data
 - Created a trivial application that run standalone.
 - Simplify the target source code lists for the CMakeLists.txt
 - Connect multiple local KV-Stores to support communicating to each other
-over threads
+over threads and over the network
 - Assigning and aligning of the node ids in order to maintain ids throughout
 the direct communication between nodes
+- Move the distributed dataframe code out of the key-value store/application
+layer and into a new interface called the DistributedDataframe
+- Get Linux app to work over network
 
 ### Technical Debt and TODOs
 
@@ -584,11 +587,6 @@ the direct communication between nodes
 - Create unit tests for the dataframe's array of arrays
 - Get the network code to run within Docker
 - Make use of templates for similar classes and methods
-- Connect multiple local KV-Stores to support communicating to each other
-over the network
 - Update the schema field in the dataframe to not be a pointer
 - Minimize copying strings when going when adding them to dataframes
-- Get Linux app to work over network (seems to be freezing at some point)
-- Move the distributed dataframe code out of the key-value store/application
-layer and into a new interface called the DistributedDataframe
  

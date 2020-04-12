@@ -233,5 +233,5 @@ void SorerWriter::visit(Row &r) {
 }
 
 bool SorerWriter::done() {
-  return this->curr_row < this->sorer->set->getColumn(0)->getLength();
+  return this->curr_row >= this->sorer->set->getColumn(0)->getLength();
 }
