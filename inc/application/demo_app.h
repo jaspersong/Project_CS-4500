@@ -22,9 +22,9 @@ public:
   void main() override;
 
 private:
-  Key main_key = Key("main", 0);
-  Key verify = Key("verif", 0);
-  Key check = Key("ck", 0);
+  Key main_key = Key("main");
+  Key verify = Key("verif");
+  Key check = Key("ck");
 
   void producer();
   void counter();

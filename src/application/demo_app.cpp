@@ -48,7 +48,7 @@ void Demo::counter() {
   Sys helper;
 
   // Get the dataframe
-  DataFrame *v = this->kv->wait_and_get(this->main_key);
+  DistributedValue *v = this->kv->wait_and_get(this->main_key);
 
   // Sum up the values from the main dataframe
   float sum = 0.0f;
@@ -61,23 +61,17 @@ void Demo::counter() {
 
   // Store it into the verify key.
   KeyValueStore::from_scalar(this->verify, this->kv, sum);
-  DataFrame *counter_df = this->kv->wait_and_get(this->verify);
-
-  delete v;
-  delete counter_df;
+  DistributedValue *counter_df = this->kv->wait_and_get(this->verify);
 }
 
 void Demo::summarizer() {
   Sys helper;
 
   // Get the result and the verify dataframes.
-  DataFrame *result = this->kv->wait_and_get(this->verify);
-  DataFrame *expected = this->kv->wait_and_get(this->check);
+  DistributedValue *result = this->kv->wait_and_get(this->verify);
+  DistributedValue *expected = this->kv->wait_and_get(this->check);
 
   // Check to make sure that the results are the same.
   helper.pln(expected->get_float(0, 0) == result->get_float(0, 0) ? "SUCCESS"
                                                                   : "FAILURE");
-
-  delete result;
-  delete expected;
 }
