@@ -68,6 +68,15 @@ void KeyValueStore::put(Key &key, DistributedValue *value) {
   // Add this value to the current kv-store
   Key *owned_key = new Key(key.get_name()->c_str(), key.get_home_id());
   this->kv_lock.lock();
+
+  // Delete any values that is currently associated with this key
+  std::map<Key *, DistributedValue *, KeyComp>::iterator it;
+  it = this->kv_map.find(owned_key);
+  if (it != this->kv_map.end()) {
+    delete it->first;
+    delete it->second;
+  }
+  // Now add the new value
   this->kv_map[owned_key] = value;
   this->kv_lock.unlock();
 }
@@ -89,6 +98,12 @@ void KeyValueStore::put_df(Key &key, DataFrame *value) {
     Key *owned_key = new Key(key.get_name()->c_str(), key.get_home_id());
 
     this->distro_kv_lock.lock();
+    std::map<Key *, DataFrame *, KeyComp>::iterator it;
+    it = this->distro_kv_map.find(owned_key);
+    if (it != this->distro_kv_map.end()) {
+      delete it->first;
+      delete it->second;
+    }
     this->distro_kv_map[owned_key] = value;
     this->distro_kv_lock.unlock();
   } else if (this->local_network_layer != nullptr) {

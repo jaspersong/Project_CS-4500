@@ -21,15 +21,27 @@ The following are terminal commands to run within the root of the project folder
 in order to build and run the various parts of the project system:
 - `make build_all`: Builds the whole project.
 - `make test_all`: Runs all of the test suites of the project
-- `make demo_echo`: Runs the demo for a EchoServer and EchoClient network
-system. Note: This system currently does not run within Docker.
-- `make demo_distro_app`: Runs the demo for the distributed app network
-system. Note: This system currently does not run in Docker.
+- `make test_valgrind`: Runs all the test suites of the project with valgrind
+ turned on
 - `make clean`: Cleans the builds
 - `make docker_build_all`: Builds the whole project within a Docker image. This 
 command only will run if Docker is online.
 - `make docker_test_all`: Runs all of the test suites of the project within
 a Docker image. This command only will run if the Docker is online.
+- `make docker_test_valgrind`: Runs all of the test suites of the project
+within a Docker image with valgrind turned on. This command will only run if
+the Docker is online
+- Various demo targets: Because the project currently cannot run the demos
+using socket programming communication, they are not included within the test
+targets listed above. As a result, they have been given separate demo targets
+    - `make demo_demo_net_app`: Runs the demo application
+    - `make demo_wordcount_net_app`: Runs the word counter application using
+     the shakespeare text
+    - `make demo_wordcount_net_app_hp`: Runs the word counter application
+     using the harry potter text
+    - `make demo_linus_net_app`: Runs the Degrees of Linus application
+    - `make demo_distro_app`: Runs a demo of the underlying distributed
+     application, without an application running on top of it.
 
 ## Architecture
 
@@ -49,14 +61,15 @@ one-by-one, or when the eau2 network is shutting down because the nodes shut
 down via a Kill message, or registrar closes so all nodes can no longer 
 communicate.
 
-The nodes each contain one or more Key-Value pairs. A Key can be referred by a
-String name, and each has a node id that determines which node contains the 
-value associated with the key. The Value of the key is a dataframe or a portion
-of a dataframe. The nodes themselves can define the data within the dataframe
-by themselves, or the Key-Value pair can be assigned to them from the registrar
-after all nodes have finished registering.
+The nodes each contain one or more Key-Value pairs. A Key can be referred by a 
+String name. It also contains a node id to determine where the key is stored. 
+If its home node id is -1, then it is referring to a DistributedValue, which 
+references multiple chunks of a dataframe distributed throughout the entire
+eau2 system. If the home node id is 0 and greater, then it is referring to a
+a dataframe, which can be the entire DataFrame the DistributedValue is
+referencing, or be a chunk of it. 
 
-For nodes that do not contain the Value of a particular Key can send a Get or a
+For nodes that do not contain the value of a particular Key can send a Get or a
 WaitAndGet message to the node id associated to that Key.
 
 ## Implementation
@@ -485,37 +498,111 @@ another application to communicate with this application.
 must be called after `connect_local()`. This passes the provided interface into
 an application to allow that application to communicate with the application
 that has been configured in.
-- `connect_network()`: This is a function is TODO and projected to be 
-implemented at a different moment in time.
+- `connect_network()`: This function prepares the application to communicate an
+interface that hooks up to a real network. This network MUST be an instance
+of a Node of the networked eau2 system.
 
 ## Use cases
 
-### Dataframe
+### Key
 
-The following code demonstrates the basics of creating a Dataframe containing
-two columns of 1,000,000 rows of integers:
+A Key can be referred by a String name, and it is associated with a
+DistributedValue within the application Key-Value Store.
+
+Keys also has home node ids, but they are not intended to be referenced
+within the application layer, and should only be handled within the
+implementation of the key-value store.
+
 ```C++
-Schema s("II");
+Key key0("Hello");
+Key key1("world");
+Key key2("Hello");
 
-DataFrame df(s);
-Row  r(df.get_schema());
-for(size_t i = 0; i <  1000 * 1000; i++) {
-  r.set(0,(int)i);
-  r.set(1,(int)i+1);
-  df.add_row(r);
-}
+assert(key0.equals(&key2));
+assert(!key0.equals(&key1));
+assert(key0.get_name()->equals(key2.get_name()));
+assert(!key0.get_name()->equals(key1.get_name()));
 ```
 
-In addition, a DataFrame can be read from a `*.sor` file using the
-SorerIntegrator class, which is the API interface that integrates the code
-provided by the 4500ne team's Sorer implementation with the rest of the code
-base. 
+### DistributedValue
 
-An example of a sor file being read into a Dataframe is as follows:
+The Key-Value Store has multiple static functions that can create a
+DistributedValue which will automatically become available to the rest of the
+eau2 system. The following are examples of creating distributed values: 
+
 ```C++
-SorerIntegrator integrator("../data/spacey.sor");
-integrator.parse();
-DataFrame *df = integrator.convert();
+Key key0("0");
+Key key1("1");
+Key key2("2");
+Key key3("3");
+Key key4("4");
+KeyValueStore kv(1);
+
+// Creates a distributed value using an array of values
+size_t SZ = 10;
+bool bool_vals[SZ];
+int int_vals[SZ];
+float float_vals[SZ];
+String *str_vals[SZ];
+
+KeyValueStore::from_array(key0, &kv, SZ, bool_vals);
+KeyValueStore::from_array(key1, &kv, SZ, int_vals);
+KeyValueStore::from_array(key2, &kv, SZ, float_vals);
+KeyValueStore::from_array(key3, &kv, SZ, str_vals);
+
+// Creates a distributed value using a scalar value
+KeyValueStore::from_scalar(key0, &map, true);
+KeyValueStore::from_scalar(key1, &map, 5);
+KeyValueStore::from_scalar(key2, &map, 6.3f);
+KeyValueStore::from_scalar(key3, &map, &str0);
+
+// Creates a distributed value using a visitor
+Writer writer;
+KeyValueStore::from_visitor(key0, &kv, "I", writer);
+
+// Creates a distributed value using a sor file
+KeyValueStore::from_file(key0, &kv, "../data/testfile.sor");
+```
+
+Once the distributed dataframe has been created, it is meant to be read-only.
+
+```C++
+Key key0("test");
+KeyValueStore kv(1);
+String hello("hello");
+
+KeyValueStore::from_file(key0, &kv, "../data/testfile.sor");
+DistributedValue *value = kv->wait_and_get(key0);
+
+assert(value->get_int(0, 0) == 1);
+assert(!value->get_bool(3, 0));
+assert(value->get_float(1, 2) == 6.6f);
+assert(value->get_string(2, 0)->equals(&hello));
+
+assert(value->nrows() == 3);
+assert(value->ncols() == 4);
+```
+
+A value can be iterated over row-by-row by using `void local_map(Rower &r)` and 
+`void map(Rower &r)`. While the `map` one iterates through all of the rows
+available through the whole eau2 system, `local_map` only iterates through the
+rows that are stored within the node that the caller is running from. 
+
+### Key-Value Store
+
+A map that stores a DistributedValue associated with unique Keys. Once a
+value has been add to the store, it will be available throughout the system. 
+It has functions that allow an application to store key-value pairs. The
+functions available to store values with a key can be found in the
+DistributedValue section. The value can then be retrieved by calling
+`wait_and_get` with the key of the desired value. 
+
+```C++
+assert(kv->get_home_id() == 0);
+assert(kv->get_num_nodes() == 2);
+
+KeyValueStore::from_file(key0, &kv, "../data/testfile.sor");
+DistributedValue *value = kv->wait_and_get(key0);
 ```
 
 ### Application
@@ -547,8 +634,6 @@ int main(int argc, char **argv) {
   return 0;
 }
 ```
-
-## Open questions
 
 ## Comments
 
