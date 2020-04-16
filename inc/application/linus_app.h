@@ -57,10 +57,12 @@ public:
   void union_set(Set& from);
 
   size_t size();
+  size_t size_set();
 
 private:
   bool*vals;  // owned; data
   size_t num_elements; // number of elements
+  size_t num_set; // Number of elements that were set
 };
 
 /*******************************************************************************
