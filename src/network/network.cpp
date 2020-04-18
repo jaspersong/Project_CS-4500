@@ -77,13 +77,10 @@ Server::Server(String *ip_addr, int port_num, size_t max_clients,
   this->max_clients = max_clients;
   this->clients_sockets = new int[this->max_clients];
   this->max_socket_descriptor = 0;
-  this->loop_lock = new Lock();
 
   // Initialize the message buffers
   this->max_receive_size = max_receive_size;
   this->receive_buffer = new unsigned char[max_receive_size];
-  this->outgoing_message_queue = new Queue();
-  this->outgoing_queue_lock = new Lock();
 }
 
 Server::~Server() {
@@ -97,14 +94,10 @@ Server::~Server() {
   delete this->ip_addr;
   delete[] this->clients_sockets;
   delete[] this->receive_buffer;
-  while (this->outgoing_message_queue->getSize() != 0) {
-    auto *message = dynamic_cast<OutgoingMessage_ *>(
-        this->outgoing_message_queue->dequeue());
-    delete message;
+  while (!this->outgoing_message_queue.empty()) {
+    delete this->outgoing_message_queue.front();
+    this->outgoing_message_queue.pop();
   }
-  delete this->outgoing_message_queue;
-  delete this->outgoing_queue_lock;
-  delete this->loop_lock;
 }
 
 void Server::run() {
@@ -124,7 +117,7 @@ void Server::run() {
   while (this->continue_running) {
     // Yield and then lock for the loop
     Server::yield();
-    this->loop_lock->lock();
+    this->loop_lock.lock();
 
     // Re-initialize the fd set in order to prepare for the polling.
     FD_ZERO(&this->socket_set);
@@ -166,12 +159,12 @@ void Server::run() {
       this->manage_client_connections();
     }
 
-    if (this->outgoing_message_queue->getSize() > 0) {
+    this->outgoing_queue_lock.lock();
+    if (!this->outgoing_message_queue.empty()) {
       // A message is queued up. Send it.
-      this->outgoing_queue_lock->lock();
-      auto *msg_info = dynamic_cast<OutgoingMessage_ *>(
-          this->outgoing_message_queue->dequeue());
-      this->outgoing_queue_lock->unlock();
+      auto *msg_info = this->outgoing_message_queue.front();
+      this->outgoing_message_queue.pop();
+      this->outgoing_queue_lock.unlock();
 
       // The queue should only ever contain valid outgoing message
       // information.
@@ -187,10 +180,12 @@ void Server::run() {
 
       // No need for the sending buffer anymore. Clear it out now.
       delete msg_info;
+    } else {
+      this->outgoing_queue_lock.unlock();
     }
 
     this->run_server();
-    this->loop_lock->unlock();
+    this->loop_lock.unlock();
   }
 
   // Close the servers and the clients and then clean up
@@ -225,9 +220,9 @@ bool Server::send_message(size_t client_id, unsigned char *message,
 
   // Queue this message up.
   auto *msg_info = new OutgoingMessage_(client_id, message, bytes);
-  this->outgoing_queue_lock->lock();
-  this->outgoing_message_queue->enqueue(msg_info);
-  this->outgoing_queue_lock->unlock();
+  this->outgoing_queue_lock.lock();
+  this->outgoing_message_queue.push(msg_info);
+  this->outgoing_queue_lock.unlock();
   return true;
 }
 
@@ -262,14 +257,14 @@ bool Server::initiate_connection(size_t client_id, String *ip_addr,
                  sizeof(connection)) >= 0);
 
   // Add the new socket
-  this->loop_lock->lock();
+  this->loop_lock.lock();
   this->clients_sockets[client_id] = new_socket;
 
   // Call the handle incoming connection, even though the server initiated
   // the server.
   this->handle_incoming_connection(client_id, ip_addr, port_num);
 
-  this->loop_lock->unlock();
+  this->loop_lock.unlock();
   return true;
 }
 
@@ -279,7 +274,7 @@ void Server::close_connection(size_t client_id) {
   }
 
   if (this->is_client_connected(client_id)) {
-    this->loop_lock->lock();
+    this->loop_lock.lock();
 
     close(this->clients_sockets[client_id]);
     this->clients_sockets[client_id] = 0;
@@ -287,14 +282,13 @@ void Server::close_connection(size_t client_id) {
     // Call the handle closing connection since we just closed a connection.
     this->handle_closing_connection(client_id);
 
-    this->loop_lock->unlock();
+    this->loop_lock.unlock();
   }
 }
 
 void Server::initialize_server() {
   int opt = 1;
   struct sockaddr_in addr {};
-  const int addrlen = sizeof(addr);
 
   // Initialize all the client sockets to 0, which means that they aren't
   // being used
@@ -391,8 +385,6 @@ Client::Client(String *server_ip_addr, int server_port_num,
   // Initialize the message buffers
   this->max_receive_size = max_receive_size;
   this->receive_buffer = new unsigned char[max_receive_size];
-  this->outgoing_message_queue = new Queue();
-  this->outgoing_queue_lock = new Lock();
 }
 
 Client::~Client() {
@@ -405,13 +397,10 @@ Client::~Client() {
   // Free the memory as appropriate
   delete this->server_ip_addr;
   delete[] this->receive_buffer;
-  while (this->outgoing_message_queue->getSize() != 0) {
-    auto *message = dynamic_cast<OutgoingMessage_ *>(
-        this->outgoing_message_queue->dequeue());
-    delete message;
+  while (!this->outgoing_message_queue.empty()) {
+    delete this->outgoing_message_queue.front();
+    this->outgoing_message_queue.pop();
   }
-  delete this->outgoing_message_queue;
-  delete this->outgoing_queue_lock;
 }
 
 void Client::run() {
@@ -465,12 +454,12 @@ void Client::run() {
       }
     }
 
-    if (this->outgoing_message_queue->getSize() > 0) {
+    this->outgoing_queue_lock.lock();
+    if (!this->outgoing_message_queue.empty()) {
       // A message is queued up. Send it.
-      this->outgoing_queue_lock->lock();
-      auto *msg_info = dynamic_cast<OutgoingMessage_ *>(
-          this->outgoing_message_queue->dequeue());
-      this->outgoing_queue_lock->unlock();
+      auto *msg_info = this->outgoing_message_queue.front();
+      this->outgoing_message_queue.pop();
+      this->outgoing_queue_lock.unlock();
 
       // The queue should only ever contain valid outgoing message
       // information.
@@ -482,6 +471,8 @@ void Client::run() {
 
       // No need for the sending buffer anymore. Clear it out now.
       delete msg_info;
+    } else {
+      this->outgoing_queue_lock.unlock();
     }
 
     this->run_client();
@@ -509,8 +500,8 @@ bool Client::send_message(unsigned char *message, size_t bytes) {
 
   // Queue this message up.
   auto *msg_info = new OutgoingMessage_(0, message, bytes);
-  this->outgoing_queue_lock->lock();
-  this->outgoing_message_queue->enqueue(msg_info);
-  this->outgoing_queue_lock->unlock();
+  this->outgoing_queue_lock.lock();
+  this->outgoing_message_queue.push(msg_info);
+  this->outgoing_queue_lock.unlock();
   return true;
 }

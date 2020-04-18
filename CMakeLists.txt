@@ -31,8 +31,6 @@ set(UTILITY_SRC
         src/messages/serializer.cpp
         inc/utility/custom_string.h
         src/utility/custom_string.cpp
-        inc/utility/queue.h
-        src/utility/queue.cpp
         )
 set(DATAFRAME_SRC
         inc/dataframe/dataframe_helper.h
@@ -76,9 +74,6 @@ set(APP_SRC
         inc/application/distributed_value.h)
 
 # Create targets for the test suites
-add_executable(test_suite_queue
-        tests/test_queue.cpp
-        "${UTILITY_SRC}")
 add_executable(test_suite_dataframe
         tests/test_dataframe.cpp
         "${UTILITY_SRC}"

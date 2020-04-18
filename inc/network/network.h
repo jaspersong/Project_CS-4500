@@ -9,8 +9,10 @@
 
 #pragma once
 
-#include "queue.h"
+#include <queue>
 #include "thread.h"
+
+class OutgoingMessage_;
 
 /**
  * An abstract thread class for a server using the POSIX networking library
@@ -222,11 +224,11 @@ private:
   // if it is not used
   fd_set socket_set{}; // A socket set selector to manage multiple clients
   int max_socket_descriptor; // The current maximum file descriptor.
-  Lock *loop_lock;           // Locks whenever a server loop is running
+  Lock loop_lock;           // Locks whenever a server loop is running
 
   unsigned char *receive_buffer;
-  Queue *outgoing_message_queue;
-  Lock *outgoing_queue_lock;
+  std::queue<OutgoingMessage_ *> outgoing_message_queue;
+  Lock outgoing_queue_lock;
 
   // Configuration fields
   size_t max_clients;
@@ -396,8 +398,8 @@ private:
   fd_set fd_selector{};
 
   unsigned char *receive_buffer;
-  Queue *outgoing_message_queue;
-  Lock *outgoing_queue_lock;
+  std::queue<OutgoingMessage_ *> outgoing_message_queue;
+  Lock outgoing_queue_lock;
 
   // Configuration fields
   size_t max_receive_size;
