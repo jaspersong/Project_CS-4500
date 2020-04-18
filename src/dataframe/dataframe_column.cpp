@@ -10,180 +10,132 @@
 #include "dataframe_column.h"
 
 DF_Column::DF_Column(ColumnType_t column_type) {
-  this->list = new ArrayOfArrays();
   this->data_type = column_type;
 }
 
-DF_Column::~DF_Column() { delete this->list; }
+DF_Column::DF_Column(DF_Column &original) : CustomObject(original) {
+  this->data_type = original.data_type;
+  this->values.clear();
+  for (auto orig_item : original.values) {
+    switch (original.data_type) {
+    case ColumnType_Bool:
+      this->push_back(orig_item.b);
+      break;
+    case ColumnType_Integer:
+      this->push_back(orig_item.i);
+      break;
+    case ColumnType_Float:
+      this->push_back(orig_item.f);
+      break;
+    case ColumnType_String:
+    default:
+      this->push_back(orig_item.s);
+      break;
+    }
+  }
+}
+
+DF_Column::~DF_Column() {
+  // Delete only if it's a string value
+  if (this->data_type == ColumnType_String) {
+    for (auto item : this->values) {
+      delete item.s;
+    }
+  }
+}
 
 void DF_Column::push_back(int val) {
-  // Check if this column is the correct data type for this function. If it
-  // is not, do nothing. If it is, push it onto the linked list
-  if (this->data_type == ColumnType_Integer) {
-    // Create the item.
-    DataItem_ new_item;
-    new_item.i = val;
-    this->list->add_new_item(new_item);
-  }
+  assert(this->data_type == ColumnType_Integer);
+
+  DataItem new_item;
+  new_item.i = val;
+  this->values.push_back(new_item);
 }
 
 void DF_Column::push_back(bool val) {
-  // Check if this column is the correct data type for this function. If it
-  // is not, do nothing. If it is, push it onto the linked list
-  if (this->data_type == ColumnType_Bool) {
-    // Create the item.
-    DataItem_ new_item;
-    new_item.b = val;
-    this->list->add_new_item(new_item);
-  }
+  assert(this->data_type == ColumnType_Bool);
+
+  DataItem new_item;
+  new_item.b = val;
+  this->values.push_back(new_item);
 }
 
 void DF_Column::push_back(float val) {
-  // Check if this column is the correct data type for this function. If it
-  // is not, do nothing. If it is, push it onto the linked list
-  if (this->data_type == ColumnType_Float) {
-    // Create the item.
-    DataItem_ new_item;
-    new_item.f = val;
-    this->list->add_new_item(new_item);
-  }
+  assert(this->data_type == ColumnType_Float);
+
+  DataItem new_item;
+  new_item.f = val;
+  this->values.push_back(new_item);
 }
 
 void DF_Column::push_back(String *val) {
-  // Check if this column is the correct data type for this function. If it
-  // is not, do nothing. If it is, push it onto the linked list
-  if (this->data_type == ColumnType_String) {
-    // Create the item.
-    DataItem_ new_item;
-    if (val != nullptr) {
-      new_item.s = new String(*val);
-    } else {
-      new_item.s = nullptr;
-    }
-    this->list->add_new_item(new_item);
-  }
-}
+  assert(this->data_type == ColumnType_String);
 
-size_t DF_Column::size() { return this->list->size(); }
-
-char DF_Column::get_type() { return static_cast<char>(this->data_type); }
-
-/*************************************************************************/
-
-DF_BoolColumn::DF_BoolColumn() : DF_Column(ColumnType_Bool) {}
-
-DF_BoolColumn::DF_BoolColumn(DF_BoolColumn &column)
-    : DF_Column(ColumnType_Bool) {
-  this->data_type = column.data_type;
-  delete this->list;
-  this->list = new ArrayOfArrays(*column.list);
-}
-
-bool DF_BoolColumn::get(size_t idx) {
-  DataItem_ data = this->list->get_item(idx);
-  return data.b;
-}
-
-void DF_BoolColumn::set(size_t idx, bool val) {
-  // Create a data item to be passed
-  DataItem_ data;
-  data.b = val;
-
-  // Set the item
-  this->list->set_new_item(idx, data);
-}
-
-/*************************************************************************/
-
-DF_IntColumn::DF_IntColumn() : DF_Column(ColumnType_Integer) {}
-
-DF_IntColumn::DF_IntColumn(DF_IntColumn &column)
-    : DF_Column(ColumnType_Integer) {
-  this->data_type = column.data_type;
-  delete this->list;
-  this->list = new ArrayOfArrays(*column.list);
-}
-
-int DF_IntColumn::get(size_t idx) {
-  DataItem_ data = this->list->get_item(idx);
-  return data.i;
-}
-
-void DF_IntColumn::set(size_t idx, int val) {
-  // Create a data item to be passed
-  DataItem_ data;
-  data.i = val;
-
-  // Set the item
-  this->list->set_new_item(idx, data);
-}
-
-/*************************************************************************/
-
-DF_FloatColumn::DF_FloatColumn() : DF_Column(ColumnType_Float) {}
-
-DF_FloatColumn::DF_FloatColumn(DF_FloatColumn &column)
-    : DF_Column(ColumnType_Float) {
-  this->data_type = column.data_type;
-  delete this->list;
-  this->list = new ArrayOfArrays(*column.list);
-}
-
-float DF_FloatColumn::get(size_t idx) {
-  DataItem_ data = this->list->get_item(idx);
-  return data.f;
-}
-
-void DF_FloatColumn::set(size_t idx, float val) {
-  // Create a data item to be passed
-  DataItem_ data;
-  data.f = val;
-
-  // Set the item
-  this->list->set_new_item(idx, data);
-}
-
-/*************************************************************************/
-
-DF_StringColumn::DF_StringColumn() : DF_Column(ColumnType_String) {}
-
-DF_StringColumn::~DF_StringColumn() {
-  for (size_t i = 0; i < this->list->size(); i++) {
-    delete this->get(i);
-  }
-}
-
-DF_StringColumn::DF_StringColumn(DF_StringColumn &column)
-    : DF_Column(ColumnType_String) {
-  this->data_type = column.data_type;
-  for (size_t i = 0; i < column.size(); i++) {
-    DataItem_ data;
-    String *val = column.get(i);
-    if (val != nullptr) {
-      data.s = new String(*val);
-    } else {
-      data.s = nullptr;
-    }
-    this->list->add_new_item(data);
-  }
-}
-
-String *DF_StringColumn::get(size_t idx) {
-  DataItem_ data = this->list->get_item(idx);
-  return data.s;
-}
-
-void DF_StringColumn::set(size_t idx, String *val) {
-  // Create a data item to be passed
-  DataItem_ data;
+  DataItem new_item;
   if (val != nullptr) {
-    data.s = new String(*val);
+    new_item.s = new String(*val);
   } else {
-    data.s = nullptr;
+    new_item.s = nullptr;
   }
+  this->values.push_back(new_item);
+}
+bool DF_Column::get_bool(size_t idx) {
+  assert(this->data_type == ColumnType_Bool);
+  DataItem item = this->values.at(idx);
+  return item.b;
+}
 
-  // Replace the old string with the new one
-  String *old_str = this->get(idx);
-  delete old_str;
-  this->list->set_new_item(idx, data);
+int DF_Column::get_int(size_t idx) {
+  assert(this->data_type == ColumnType_Integer);
+  DataItem item = this->values.at(idx);
+  return item.i;
+}
+
+float DF_Column::get_float(size_t idx) {
+  assert(this->data_type == ColumnType_Float);
+  DataItem item = this->values.at(idx);
+  return item.f;
+}
+
+String *DF_Column::get_string(size_t idx) {
+  assert(this->data_type == ColumnType_String);
+  DataItem item = this->values.at(idx);
+  return item.s;
+}
+
+void DF_Column::set(size_t idx, bool val) {
+  assert(this->data_type == ColumnType_Bool);
+  DataItem new_item;
+  new_item.b = val;
+  this->values[idx] = new_item;
+}
+
+void DF_Column::set(size_t idx, int val) {
+  assert(this->data_type == ColumnType_Integer);
+  DataItem new_item;
+  new_item.i = val;
+  this->values[idx] = new_item;
+}
+
+void DF_Column::set(size_t idx, float val) {
+  assert(this->data_type == ColumnType_Float);
+  DataItem new_item;
+  new_item.f = val;
+  this->values[idx] = new_item;
+}
+
+void DF_Column::set(size_t idx, String *val) {
+  assert(this->data_type == ColumnType_String);
+
+  // Delete the old value
+  DataItem value = this->values.at(idx);
+  delete value.s;
+
+  // Add the new value
+  if (val != nullptr) {
+    value.s = new String(*val);
+  } else {
+    value.s = nullptr;
+  }
+  this->values[idx] = value;
 }

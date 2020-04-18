@@ -9,17 +9,9 @@
 
 #pragma once
 
+#include <vector>
 #include "custom_object.h"
 #include "custom_string.h"
-#include "dataframe_helper.h"
-
-/**
- * Class prototypes
- */
-class DF_IntColumn;
-class DF_BoolColumn;
-class DF_FloatColumn;
-class DF_StringColumn;
 
 /**
  * An enumeration that contains the column type represented in a char. The
@@ -44,16 +36,10 @@ class DF_Column : public CustomObject {
 public:
   // Constructs a column
   explicit DF_Column(ColumnType_t column_type);
+  DF_Column(DF_Column &original);
 
   // Deconstructs the column
   ~DF_Column() override;
-
-  /** Type converters: Return same column under its actual type, or
-   *  nullptr if of the wrong type.  */
-  virtual DF_IntColumn *as_int() { return nullptr; }
-  virtual DF_BoolColumn *as_bool() { return nullptr; }
-  virtual DF_FloatColumn *as_float() { return nullptr; }
-  virtual DF_StringColumn *as_string() { return nullptr; }
 
   /** Type appropriate push_back methods. Calling the wrong method is
    * undefined behavior. **/
@@ -62,99 +48,31 @@ public:
   void push_back(float val);
   void push_back(String *val);
 
-  /** Returns the number of elements in the column. */
-  size_t size();
-
-  /** Return the type of this column as a char: 'S', 'B', 'I' and 'F'.**/
-  char get_type();
-
-protected:
-  // A protected variable containing all of the data within the column. It
-  // can be used by its derivative classes.
-  ArrayOfArrays *list;
-
-  // The data type of the column. All inherited columns should set this value
-  // to the appropriate column data type upon construction.
-  ColumnType_t data_type;
-};
-
-/*************************************************************************
- * BoolColumn::
- * Holds primitive int values, unwrapped.
- */
-class DF_BoolColumn : public DF_Column {
-public:
-  DF_BoolColumn();
-
-  // Constructs a column by copying the data from the provided column into
-  // this new instance of column.
-  DF_BoolColumn(DF_BoolColumn &column);
-
-  bool get(size_t idx);
-
-  DF_BoolColumn *as_bool() override { return this; }
+  bool get_bool(size_t idx);
+  int get_int(size_t idx);
+  float get_float(size_t idx);
+  String *get_string(size_t idx);
 
   void set(size_t idx, bool val);
-};
-
-/*************************************************************************
- * IntColumn::
- * Holds int values.
- */
-class DF_IntColumn : public DF_Column {
-public:
-  DF_IntColumn();
-
-  // Constructs a column by copying the data from the provided column into
-  // this new instance of column.
-  DF_IntColumn(DF_IntColumn &column);
-
-  int get(size_t idx);
-
-  DF_IntColumn *as_int() override { return this; }
-
-  /** Set value at idx. An out of bound idx is undefined.  */
   void set(size_t idx, int val);
-};
-
-/*************************************************************************
- * FloatColumn::
- * Holds primitive int values, unwrapped.
- */
-class DF_FloatColumn : public DF_Column {
-public:
-  DF_FloatColumn();
-
-  // Constructs a column by copying the data from the provided column into
-  // this new instance of column.
-  DF_FloatColumn(DF_FloatColumn &column);
-
-  float get(size_t idx);
-
-  DF_FloatColumn *as_float() override { return this; }
-
   void set(size_t idx, float val);
-};
+  void set(size_t idx, String *val); // String remains external
 
-/*************************************************************************
- * StringColumn::
- * Holds string pointers. The strings are external.  Nullptr is a valid
- * value.
- */
-class DF_StringColumn : public DF_Column {
-public:
-  DF_StringColumn();
-  ~DF_StringColumn() override;
+  /** Returns the number of elements in the column. */
+  size_t size() { return this->values.size(); }
 
-  // Constructs a column by copying the data from the provided column into
-  // this new instance of column.
-  DF_StringColumn(DF_StringColumn &column);
+  /** Return the type of this column as a char: 'S', 'B', 'I' and 'F'.**/
+  ColumnType_t get_type() { return this->data_type; }
 
-  DF_StringColumn *as_string() override { return this; }
+private:
+  typedef union {
+    bool b;
+    int i;
+    float f;
+    String *s;
+  } DataItem;
 
-  /** Returns the string at idx; undefined on invalid idx.*/
-  String *get(size_t idx);
+  std::vector<DataItem> values;
 
-  /** Out of bound idx is undefined. */
-  void set(size_t idx, String *val);
+  ColumnType_t data_type;
 };

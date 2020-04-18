@@ -33,8 +33,6 @@ set(UTILITY_SRC
         src/utility/custom_string.cpp
         )
 set(DATAFRAME_SRC
-        inc/dataframe/dataframe_helper.h
-        src/dataframe/dataframe_helper.cpp
         inc/dataframe/dataframe_column.h
         src/dataframe/dataframe_column.cpp
         inc/dataframe/row.h

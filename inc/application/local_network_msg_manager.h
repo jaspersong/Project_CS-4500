@@ -44,6 +44,6 @@ public:
   size_t get_home_id() override;
 
 private:
-  ArrayOfArrays app_list;
+  std::vector<LocalNetworkMessageManager *> app_list;
   bool all_apps_registered;
 };

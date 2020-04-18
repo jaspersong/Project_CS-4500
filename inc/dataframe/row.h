@@ -9,10 +9,9 @@
 
 #pragma once
 
+#include <vector>
 #include "custom_object.h"
 #include "custom_string.h"
-
-#include "dataframe_helper.h"
 #include "schema.h"
 
 /*************************************************************************
@@ -51,6 +50,13 @@ public:
   char col_type(size_t idx);
 
 private:
-  Schema *schema;
-  ArrayOfArrays *value_list;
+  typedef union {
+    bool b;
+    int i;
+    float f;
+    String *s;
+  } DataItem;
+
+  Schema schema;
+  std::vector<DataItem> value_list;
 };

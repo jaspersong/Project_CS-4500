@@ -46,7 +46,7 @@ void test1() {
   s1->add_column('B');
 
   // Construct a dummy column
-  DF_Column *bool_column = new DF_BoolColumn();
+  auto *bool_column = new DF_Column(ColumnType_Bool);
   bool_column->push_back(false);
   bool_column->push_back(true);
 
@@ -209,10 +209,10 @@ void test3() {
   String str_avatar("Then the fire nation attacked.");
 
   // Create all the column types
-  DF_Column *bool_column = new DF_BoolColumn();
-  DF_Column *int_column = new DF_IntColumn();
-  DF_Column *float_column = new DF_FloatColumn();
-  DF_Column *string_column = new DF_StringColumn();
+  auto *bool_column = new DF_Column(ColumnType_Bool);
+  auto *int_column = new DF_Column(ColumnType_Integer);
+  auto *float_column = new DF_Column(ColumnType_Float);
+  auto *string_column = new DF_Column(ColumnType_String);
 
   // Test the get column type
   helper.t_true(bool_column->get_type() == 'B');
@@ -242,109 +242,88 @@ void test3() {
   helper.t_true(float_column->size() == 4);
   helper.t_true(string_column->size() == 5);
 
-  // Verify that we get the same column under its correct type
-  helper.t_true(bool_column->equals(bool_column->as_bool()));
-  helper.t_true(bool_column->as_int() == nullptr);
-  helper.t_true(bool_column->as_float() == nullptr);
-  helper.t_true(bool_column->as_string() == nullptr);
-  helper.t_true(int_column->as_bool() == nullptr);
-  helper.t_true(int_column->equals(int_column->as_int()));
-  helper.t_true(int_column->as_float() == nullptr);
-  helper.t_true(int_column->as_string() == nullptr);
-  helper.t_true(string_column->as_bool() == nullptr);
-  helper.t_true(string_column->as_int() == nullptr);
-  helper.t_true(string_column->as_float() == nullptr);
-  helper.t_true(string_column->equals(string_column->as_string()));
-
-  // Now get the column under its actual type to start testing primitive
-  // functions
-  DF_BoolColumn *conv_bool_column = bool_column->as_bool();
-  DF_IntColumn *conv_int_column = int_column->as_int();
-  DF_FloatColumn *conv_float_column = float_column->as_float();
-  DF_StringColumn *conv_string_colunmn = string_column->as_string();
-
   // Test the boolean column
-  helper.t_true(conv_bool_column->get(0));
-  helper.t_false(conv_bool_column->get(1));
-  conv_bool_column->set(1, true);
-  helper.t_true(conv_bool_column->get(1));
-  conv_bool_column->push_back(false);
-  helper.t_false(conv_bool_column->get(2));
-  helper.t_true(conv_bool_column->size() == 3);
+  helper.t_true(bool_column->get_bool(0));
+  helper.t_false(bool_column->get_bool(1));
+  bool_column->set(1, true);
+  helper.t_true(bool_column->get_bool(1));
+  bool_column->push_back(false);
+  helper.t_false(bool_column->get_bool(2));
+  helper.t_true(bool_column->size() == 3);
 
   // Test the int column
-  helper.t_true(conv_int_column->get(0) == 0);
-  helper.t_true(conv_int_column->get(1) == 10);
-  helper.t_true(conv_int_column->get(2) == 20);
-  conv_int_column->set(0, 40);
-  helper.t_true(conv_int_column->get(0) == 40);
-  conv_int_column->push_back(74);
-  helper.t_true(conv_int_column->get(3) == 74);
-  helper.t_true(conv_int_column->size() == 4);
+  helper.t_true(int_column->get_int(0) == 0);
+  helper.t_true(int_column->get_int(1) == 10);
+  helper.t_true(int_column->get_int(2) == 20);
+  int_column->set(0, 40);
+  helper.t_true(int_column->get_int(0) == 40);
+  int_column->push_back(74);
+  helper.t_true(int_column->get_int(3) == 74);
+  helper.t_true(int_column->size() == 4);
 
   // Test the float column
-  helper.t_true(conv_float_column->get(0) == 10.0f);
-  helper.t_true(conv_float_column->get(1) == 20.5f);
-  helper.t_true(conv_float_column->get(2) == 46.2f);
-  helper.t_true(conv_float_column->get(3) == 0.0f);
-  conv_float_column->set(3, 0.01f);
-  helper.t_true(conv_float_column->get(3) == 0.01f);
-  conv_float_column->push_back(4.2f);
-  helper.t_true(conv_float_column->get(4) == 4.2f);
-  helper.t_true(conv_float_column->size() == 5);
+  helper.t_true(float_column->get_float(0) == 10.0f);
+  helper.t_true(float_column->get_float(1) == 20.5f);
+  helper.t_true(float_column->get_float(2) == 46.2f);
+  helper.t_true(float_column->get_float(3) == 0.0f);
+  float_column->set(3, 0.01f);
+  helper.t_true(float_column->get_float(3) == 0.01f);
+  float_column->push_back(4.2f);
+  helper.t_true(float_column->get_float(4) == 4.2f);
+  helper.t_true(float_column->size() == 5);
 
   // Test the string column
-  helper.t_true(conv_string_colunmn->get(0)->equals(&str_hello));
-  helper.t_true(conv_string_colunmn->get(1)->equals(&str_world));
-  helper.t_true(conv_string_colunmn->get(2)->equals(&str_software));
-  helper.t_true(conv_string_colunmn->get(3)->equals(&str_dev));
-  helper.t_true(conv_string_colunmn->get(4)->equals(&str_avatar));
-  conv_string_colunmn->set(0, &str_avatar);
-  helper.t_true(conv_string_colunmn->get(0)->equals(&str_avatar));
-  conv_string_colunmn->push_back(&str_hello);
-  helper.t_true(conv_string_colunmn->get(5)->equals(&str_hello));
-  helper.t_true(conv_string_colunmn->size() == 6);
+  helper.t_true(string_column->get_string(0)->equals(&str_hello));
+  helper.t_true(string_column->get_string(1)->equals(&str_world));
+  helper.t_true(string_column->get_string(2)->equals(&str_software));
+  helper.t_true(string_column->get_string(3)->equals(&str_dev));
+  helper.t_true(string_column->get_string(4)->equals(&str_avatar));
+  string_column->set(0, &str_avatar);
+  helper.t_true(string_column->get_string(0)->equals(&str_avatar));
+  string_column->push_back(&str_hello);
+  helper.t_true(string_column->get_string(5)->equals(&str_hello));
+  helper.t_true(string_column->size() == 6);
 
   // Test the constructors
-  auto *cons_bool_column = new DF_BoolColumn();
+  auto *cons_bool_column = new DF_Column(ColumnType_Bool);
   cons_bool_column->push_back(false);
   cons_bool_column->push_back(true);
-  auto *cons_int_column = new DF_IntColumn();
+  auto *cons_int_column = new DF_Column(ColumnType_Integer);
   cons_int_column->push_back(0);
   cons_int_column->push_back(1);
   cons_int_column->push_back(2);
-  auto *cons_float_column = new DF_FloatColumn();
+  auto *cons_float_column = new DF_Column(ColumnType_Float);
   cons_float_column->push_back(0.1f);
   cons_float_column->push_back(0.2f);
   cons_float_column->push_back(0.3f);
   cons_float_column->push_back(0.4f);
-  auto *cons_string_column = new DF_StringColumn();
+  auto *cons_string_column = new DF_Column(ColumnType_String);
   cons_string_column->push_back(&str_hello);
   cons_string_column->push_back(&str_world);
   cons_string_column->push_back(&str_avatar);
-  helper.t_true(cons_bool_column->get(1));
-  helper.t_false((cons_bool_column->get(0)));
+  helper.t_true(cons_bool_column->get_bool(1));
+  helper.t_false((cons_bool_column->get_bool(0)));
   cons_bool_column->push_back(false);
   helper.t_true(cons_bool_column->size() == 3);
-  helper.t_false(cons_bool_column->get(2));
-  helper.t_true(cons_int_column->get(0) == 0);
-  helper.t_true(cons_int_column->get(1) == 1);
-  helper.t_true(cons_int_column->get(2) == 2);
+  helper.t_false(cons_bool_column->get_bool(2));
+  helper.t_true(cons_int_column->get_int(0) == 0);
+  helper.t_true(cons_int_column->get_int(1) == 1);
+  helper.t_true(cons_int_column->get_int(2) == 2);
   cons_int_column->push_back(100);
-  helper.t_true(cons_int_column->get(3) == 100);
+  helper.t_true(cons_int_column->get_int(3) == 100);
   helper.t_true(cons_int_column->size() == 4);
-  helper.t_true(cons_float_column->get(0) == 0.1f);
-  helper.t_true(cons_float_column->get(1) == 0.2f);
-  helper.t_true(cons_float_column->get(2) == 0.3f);
-  helper.t_true(cons_float_column->get(3) == 0.4f);
+  helper.t_true(cons_float_column->get_float(0) == 0.1f);
+  helper.t_true(cons_float_column->get_float(1) == 0.2f);
+  helper.t_true(cons_float_column->get_float(2) == 0.3f);
+  helper.t_true(cons_float_column->get_float(3) == 0.4f);
   cons_float_column->push_back(0.5f);
-  helper.t_true(cons_float_column->get(4) == 0.5f);
+  helper.t_true(cons_float_column->get_float(4) == 0.5f);
   helper.t_true(cons_float_column->size() == 5);
-  helper.t_true(cons_string_column->get(0)->equals(&str_hello));
-  helper.t_true(cons_string_column->get(1)->equals(&str_world));
-  helper.t_true((cons_string_column->get(2)->equals(&str_avatar)));
+  helper.t_true(cons_string_column->get_string(0)->equals(&str_hello));
+  helper.t_true(cons_string_column->get_string(1)->equals(&str_world));
+  helper.t_true((cons_string_column->get_string(2)->equals(&str_avatar)));
   cons_string_column->push_back(&str_software);
-  helper.t_true(cons_string_column->get(3)->equals(&str_software));
+  helper.t_true(cons_string_column->get_string(3)->equals(&str_software));
   helper.t_true(cons_string_column->size() == 4);
 
   // Free memory accordingly
@@ -426,12 +405,12 @@ void test5() {
   }
 
   // Create a column with a few numbers as well
-  DF_IntColumn c;
+  DF_Column c(ColumnType_Integer);
   for (size_t i = 0; i < 100; i++) {
     c.push_back(static_cast<int>(i + 3));
 
     // Check to make sure it was added correctly
-    helper.t_true(c.get(i) == static_cast<int>(i + 3));
+    helper.t_true(c.get_int(i) == static_cast<int>(i + 3));
   }
 
   // Now add the column 4 times to the dataframe
@@ -452,7 +431,7 @@ void test5() {
     helper.t_true(df.get_int(4, i) == static_cast<int>(i + 3));
     helper.t_true(df.get_int(5, i) == static_cast<int>(i + 3));
 
-    helper.t_true(c.get(i) == static_cast<int>(i + 3));
+    helper.t_true(c.get_int(i) == static_cast<int>(i + 3));
   }
 
   // Change some of the values of the last column of the dataframe

@@ -9,10 +9,10 @@
 
 #pragma once
 
+#include <vector>
 #include "custom_object.h"
 #include "custom_string.h"
 #include "dataframe_column.h"
-#include "dataframe_helper.h"
 #include "row.h"
 #include "rower.h"
 #include "schema.h"
@@ -86,12 +86,12 @@ public:
   static DataFrame *deserialize_as_dataframe(Deserializer &deserializer);
 
 private:
-  Schema *schema;
+  Schema schema;
 
   // ASSERT: This column list will always have the same data type as the
   // schema at any given 0-indexed column index within the bounds of the
   // schema width.
-  ArrayOfArrays *col_list;
+  std::vector<DF_Column *> col_list;
 
   // Cache of the number of rows
   size_t num_rows;

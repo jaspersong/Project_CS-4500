@@ -9,10 +9,10 @@
 
 #pragma once
 
+#include <vector>
 #include "custom_object.h"
 #include "custom_string.h"
-
-#include "dataframe_helper.h"
+#include "dataframe_column.h"
 
 /*************************************************************************
  * Schema::
@@ -35,8 +35,6 @@ public:
    * undefined. **/
   explicit Schema(const char *types);
 
-  ~Schema() override;
-
   /**
    * Adds a column of the given type to the schema.
    * @param typ
@@ -44,12 +42,11 @@ public:
   void add_column(char typ);
 
   /** Return type of column at idx. An idx >= width is undefined. */
-  char col_type(size_t idx);
+  ColumnType_t col_type(size_t idx);
 
   /** The number of columns */
   size_t width();
 
 private:
-  // ASSERT: All items within this list is of type ColumnInfo_.
-  ArrayOfArrays *column_list;
+  std::vector<ColumnType_t> column_list;
 };

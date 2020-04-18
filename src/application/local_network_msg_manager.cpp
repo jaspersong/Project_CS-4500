@@ -15,11 +15,7 @@ LocalNetworkMessageManager::LocalNetworkMessageManager(KeyValueStore *kv_store)
   // Fill the app list with nullptrs to the number of expected nodes to be
   // connected.
   this->all_apps_registered = false;
-  DataItem_ item;
-  item.o = nullptr;
-  for (size_t i = 0; i < this->kv_store->get_num_nodes(); i++) {
-    this->app_list.add_new_item(item);
-  }
+  this->app_list.resize(this->kv_store->get_num_nodes(), nullptr);
 }
 
 size_t LocalNetworkMessageManager::get_home_id() {
@@ -41,8 +37,7 @@ void LocalNetworkMessageManager::send_put(size_t node_id, Key &key,
 
   // This means that we are connected directly through an application.
   // Get the network manager for the target
-  DataItem_ item = this->app_list.get_item(key.get_home_id());
-  auto *other_kv = reinterpret_cast<LocalNetworkMessageManager *>(item.o);
+  auto *other_kv = this->app_list.at(node_id);
   other_kv->handle_put(&put_message);
 }
 
@@ -59,8 +54,7 @@ void LocalNetworkMessageManager::send_waitandget(size_t node_id, Key &key) {
 
   // This means that we are connected directly through an application.
   // Request the dataframe
-  DataItem_ item = this->app_list.get_item(key.get_home_id());
-  auto *other_kv = reinterpret_cast<LocalNetworkMessageManager *>(item.o);
+  auto *other_kv = this->app_list.at(node_id);
   other_kv->handle_waitandget(&wait_get_msg);
 }
 
@@ -78,8 +72,7 @@ void LocalNetworkMessageManager::send_reply(size_t node_id, Key &key,
   reply->set_target_id(node_id);
 
   // Now pass it over to the target network
-  DataItem_ item = this->app_list.get_item(node_id);
-  auto *other_kv = reinterpret_cast<LocalNetworkMessageManager *>(item.o);
+  auto *other_kv = this->app_list.at(node_id);
   other_kv->handle_reply(reply);
 }
 
@@ -91,12 +84,10 @@ void LocalNetworkMessageManager::register_local(LocalNetworkMessageManager *msg_
   assert(!this->all_apps_registered);
 
   // Ensure that this slot has not been taken up by another application
-  DataItem_ item = this->app_list.get_item(msg_manager->get_home_id());
-  assert(item.o == nullptr);
+  assert(this->app_list.at(msg_manager->get_home_id()) == nullptr);
 
   // Now add this application to the slot
-  item.o = msg_manager;
-  this->app_list.set_new_item(msg_manager->get_home_id(), item);
+  this->app_list[msg_manager->get_home_id()] = msg_manager;
 
   // Check to see if all of the apps have been registered
   bool found_unreg_slot = false;
@@ -105,8 +96,7 @@ void LocalNetworkMessageManager::register_local(LocalNetworkMessageManager *msg_
     // app's home node.
     if (i != this->kv_store->get_home_id()) {
       // See if this slot does not have an app registered to it
-      item = this->app_list.get_item(i);
-      if (item.o == nullptr) {
+      if (this->app_list.at(i) == nullptr) {
         found_unreg_slot = true;
         break;
       }
@@ -134,8 +124,7 @@ void LocalNetworkMessageManager::broadcast_value(Key &key,
 
       // This means that we are connected directly through an application.
       // Get the network manager for the target
-      DataItem_ item = this->app_list.get_item(n);
-      auto *other_kv = reinterpret_cast<LocalNetworkMessageManager *>(item.o);
+      auto *other_kv = this->app_list.at(n);
       other_kv->handle_put(&put_message);
     }
   }
