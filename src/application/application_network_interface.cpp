@@ -60,16 +60,30 @@ bool ApplicationNetworkInterface::handle_waitandget(WaitAndGet *msg) {
 }
 
 bool ApplicationNetworkInterface::handle_reply(Reply *msg) {
-  this->reply_queue.enqueue(msg);
+  this->reply_queue_lock.lock();
+  this->reply_queue.push(msg);
+  this->reply_queue_lock.unlock();
+
+  this->reply_signal.notify_all();
   return true;
 }
 
 void ApplicationNetworkInterface::wait_for_reply() {
-  this->reply_queue.wait_for_items();
+  this->reply_queue_lock.lock();
+  if (this->reply_queue.empty()) {
+    this->reply_queue_lock.unlock();
+    this->reply_signal.wait();
+  } else {
+    this->reply_queue_lock.unlock();
+  }
 }
 
 Reply *ApplicationNetworkInterface::get_reply() {
-  return reinterpret_cast<Reply *>(this->reply_queue.dequeue());
+  this->reply_queue_lock.lock();
+  Reply * ret_value = this->reply_queue.front();
+  this->reply_queue.pop();
+  this->reply_queue_lock.unlock();
+  return ret_value;
 }
 
 DataFrame *ApplicationNetworkInterface::get_requested_dataframe() {

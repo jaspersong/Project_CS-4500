@@ -61,7 +61,6 @@ void Demo::counter() {
 
   // Store it into the verify key.
   KeyValueStore::from_scalar(this->verify, this->kv, sum);
-  DistributedValue *counter_df = this->kv->wait_and_get(this->verify);
 }
 
 void Demo::summarizer() {

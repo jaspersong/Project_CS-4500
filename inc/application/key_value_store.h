@@ -164,13 +164,31 @@ private:
     }
   };
 
-  std::map<Key *, DistributedValue *, KeyComp> kv_map;
-  std::map<Key *, DataFrame *, KeyComp> distro_kv_map;
   size_t home_node; // The id of the node this keyvalue store is running on
   size_t num_nodes;
+
+  std::map<Key *, Lock *, KeyComp> waiting_listeners;
+  Lock listener_lock;
+
+  std::map<Key *, DistributedValue *, KeyComp> kv_map;
+  std::map<Key *, DataFrame *, KeyComp> distro_kv_map;
   Lock kv_lock;
   Lock distro_kv_lock;
 
   LocalNetworkMessageManager *local_network_layer;
   RealNetworkMessageManager *real_network_layer;
+
+  /**
+   * Function to signal that whoever is waiting for this key that this key
+   * now is ready and has a value.
+   * @param key
+   */
+  void signal_listener(Key &key);
+
+  /**
+   * Function to wait until the provided key has been added to the key-value
+   * store.
+   * @param key
+   */
+  void wait_for_listener(Key &key);
 };

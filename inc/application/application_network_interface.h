@@ -11,7 +11,7 @@
 
 #include "key_value_store.h"
 #include "recv_msg_manager.h"
-#include "queue.h"
+#include <queue>
 
 /**
  * An implementation of the received message manager that can be used to
@@ -51,7 +51,10 @@ public:
 
 protected:
   KeyValueStore *kv_store;
-  Queue reply_queue;
+
+  std::queue<Reply *> reply_queue;
+  Lock reply_queue_lock;
+  Lock reply_signal;
 
   void wait_for_reply() override;
   Reply *get_reply() override;

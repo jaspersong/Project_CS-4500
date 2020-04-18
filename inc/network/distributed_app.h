@@ -9,8 +9,6 @@
 
 #pragma once
 
-#include "queue.h"
-
 #include "network.h"
 #include "recv_msg_manager.h"
 #include "serial.h"

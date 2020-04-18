@@ -147,6 +147,7 @@ SerializerMessage_::SerializerMessage_(MsgKind type, Serializer &serializer)
   this->deserializer =
       new Deserializer(serializer.get_serialized_buffer(),
                        serializer.get_size_serialized_data(), true);
+  this->set_payload_size(serializer.get_size_serialized_data());
 }
 
 SerializerMessage_::~SerializerMessage_() {

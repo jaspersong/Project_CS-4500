@@ -106,17 +106,7 @@ add_executable(test_suite_kv_store
         "${NETWORK_SRC}"
         "${APP_SRC}")
 
-# Create targets to demo server/client and registrar/node functionality
-add_executable(demo_registrar
-        tests/registrar.cpp
-        "${UTILITY_SRC}"
-        "${DATAFRAME_SRC}"
-        "${NETWORK_SRC}")
-add_executable(demo_node
-        tests/node.cpp
-        "${UTILITY_SRC}"
-        "${DATAFRAME_SRC}"
-        "${NETWORK_SRC}")
+# Create targets to demo the applications without a real network layer
 add_executable(demo_trivial_app_nonet
         tests/trivial_app_nonet.cpp
         "${UTILITY_SRC}"
@@ -133,24 +123,8 @@ add_executable(demo_app_nonet
         "${APP_SRC}"
         inc/application/demo_app.h
         src/application/demo_app.cpp)
-add_executable(demo_app_wnet
-        tests/demo_app_wnet.cpp
-        "${UTILITY_SRC}"
-        "${DATAFRAME_SRC}"
-        "${NETWORK_SRC}"
-        "${APP_SRC}"
-        inc/application/demo_app.h
-        src/application/demo_app.cpp)
 add_executable(demo_wordcount_nonet
         tests/demo_wordcount_nonet.cpp
-        "${UTILITY_SRC}"
-        "${DATAFRAME_SRC}"
-        "${NETWORK_SRC}"
-        "${APP_SRC}"
-        inc/application/word_count_app.h
-        src/application/word_count_app.cpp)
-add_executable(demo_wordcount_wnet
-        tests/demo_wordcount_wnet.cpp
         "${UTILITY_SRC}"
         "${DATAFRAME_SRC}"
         "${NETWORK_SRC}"
@@ -165,6 +139,36 @@ add_executable(demo_linus_nonet
         "${APP_SRC}"
         inc/application/linus_app.h
         src/application/linus_app.cpp)
+
+# Create targets to demo registrar/node functionality
+add_executable(demo_registrar
+        tests/registrar.cpp
+        "${UTILITY_SRC}"
+        "${DATAFRAME_SRC}"
+        "${NETWORK_SRC}")
+add_executable(demo_node
+        tests/node.cpp
+        "${UTILITY_SRC}"
+        "${DATAFRAME_SRC}"
+        "${NETWORK_SRC}")
+
+# Creates targets to demo applications using real networks
+add_executable(demo_app_wnet
+        tests/demo_app_wnet.cpp
+        "${UTILITY_SRC}"
+        "${DATAFRAME_SRC}"
+        "${NETWORK_SRC}"
+        "${APP_SRC}"
+        inc/application/demo_app.h
+        src/application/demo_app.cpp)
+add_executable(demo_wordcount_wnet
+        tests/demo_wordcount_wnet.cpp
+        "${UTILITY_SRC}"
+        "${DATAFRAME_SRC}"
+        "${NETWORK_SRC}"
+        "${APP_SRC}"
+        inc/application/word_count_app.h
+        src/application/word_count_app.cpp)
 add_executable(demo_linus_wnet
         tests/demo_linus_wnet.cpp
         "${UTILITY_SRC}"

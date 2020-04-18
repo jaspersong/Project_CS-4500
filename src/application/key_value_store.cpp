@@ -13,7 +13,7 @@
 #include "local_network_msg_manager.h"
 #include "networked_msg_manager.h"
 #include "sorer_integrator.h"
-#include <unistd.h>
+#include "thread.h"
 
 KeyValueStore::KeyValueStore(size_t num_nodes) {
   assert(num_nodes > 0);
@@ -50,12 +50,7 @@ DistributedValue *KeyValueStore::wait_and_get(Key &key) {
   assert(key.get_home_id() == -1);
 
   // Wait until the key is available on this key-value store
-  std::map<Key *, DistributedValue *, KeyComp>::iterator it;
-  it = this->kv_map.find(&key);
-  while (it == this->kv_map.end()) {
-    sleep(1);
-    it = this->kv_map.find(&key);
-  }
+  this->wait_for_listener(key);
 
   return this->kv_map[&key];
 }
@@ -79,6 +74,9 @@ void KeyValueStore::put(Key &key, DistributedValue *value) {
   // Now add the new value
   this->kv_map[owned_key] = value;
   this->kv_lock.unlock();
+
+  // Signal that we have the value now
+  this->signal_listener(key);
 }
 
 void KeyValueStore::broadcast_value(Key &key, DistributedValue *value) {
@@ -101,6 +99,7 @@ void KeyValueStore::put_df(Key &key, DataFrame *value) {
     std::map<Key *, DataFrame *, KeyComp>::iterator it;
     it = this->distro_kv_map.find(owned_key);
     if (it != this->distro_kv_map.end()) {
+      // Remove the key-value pairs that already exist, if applicable
       delete it->first;
       delete it->second;
     }
@@ -121,15 +120,13 @@ DataFrame *KeyValueStore::wait_and_get_df(Key &key) {
   assert(this->verify_distributed_layer());
 
   if (key.get_home_id() == this->home_node) {
-    // Wait until the key is available on this key-value store
-    std::map<Key *, DataFrame *, KeyComp>::iterator it;
-    it = this->distro_kv_map.find(&key);
-    while (it == this->distro_kv_map.end()) {
-      sleep(1);
-      it = this->distro_kv_map.find(&key);
-    }
-
     this->distro_kv_lock.lock();
+
+    // Given that all values are distributed, and distributed values are
+    // available sent after the distribution of dfs, then we should always
+    // have the dataframe associated with the key available
+    auto it = this->distro_kv_map.find(&key);
+    assert(it != this->distro_kv_map.end());
 
     auto *value = this->distro_kv_map[&key];
     // Now copy the value so it can be owned by the caller.
@@ -165,13 +162,11 @@ DataFrame *KeyValueStore::get_local_df(Key &key) {
   assert(key.get_home_id() < this->num_nodes);
 
   if (key.get_home_id() == this->home_node) {
-    // Wait until the key is available on this key-value store
-    std::map<Key *, DataFrame *, KeyComp>::iterator it;
-    it = this->distro_kv_map.find(&key);
-    while (it == this->distro_kv_map.end()) {
-      sleep(1);
-      it = this->distro_kv_map.find(&key);
-    }
+    // Given that all values are distributed, and distributed values are
+    // available sent after the distribution of dfs, then we should always
+    // have the dataframe associated with the key available
+    auto it = this->distro_kv_map.find(&key);
+    assert(it != this->distro_kv_map.end());
 
     return this->distro_kv_map[&key];
   } else {
@@ -421,4 +416,58 @@ size_t KeyValueStore::from_file(Key &key, KeyValueStore *kv,
   DistributedValue *value = integrator.convert(key, kv);
 
   return value->nrows();
+}
+
+void KeyValueStore::signal_listener(Key &key) {
+  // This should only be available to distributed values
+  assert(key.get_home_id() == -1);
+
+  // Get the appropriate lock
+  this->listener_lock.lock();
+  auto it = this->waiting_listeners.find(&key);
+  if (it != this->waiting_listeners.end()) {
+    // There's a listener. Signal it
+    it->second->notify_all();
+  }
+  this->listener_lock.unlock();
+}
+
+void KeyValueStore::wait_for_listener(Key &key) {
+  // This should only be available to distributed values
+  assert(key.get_home_id() == -1);
+
+  // Return immediately if we have the value for this key already
+  this->kv_lock.lock();
+  auto kv_it = this->kv_map.find(&key);
+  if (kv_it != this->kv_map.end()) {
+    this->kv_lock.unlock();
+    return;
+  }
+  this->kv_lock.unlock();
+
+  // Get a lock to wait on
+  Lock * signal = nullptr;
+  bool created_signal; // Determines if we own the signal, or we borrowed
+  this->listener_lock.lock();
+  auto it = this->waiting_listeners.find(&key);
+  if (it != this->waiting_listeners.end()) {
+    // There's already a listener
+    signal = it->second;
+    created_signal = false;
+  } else {
+    // Create a signal and then add it to the listeners
+    signal = new Lock();
+    created_signal = true;
+    this->waiting_listeners[&key] = signal;
+  }
+  this->listener_lock.unlock();
+
+  // Now wait on the signal
+  signal->wait();
+
+  // Got the signal. Now remove it from the listener map if needed
+  if (created_signal) {
+    this->waiting_listeners.erase(&key);
+    delete signal;
+  }
 }
