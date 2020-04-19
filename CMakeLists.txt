@@ -135,12 +135,12 @@ add_executable(demo_linus_nonet
 
 # Create targets to demo registrar/node functionality
 add_executable(demo_registrar
-        tests/registrar.cpp
+        tests/demo_registrar.cpp
         "${UTILITY_SRC}"
         "${DATAFRAME_SRC}"
         "${NETWORK_SRC}")
 add_executable(demo_node
-        tests/node.cpp
+        tests/demo_node.cpp
         "${UTILITY_SRC}"
         "${DATAFRAME_SRC}"
         "${NETWORK_SRC}")
