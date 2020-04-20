@@ -6,7 +6,6 @@ build_all:
 test_all: build_all
 	-cd ./build; ./test_suite_dataframe && echo "SUCCESS"
 	-cd ./build; ./test_suite_messages && echo "SUCCESS"
-	-cd ./build; ./test_suite_network && echo "SUCCESS"
 	-cd ./build; ./test_suite_sorer && echo "SUCCESS"
 	-cd ./build; ./test_suite_kv_store && echo "SUCCESS"
 	-cd ./build; ./demo_trivial_app_nonet && echo "SUCCESS"
@@ -19,7 +18,6 @@ test_all: build_all
 test_valgrind: build_all
 	-cd ./build; valgrind --leak-check=yes ./test_suite_dataframe
 	-cd ./build; valgrind --leak-check=yes ./test_suite_messages
-	-cd ./build; valgrind --leak-check=yes ./test_suite_network
 	-cd ./build; valgrind --leak-check=yes ./test_suite_sorer
 	-cd ./build; valgrind --leak-check=yes ./test_suite_kv_store
 	-cd ./build; valgrind --leak-check=yes ./demo_trivial_app_nonet

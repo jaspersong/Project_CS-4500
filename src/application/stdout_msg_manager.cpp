@@ -15,20 +15,22 @@ StdoutMessageManager::StdoutMessageManager(size_t std_id) {
 
 bool StdoutMessageManager::handle_put(Put *msg) {
   (void)msg;
-  printf("%zu: Received a put message.\n", this->std_id);
+  printf("%zu: Received a put message from %zu.\n", this->std_id,
+      msg->get_sender_id());
   return false;
 }
 
 bool StdoutMessageManager::handle_waitandget(WaitAndGet *msg) {
   (void)msg;
-  printf("%zu: Received a Wait and Get message.\b", this->std_id);
+  printf("%zu: Received a Wait and Get message from %zu.\b", this->std_id,
+      msg->get_sender_id());
   return false;
 }
 
 bool StdoutMessageManager::handle_status(Status *msg) {
   String *status_message = msg->get_message();
-  printf("%zu: Received a status message: %s\n", this->std_id,
-         status_message->c_str());
+  printf("%zu: Received a status message from %zu: %s\n", this->std_id,
+         msg->get_sender_id(), status_message->c_str());
   delete status_message;
 
   return false;

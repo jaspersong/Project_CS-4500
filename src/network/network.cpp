@@ -1,142 +1,184 @@
 /**
  * Name: Snowy Chen, Joe Song
- * Date: 22 March 2020
+ * Date: 21 March 2020
  * Section: Jason Hemann, MR 11:45-1:25
  * Email: chen.xinu@husky.neu.edu, song.jo@husky.neu.edu
  */
 
 // Lang::Cpp
 
+#include "network.h"
+#include "serial.h"
+#include <arpa/inet.h>
 #include <cstdlib>
 #include <cstring>
-
-#include <unistd.h>
-
-#include <arpa/inet.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
+#include <unistd.h>
 
-#include "network.h"
+Network::Network(size_t id, const char *ip_addr, int port_num,
+                 size_t max_connections)
+    : ip_addr(ip_addr) {
+  assert(ip_addr);
+  assert(max_connections > 0);
 
-/**
- * A private container that holds information of outgoing messages for the
- * Server and Client. This object should only be used by the abstract Server
- * and Client classes.
- *
- * The whole purpose is to allow message information to go into a queue of
- * outgoing messages in the client and the server.
- */
-class OutgoingMessage_ : public CustomObject {
-public:
-  size_t client_id;
-  unsigned char *sending_buffer;
-  size_t message_size;
-
-  /**
-   * Constructs this container. The buffer is external.
-   * @param client_id The destination client id. Only relevant to the Server.
-   * @param sending_buffer Pointer to the buffer containing the outgoing
-   *        message. The passed in buffer will now be owned by the container.
-   * @param message_size Size of the message in bytes
-   */
-  OutgoingMessage_(size_t client_id, unsigned char *sending_buffer,
-                   size_t message_size) {
-    this->client_id = client_id;
-    this->sending_buffer = sending_buffer;
-    this->message_size = message_size;
-  }
-
-  /**
-   * Deconstructs the container.
-   */
-  ~OutgoingMessage_() override {
-    this->client_id = 0;
-    delete[] this->sending_buffer;
-    this->message_size = 0;
-  }
-};
-
-Server::Server(String *ip_addr, int port_num)
-    : Server(ip_addr, port_num, 1, Server::DEFAULT_MAX_RECEIVE_SIZE) {}
-
-Server::Server(String *ip_addr, int port_num, size_t max_clients,
-               size_t max_receive_size) {
-  assert(ip_addr != nullptr);
-  assert(max_clients > 0);
-  assert(max_receive_size > 0);
-
-  // Initialize the server information
-  this->continue_running = true;
+  this->continue_running = false;
   this->is_running = false;
 
-  this->ip_addr = ip_addr;
+  this->id = id;
   this->port_num = port_num;
-  this->server_fd = 0;
+  this->listening_socket = 0;
 
-  // Initialize the client list
-  this->max_clients = max_clients;
-  this->clients_sockets = new int[this->max_clients];
-  this->max_socket_descriptor = 0;
+  // Initialize the incoming connections list
+  this->max_connections = max_connections;
+  this->connection_sockets = new int[this->max_connections];
 
-  // Initialize the message buffers
-  this->max_receive_size = max_receive_size;
-  this->receive_buffer = new unsigned char[max_receive_size];
+  // Initialize the message receiver
+  this->msg_buffer_size = 1024;
+  this->msg_buffer_index = 0;
+  this->msg_buffer = new unsigned char[this->msg_buffer_size];
 }
 
-Server::~Server() {
-  this->close_server();
+Network::~Network() {
+  this->close_network();
 
-  // Wait until the server stops running
-  while (this->running()) {
-  }
+  delete[] this->connection_sockets;
+  delete[] this->msg_buffer;
+}
 
-  // Free the memory as appropriate
-  delete this->ip_addr;
-  delete[] this->clients_sockets;
-  delete[] this->receive_buffer;
-  while (!this->outgoing_message_queue.empty()) {
-    delete this->outgoing_message_queue.front();
-    this->outgoing_message_queue.pop();
+void Network::close_network() {
+  if (this->is_running) {
+    this->println(StrBuff().c("Shutting down network."));
+    this->continue_running = false;
+    this->join();
   }
 }
 
-void Server::run() {
+bool Network::is_id_connected(size_t connection_id) {
+  assert(connection_id < this->max_connections);
+  return (connection_id == this->id) ||
+         (this->connection_sockets[connection_id] != 0);
+}
+
+void Network::initiate_connection(size_t connection_id,
+                                  String *connection_ip_addr,
+                                  int connection_port_num) {
+  assert(connection_id < this->max_connections);
+
+  if (this->is_id_connected(connection_id)) {
+    // No need to do anything if it's already connected
+    return;
+  }
+
+  struct sockaddr_in connection {};
+  connection.sin_family = AF_INET;
+  connection.sin_port = htons(connection_port_num);
+
+  // Initiate the connection
+  int new_socket = socket(AF_INET, SOCK_STREAM, 0);
+  assert(new_socket >= 0);
+  assert(inet_pton(AF_INET, connection_ip_addr->c_str(), &connection.sin_addr) >
+         0);
+  assert(connect(new_socket, (struct sockaddr *)&connection,
+                 sizeof(connection)) >= 0);
+
+  // Add the new socket
+  this->connection_lock.lock();
+  this->connection_sockets[connection_id] = new_socket;
+  this->connection_lock.unlock();
+
+  this->println(StrBuff().c("Initiated new connection to ").c(connection_id));
+
+  // Give it a few seconds for the connection to fully establish
+  Thread::sleep(2000);
+}
+
+void Network::close_connection(size_t connection_id) {
+  assert(connection_id < this->max_connections);
+
+  if (!this->is_id_connected(connection_id)) {
+    // No need to do anything if nothing's connected
+    return;
+  } else {
+    this->connection_lock.lock();
+    close(this->connection_sockets[connection_id]);
+    this->connection_sockets[connection_id] = 0;
+    this->connection_lock.unlock();
+
+    this->println(StrBuff().c("Closed connection to ").c(connection_id));
+  }
+}
+
+void Network::send_message(size_t target_id, Message &msg) {
+  assert(target_id < this->max_connections);
+
+  // Prepare the message to be sent
+  msg.set_target_id(target_id);
+  msg.set_sender_id(this->id);
+  Serializer serialized_message;
+  msg.serialize(serialized_message);
+  unsigned char *message = serialized_message.get_serialized_buffer();
+  size_t message_size = serialized_message.get_size_serialized_data();
+
+  // Send the message
+  if (this->connection_sockets[target_id] != 0) {
+    this->outgoing_msg_lock.lock();
+    send(this->connection_sockets[target_id], message, message_size, 0);
+    this->outgoing_msg_lock.unlock();
+
+    sleep(1000);
+    this->println(StrBuff().c("Sent message to ").c(target_id));
+  }
+
+  // Clean up
+  delete[] message;
+}
+
+void Network::broadcast_message(Message &msg) {
+  for (size_t i = 0; i < this->max_connections; i++) {
+    if (i != this->id) {
+      this->send_message(i, msg);
+    }
+  }
+}
+
+void Network::run() {
   // A lot of the code has been based off of the following tutorial:
   // https://www.geeksforgeeks.org/socket-programming-in-cc-handling-multiple
   // -clients-on-server-without-multi-threading/
 
   int activity;
+  fd_set connection_selector{};
+  int max_socket_desc = 0;
 
+  this->continue_running = true;
   this->is_running = true;
 
-  // Initialize the socket for the server
-  this->initialize_server();
-
-  this->init();
+  this->initialize_listening_socket();
+  this->handle_initialization();
 
   while (this->continue_running) {
     // Yield and then lock for the loop
-    Server::yield();
-    this->loop_lock.lock();
+    Thread::yield();
 
     // Re-initialize the fd set in order to prepare for the polling.
-    FD_ZERO(&this->socket_set);
+    FD_ZERO(&connection_selector);
 
     // Add the master socket back into the set
-    FD_SET(this->server_fd, &this->socket_set);
-    this->max_socket_descriptor = this->server_fd;
+    FD_SET(this->listening_socket, &connection_selector);
+    max_socket_desc = this->listening_socket;
 
     // Add the child sockets to the set
-    for (size_t i = 0; i < this->max_clients; i++) {
-      int client = this->clients_sockets[i];
+    for (size_t i = 0; i < this->max_connections; i++) {
+      int client = this->connection_sockets[i];
       if (client > 0) {
         // This client is connected. Add it to the set.
-        FD_SET(client, &this->socket_set);
+        FD_SET(client, &connection_selector);
       }
-      if (client > this->max_socket_descriptor) {
+      if (client > max_socket_desc) {
         // This client's file descriptor is the largest file descriptor
         // thus far.
-        this->max_socket_descriptor = client;
+        max_socket_desc = client;
       }
     }
 
@@ -145,363 +187,167 @@ void Server::run() {
     struct timeval poll_receive_timeout {};
     poll_receive_timeout.tv_sec = 0;
     poll_receive_timeout.tv_usec = 100;
-    activity = select(this->max_socket_descriptor + 1, &this->socket_set,
-                      nullptr, nullptr, &poll_receive_timeout);
+    activity = select(max_socket_desc + 1, &connection_selector, nullptr,
+                      nullptr, &poll_receive_timeout);
     if (activity != 0) {
       // Something happened in one of the sockets. Handle it.
-      if (FD_ISSET(this->server_fd, &this->socket_set)) {
-        // Something happened on the master socket, which means it's a new
+      if (FD_ISSET(this->listening_socket, &connection_selector)) {
+        // Something happened on the listening socket, which means it's a new
         // connection from a new client.
         this->add_new_connection();
       }
 
-      // Handle the client connections now
-      this->manage_client_connections();
-    }
+      // Handle activity from the other connections
+      for (size_t i = 0; i < this->max_connections; i++) {
+        int sd = this->connection_sockets[i];
 
-    this->outgoing_queue_lock.lock();
-    if (!this->outgoing_message_queue.empty()) {
-      // A message is queued up. Send it.
-      auto *msg_info = this->outgoing_message_queue.front();
-      this->outgoing_message_queue.pop();
-      this->outgoing_queue_lock.unlock();
-
-      // The queue should only ever contain valid outgoing message
-      // information.
-      assert(msg_info != nullptr);
-      assert(msg_info->client_id < this->max_clients);
-
-      // Send the message if the client is alive. Otherwise, just throw it
-      // away.
-      if (this->clients_sockets[msg_info->client_id] != 0) {
-        send(this->clients_sockets[msg_info->client_id],
-             msg_info->sending_buffer, msg_info->message_size, 0);
+        if (FD_ISSET(sd, &connection_selector)) {
+          Message *msg = this->read_socket(i);
+          if (msg != nullptr) {
+            this->handle_incoming_message(i, msg);
+          }
+        }
       }
-
-      // No need for the sending buffer anymore. Clear it out now.
-      delete msg_info;
-    } else {
-      this->outgoing_queue_lock.unlock();
-    }
-
-    this->run_server();
-    this->loop_lock.unlock();
-  }
-
-  // Close the servers and the clients and then clean up
-  this->handle_shutdown();
-  for (size_t i = 0; i < this->max_clients; i++) {
-    if (this->clients_sockets[i] != 0) {
-      close(this->clients_sockets[i]);
-      this->clients_sockets[i] = 0;
     }
   }
-  close(this->server_fd);
-  this->server_fd = 0;
+
+  this->connection_lock.lock();
+  for (size_t i = 0; i < this->max_connections; i++) {
+    if (this->connection_sockets[i] != 0) {
+      close(this->connection_sockets[i]);
+      this->connection_sockets[i] = 0;
+    }
+  }
+  this->connection_lock.unlock();
+
+  close(this->listening_socket);
+  this->listening_socket = 0;
 
   this->is_running = false;
 }
 
-void Server::close_server() {
-  if (this->running()) {
-    this->continue_running = false;
-    this->join();
-  }
-}
-
-bool Server::send_message(size_t client_id, unsigned char *message,
-                          size_t bytes) {
-  if (message == nullptr) {
-    return false;
-  }
-  if ((client_id < 0) || (client_id > this->max_clients)) {
-    return false;
-  }
-
-  // Queue this message up.
-  auto *msg_info = new OutgoingMessage_(client_id, message, bytes);
-  this->outgoing_queue_lock.lock();
-  this->outgoing_message_queue.push(msg_info);
-  this->outgoing_queue_lock.unlock();
-  return true;
-}
-
-bool Server::is_client_connected(size_t client_id) {
-  if ((client_id < 0) || (client_id > this->max_clients)) {
-    return false;
-  } else {
-    return (this->clients_sockets[client_id] != 0);
-  }
-}
-
-bool Server::initiate_connection(size_t client_id, String *ip_addr,
-                                 int port_num) {
-  if ((client_id < 0) || (client_id > this->max_clients)) {
-    return false;
-  }
-
-  // Make sure that there is no connection already
-  if (this->is_client_connected(client_id)) {
-    return false;
-  }
-
-  struct sockaddr_in connection {};
-  connection.sin_family = AF_INET;
-  connection.sin_port = htons(port_num);
-
-  // Initiate the connection
-  int new_socket = socket(AF_INET, SOCK_STREAM, 0);
-  assert(new_socket >= 0);
-  assert(inet_pton(AF_INET, ip_addr->c_str(), &connection.sin_addr) > 0);
-  assert(connect(new_socket, (struct sockaddr *)&connection,
-                 sizeof(connection)) >= 0);
-
-  // Add the new socket
-  this->loop_lock.lock();
-  this->clients_sockets[client_id] = new_socket;
-
-  // Call the handle incoming connection, even though the server initiated
-  // the server.
-  this->handle_incoming_connection(client_id, ip_addr, port_num);
-
-  this->loop_lock.unlock();
-  return true;
-}
-
-void Server::close_connection(size_t client_id) {
-  if ((client_id < 0) || (client_id > this->max_clients)) {
-    return;
-  }
-
-  if (this->is_client_connected(client_id)) {
-    this->loop_lock.lock();
-
-    close(this->clients_sockets[client_id]);
-    this->clients_sockets[client_id] = 0;
-
-    // Call the handle closing connection since we just closed a connection.
-    this->handle_closing_connection(client_id);
-
-    this->loop_lock.unlock();
-  }
-}
-
-void Server::initialize_server() {
+void Network::initialize_listening_socket() {
   int opt = 1;
   struct sockaddr_in addr {};
 
   // Initialize all the client sockets to 0, which means that they aren't
   // being used
-  for (size_t i = 0; i < this->max_clients; i++) {
-    this->clients_sockets[i] = 0;
+  this->connection_lock.lock();
+  for (size_t i = 0; i < this->max_connections; i++) {
+    this->connection_sockets[i] = 0;
   }
+  this->connection_lock.unlock();
 
   // Create the server socket, and set it to allow multiple connections
-  this->server_fd = socket(AF_INET, SOCK_STREAM, 0);
-  assert(this->server_fd != 0);
-  assert(setsockopt(this->server_fd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT,
-                    &opt, sizeof(opt)) != 0);
+  this->listening_socket = socket(AF_INET, SOCK_STREAM, 0);
+  assert(this->listening_socket != 0);
+  assert(setsockopt(this->listening_socket, SOL_SOCKET,
+                    SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt)) != 0);
 
   // Type of socket created
   addr.sin_family = AF_INET;
-  assert(inet_pton(AF_INET, this->ip_addr->c_str(), &addr.sin_addr) > 0);
+  assert(inet_pton(AF_INET, this->ip_addr.c_str(), &addr.sin_addr) > 0);
   addr.sin_port = htons(this->port_num);
 
   // Attaching socket to the port specified
-  assert(bind(this->server_fd, (struct sockaddr *)&addr, sizeof(addr)) >= 0);
-  assert(listen(this->server_fd, 3) >= 0);
+  assert(bind(this->listening_socket, (struct sockaddr *)&addr, sizeof(addr)) >=
+         0);
+  assert(listen(this->listening_socket, this->max_connections) >= 0);
 }
 
-void Server::add_new_connection() {
+void Network::add_new_connection() {
   int new_socket;
   struct sockaddr_in addr {};
   const int addrlen = sizeof(addr);
 
-  new_socket =
-      accept(this->server_fd, (struct sockaddr *)&addr, (socklen_t *)&addrlen);
+  new_socket = accept(this->listening_socket, (struct sockaddr *)&addr,
+                      (socklen_t *)&addrlen);
   assert(new_socket >= 0);
 
   // Find an empty client position/id
-  for (size_t i = 0; i < this->max_clients; i++) {
-    if (this->clients_sockets[i] == 0) {
+  this->connection_lock.lock();
+  for (size_t i = 0; i < this->max_connections; i++) {
+    if ((i != this->id) && (this->connection_sockets[i] == 0)) {
       // Found an empty spot. Add it in, and call the handle callback function
-      this->clients_sockets[i] = new_socket;
-
-      // Get the address of the client
-      struct in_addr ip_addr = addr.sin_addr;
-      char addr_cstr[INET_ADDRSTRLEN];
-      inet_ntop(AF_INET, &ip_addr, addr_cstr, INET_ADDRSTRLEN);
-      auto *addr_str = new String(addr_cstr);
-
-      this->handle_incoming_connection(i, addr_str, (int)ntohs(addr.sin_port));
-
-      delete addr_str;
-
+      this->connection_sockets[i] = new_socket;
+      printf("%zu: New id %zu initiated connection\n", this->id, i);
       break;
     }
   }
+  this->connection_lock.unlock();
 }
 
-void Server::manage_client_connections() {
-  struct sockaddr_in addr {};
-  const int addrlen = sizeof(addr);
+Message *Network::read_socket(int connection_id) {
+  Message *full_msg = nullptr;
 
-  for (size_t i = 0; i < this->max_clients; i++) {
-    int sd = this->clients_sockets[i];
-
-    if (FD_ISSET(sd, &this->socket_set)) {
-      // The activity is on this client. Read from it
-      int bytes_read = read(sd, this->receive_buffer, this->max_receive_size);
-
-      if (bytes_read == 0) {
-        // This is a closing connection.
-        getpeername(sd, (struct sockaddr *)&addr, (socklen_t *)&addrlen);
-        close(sd);
-        this->clients_sockets[i] = 0;
-
-        // Call the callback
-        this->handle_closing_connection(i);
-      } else if (bytes_read != -1) {
-        // This is a received message. Call the callback function
-        this->handle_incoming_message(i, this->receive_buffer, bytes_read);
-      }
+  // Prepare the buffer for the read
+  if (this->msg_buffer_size - this->msg_buffer_index == 0) {
+    // There isn't much room left. Increase the size
+    this->msg_buffer_size *= this->msg_buffer_size;
+    auto *new_buffer = new unsigned char[this->msg_buffer_size];
+    for (size_t i = 0; i < this->msg_buffer_index; i++) {
+      new_buffer[i] = this->msg_buffer[i];
     }
-  }
-}
-
-Client::Client(String *server_ip_addr, int server_port_num)
-    : Client(server_ip_addr, server_port_num,
-             Client::DEFAULT_MAX_RECEIVE_SIZE) {}
-
-Client::Client(String *server_ip_addr, int server_port_num,
-               size_t max_receive_size) {
-  this->continue_running = true;
-  this->is_running = false;
-
-  this->server_ip_addr = server_ip_addr;
-  this->server_port_num = server_port_num;
-  this->server_fd = 0;
-
-  // Initialize the message buffers
-  this->max_receive_size = max_receive_size;
-  this->receive_buffer = new unsigned char[max_receive_size];
-}
-
-Client::~Client() {
-  this->close_client();
-
-  // Wait until the server stops running
-  while (this->running()) {
+    delete[] this->msg_buffer;
+    this->msg_buffer = new_buffer;
   }
 
-  // Free the memory as appropriate
-  delete this->server_ip_addr;
-  delete[] this->receive_buffer;
-  while (!this->outgoing_message_queue.empty()) {
-    delete this->outgoing_message_queue.front();
-    this->outgoing_message_queue.pop();
-  }
-}
+  int bytes_read = read(this->connection_sockets[connection_id],
+                        this->msg_buffer + this->msg_buffer_index,
+                        this->msg_buffer_size - this->msg_buffer_index);
 
-void Client::run() {
-  // Initialize the socket for the client
-  struct sockaddr_in serv {};
+  if (bytes_read == 0) {
+    // This is a closing connection.
+    struct sockaddr_in addr {};
+    const int addrlen = sizeof(addr);
 
-  this->is_running = true;
+    this->connection_lock.lock();
+    getpeername(this->connection_sockets[connection_id],
+                (struct sockaddr *)&addr, (socklen_t *)&addrlen);
+    close(this->connection_sockets[connection_id]);
+    this->connection_sockets[connection_id] = 0;
+    this->connection_lock.unlock();
 
-  this->server_fd = socket(AF_INET, SOCK_STREAM, 0);
-  assert(this->server_fd >= 0);
-  serv.sin_family = AF_INET;
-  serv.sin_port = htons(this->server_port_num);
+    // Call the callback
+    this->handle_closing_connection(connection_id);
+  } else if (bytes_read != -1) {
+    this->msg_buffer_index += bytes_read;
 
-  // Convert IP address from text to binary form
-  assert(inet_pton(AF_INET, this->server_ip_addr->c_str(), &serv.sin_addr) >
-         0);
-  assert(connect(this->server_fd, (struct sockaddr *)&serv, sizeof(serv)) >=
-         0);
+    // Interpret this as a message
+    Message *header = Message::deserialize_as_message_header(
+        this->msg_buffer, this->msg_buffer_index);
+    // Determine if it's a full message if the collected buffer is big enough
+    // to hold the data that the message header promises
+    if (header != nullptr) {
+      if (header->get_payload_size() ==
+          this->msg_buffer_index - Message::HEADER_SIZE) {
+        full_msg = Message::deserialize_as_message(this->msg_buffer,
+                                                   this->msg_buffer_index);
+        this->msg_buffer_index = 0;
+      } else if (header->get_payload_size() <
+                 this->msg_buffer_index - Message::HEADER_SIZE) {
+        full_msg = Message::deserialize_as_message(this->msg_buffer,
+                                                   this->msg_buffer_index);
 
-  // Give some time for the server to finish establishing the connection
-  // with this new client.
-  sleep(5000); // 5 seconds
-
-  this->init();
-
-  while (this->continue_running) {
-    // Re-initialize the file descriptor set to prepare the polling
-    FD_ZERO(&this->fd_selector);
-    FD_SET(this->server_fd, &this->fd_selector);
-
-    // Poll for activity from the socket
-    // TODO: Make the polling timeout be configurable
-    struct timeval poll_receive_timeout {};
-    poll_receive_timeout.tv_sec = 0;
-    poll_receive_timeout.tv_usec = 100;
-    int activity = select(this->server_fd + 1, &this->fd_selector, NULL, NULL,
-                          &poll_receive_timeout);
-    if (activity != 0) {
-      // The activity is on this client. Read from it. It's okay to read
-      // directly because it is the only one in the file descriptor selector.
-      int bytes_read = read(this->server_fd, this->receive_buffer,
-                            this->max_receive_size);
-      if (bytes_read == 0) {
-        // This is a closing connection.
-        this->handle_closing_connection();
-        this->continue_running = false;
-        break;
-      } else if (bytes_read != -1) {
-        // this is a received message. Call the callback function
-        this->handle_incoming_message(this->receive_buffer, bytes_read);
+        // Move the left over to the beginning
+        size_t prev_message_size =
+            header->get_payload_size() + Message::HEADER_SIZE;
+        for (size_t i = 0; i < this->msg_buffer_index - prev_message_size;
+             i++) {
+          this->msg_buffer[i] = this->msg_buffer[i + prev_message_size];
+        }
+        this->msg_buffer_index = this->msg_buffer_index - prev_message_size;
       }
     }
 
-    this->outgoing_queue_lock.lock();
-    if (!this->outgoing_message_queue.empty()) {
-      // A message is queued up. Send it.
-      auto *msg_info = this->outgoing_message_queue.front();
-      this->outgoing_message_queue.pop();
-      this->outgoing_queue_lock.unlock();
-
-      // The queue should only ever contain valid outgoing message
-      // information.
-      assert(msg_info != nullptr);
-
-      // Send the message
-      send(this->server_fd, msg_info->sending_buffer, msg_info->message_size,
-           0);
-
-      // No need for the sending buffer anymore. Clear it out now.
-      delete msg_info;
-    } else {
-      this->outgoing_queue_lock.unlock();
-    }
-
-    this->run_client();
+    delete header;
   }
 
-  // Close the client
-  this->handle_shutdown();
-  close(this->server_fd);
-  this->server_fd = 0;
-
-  this->is_running = false;
+  return full_msg;
 }
 
-void Client::close_client() {
-  if (this->running()) {
-    this->continue_running = false;
-    this->join();
-  }
-}
-
-bool Client::send_message(unsigned char *message, size_t bytes) {
-  if (message == nullptr) {
-    return false;
-  }
-
-  // Queue this message up.
-  auto *msg_info = new OutgoingMessage_(0, message, bytes);
-  this->outgoing_queue_lock.lock();
-  this->outgoing_message_queue.push(msg_info);
-  this->outgoing_queue_lock.unlock();
-  return true;
+void Network::println(StrBuff &msg) {
+  String *message = msg.get();
+  printf("%zu: %s\n", this->id, message->c_str());
+  delete message;
 }

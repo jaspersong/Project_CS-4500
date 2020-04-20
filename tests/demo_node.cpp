@@ -7,30 +7,27 @@
 
 // Lang::CwC
 
-#include <unistd.h>
-#include "distributed_app.h"
+#include "distributed_app_network_layer.h"
 #include "stdout_msg_manager.h"
+#include <unistd.h>
 
 int main(int argc, char **argv) {
   // Creates a server that sends all strings provided as arguments to the
   // client that connects to it.
-  StdoutMessageManager msg_manager0(10);
-  StdoutMessageManager msg_manager1(20);
-  StdoutMessageManager dm_msg_manager0(11);
-  StdoutMessageManager dm_msg_manager1(21);
-  Node *client0 =
-      new Node(new String("127.0.0.1"), 1234, new String("127.0.0.1"), 1235, 4,
-               msg_manager0, dm_msg_manager0);
-  Node *client1 =
-      new Node(new String("127.0.0.1"), 1234, new String("127.0.0.1"), 1236, 4,
-               msg_manager1, dm_msg_manager1);
+  StdoutMessageManager msg_manager0(1);
+  StdoutMessageManager msg_manager1(2);
+  Node client1("127.0.0.1", 1234,
+      "127.0.0.1", 1235, 3,
+      &msg_manager0);
+  Node client2("127.0.0.1", 1234,
+               "127.0.0.1", 1236, 3,
+               &msg_manager0);
 
   // Run the server on localhost with port 1234
-  client0->start();
-  sleep(10); // Let the client0 be assigned the node id 0 before starting node 1
-  client1->start();
-  sleep(10); // Let client1 be assigned the node id 1 and establish direct
-  // communication with other nodes.
+  client1.start();
+  sleep(5);
+  client2.start();
+  sleep(5);
 
   // Queue up some messages from client 1 to client 0.
   for (int i = 0; i < argc; i++) {
@@ -38,14 +35,21 @@ int main(int argc, char **argv) {
     Status status(status_message);
 
     printf("Sending status message: %s\n", argv[i]);
-    client1->send_direct_message(0, status);
+    client1.send_message(0, status);
+  }
+
+  // Queue up some more messages from client 2
+  for (int i = 0; i < argc; i++) {
+    String status_message(argv[i]);
+    Status status(status_message);
+
+    printf("Sending status message: %s\n", argv[i]);
+    client2.send_message(0, status);
+    client2.send_message(1, status);
   }
 
   sleep(15);
-  client0->close_client();
-  client1->close_client();
-  delete client0;
-  delete client1;
+  client1.close_network();
 
   return 0;
 }

@@ -48,8 +48,8 @@ set(DATAFRAME_SRC
 set(NETWORK_SRC
         inc/messages/serial.h
         src/messages/serial.cpp
-        inc/network/distributed_app.h
-        src/network/distributed_app.cpp
+        inc/network/distributed_app_network_layer.h
+        src/network/distributed_app_network_layer.cpp
         inc/network/network.h
         src/network/network.cpp
         inc/network/recv_msg_manager.h
@@ -81,10 +81,6 @@ add_executable(test_suite_messages
         "${UTILITY_SRC}"
         inc/messages/serial.h
         src/messages/serial.cpp)
-add_executable(test_suite_network
-        tests/test_network.cpp
-        "${UTILITY_SRC}"
-        "${NETWORK_SRC}")
 add_executable(test_suite_sorer
         tests/test_sorer.cpp
         "${UTILITY_SRC}"

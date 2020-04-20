@@ -9,6 +9,7 @@
 
 #pragma once
 
+#include <vector>
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include "custom_string.h"
@@ -277,6 +278,6 @@ public:
 
 private:
   size_t clients;
-  size_t *ports;      // owned
-  String **addresses; // owned; strings owned
+  std::vector<size_t> ports;      // owned
+  std::vector<String *> addresses;
 };

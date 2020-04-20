@@ -312,8 +312,8 @@ Directory::Directory(size_t max_clients) : Message(MsgKind::Directory) {
   assert(max_clients > 0);
 
   this->clients = max_clients;
-  this->ports = new size_t[this->clients];
-  this->addresses = new String *[this->clients];
+  this->ports.resize(this->clients, 0);
+  this->addresses.resize(this->clients, nullptr);
   for (size_t i = 0; i < this->clients; i++) {
     this->ports[i] = 0;
     this->addresses[i] = nullptr;
@@ -329,13 +329,13 @@ Directory::Directory(unsigned char *payload, size_t num_bytes)
   this->clients = deserializer.get_size_t();
 
   // Get the ports
-  this->ports = new size_t[this->clients];
+  this->ports.resize(this->clients, 0);
   for (size_t i = 0; i < this->clients; i++) {
     this->ports[i] = deserializer.get_size_t();
   }
 
   // Get the addresses
-  this->addresses = new String *[this->clients];
+  this->addresses.resize(this->clients, nullptr);
   for (size_t i = 0; i < this->clients; i++) {
     String *address = String::deserialize_as_string(deserializer);
     if (address->equals(&blank_string)) {
@@ -349,13 +349,9 @@ Directory::Directory(unsigned char *payload, size_t num_bytes)
 }
 
 Directory::~Directory() {
-  delete[] this->ports;
   for (size_t i = 0; i < this->clients; i++) {
-    if (this->addresses[i] != nullptr) {
-      delete this->addresses[i];
-    }
+    delete this->addresses[i];
   }
-  delete[] this->addresses;
   this->clients = 0;
 }
 

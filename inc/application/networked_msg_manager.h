@@ -10,7 +10,7 @@
 #pragma once
 
 #include "application_network_interface.h"
-#include "distributed_app.h"
+#include "distributed_app_network_layer.h"
 
 /**
  * An implementation of an interface between an application and a network
