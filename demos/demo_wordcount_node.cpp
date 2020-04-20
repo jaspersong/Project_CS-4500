@@ -8,18 +8,19 @@
 // Lang::Cpp
 
 #include <unistd.h>
-#include "argparser.h"
-#include "demo_app.h"
+#include "word_count_app.h"
+#include "stdout_msg_manager.h"
 #include "networked_msg_manager.h"
+#include "argparser.h"
 
 int main(int argc, char **argv) {
-  ArgParser args(ArgParser::ParseTypes::Node, argc, argv);
+  ArgParser args(ArgParser::ParseTypes::WordCountNode, argc, argv);
 
-  Demo app;
+  WordCount app("");
   RealNetworkMessageManager *app_manager = app.connect_network();
   Node node(args.get_registrar_addr(), args.get_registrar_port(),
-      args.get_listener_addr(), args.get_listener_port(),
-      3, app_manager);
+            args.get_listener_addr(), args.get_listener_port(),
+            3, app_manager);
 
   // Start up the registrar and the application
   node.start();

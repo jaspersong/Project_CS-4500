@@ -221,6 +221,7 @@ void Network::run() {
   this->listening_socket = 0;
 
   this->is_running = false;
+  this->println(StrBuff().c("Shut down"));
 }
 
 void Network::initialize_listening_socket() {
@@ -366,4 +367,9 @@ void Network::println(StrBuff &msg) {
   (void)msg;
   (void)this->id;
 #endif
+}
+
+void Network::self_shutdown() {
+  this->println(StrBuff().c("Closing network down..."));
+  this->continue_running = false;
 }

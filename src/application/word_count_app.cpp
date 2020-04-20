@@ -199,7 +199,7 @@ bool WordCountMerger::accept(Row &r) {
 
 /****************************************************************************/
 
-WordCount::WordCount(String &file_name) :
+WordCount::WordCount(const char *file_name) :
   Application(WordCount::NUM_NODES), file_name(file_name) {
   // Dynamically create the keys containing the final word count dataframe
   for (size_t i = 0; i < WordCount::NUM_NODES; i++) {
@@ -263,4 +263,5 @@ void WordCount::merge_counts() {
   // Now print out the word counter
   printf("Different words: %zu\n", total_word_count.size());
   total_word_count.print_vals();
+  printf("Completed word count.\n");
 }

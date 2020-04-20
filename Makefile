@@ -24,6 +24,7 @@ test_valgrind: build_all
 	-cd ./build; valgrind --leak-check=yes ./demo_app_nonet
 	-cd ./build; valgrind --leak-check=yes ./demo_wordcount_nonet ../data/shakespeare.txt
 	-cd ./build; valgrind --leak-check=yes ./demo_wordcount_nonet ../data/harrypotter.txt
+	-cd ./build; valgrind --leak-check=yes ./demo_wordcount_nonet ../data/100k.txt
 	-cd ./build; valgrind --leak-check=yes ./demo_linus_nonet
 
 demo_wordcount_net_app: build_all

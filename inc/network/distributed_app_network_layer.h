@@ -43,6 +43,7 @@ public:
   void handle_initialization() override;
   void handle_incoming_message(size_t connection_id, Message *msg) override;
   void wait_for_all_connected() override;
+  void handle_closing_connection(size_t connection_id) override;
 
 private:
   String registrar_ip_addr;

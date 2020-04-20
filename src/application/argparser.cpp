@@ -74,8 +74,7 @@ int ArgParser::get_registrar_port() {
 }
 
 const char *ArgParser::get_wordcount_file() {
-  assert((this->type == ParseTypes::WordCountRegistrar) ||
-         (this->type == ParseTypes::WordCountNode));
+  assert(this->type == ParseTypes::WordCountRegistrar);
   assert(this->listener_ip_addr);
   assert(this->listener_port_num != 0);
   assert(this->wordcount_file);
@@ -108,11 +107,10 @@ void ArgParser::parse_as_wc_registrar(int argc, char **argv) {
 }
 
 void ArgParser::parse_as_wc_node(int argc, char **argv) {
-  assert(argc >= 6);
+  assert(argc >= 5);
 
   this->registrar_ip_addr = argv[1];
   this->registrar_port_num = atoi(argv[2]);
   this->listener_ip_addr = argv[3];
   this->listener_port_num = atoi(argv[4]);
-  this->wordcount_file = argv[5];
 }

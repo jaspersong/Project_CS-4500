@@ -134,12 +134,12 @@ add_executable(demo_linus_nonet
 
 # Create targets to demo registrar/node functionality
 add_executable(demo_registrar
-        tests/demo_registrar.cpp
+        demos/demo_registrar.cpp
         "${UTILITY_SRC}"
         "${DATAFRAME_SRC}"
         "${NETWORK_SRC}")
 add_executable(demo_node
-        tests/demo_node.cpp
+        demos/demo_node.cpp
         "${UTILITY_SRC}"
         "${DATAFRAME_SRC}"
         "${NETWORK_SRC}")
@@ -161,3 +161,20 @@ add_executable(demo_app_node
         "${APP_SRC}"
         inc/application/demo_app.h
         src/application/demo_app.cpp)
+
+add_executable(demo_wordcount_registrar
+        demos/demo_wordcount_registrar.cpp
+        "${UTILITY_SRC}"
+        "${DATAFRAME_SRC}"
+        "${NETWORK_SRC}"
+        "${APP_SRC}"
+        inc/application/word_count_app.h
+        src/application/word_count_app.cpp)
+add_executable(demo_wordcount_node
+        demos/demo_wordcount_node.cpp
+        "${UTILITY_SRC}"
+        "${DATAFRAME_SRC}"
+        "${NETWORK_SRC}"
+        "${APP_SRC}"
+        inc/application/word_count_app.h
+        src/application/word_count_app.cpp)

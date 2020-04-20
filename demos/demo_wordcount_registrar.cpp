@@ -1,6 +1,6 @@
 /**
  * Name: Snowy Chen, Joe Song
- * Date: 19 April 2020
+ * Date: 23 March 2020
  * Section: Jason Hemann, MR 11:45-1:25
  * Email: chen.xinu@husky.neu.edu, song.jo@husky.neu.edu
  */
@@ -8,17 +8,18 @@
 // Lang::Cpp
 
 #include <unistd.h>
-#include "argparser.h"
-#include "demo_app.h"
+#include "word_count_app.h"
+#include "stdout_msg_manager.h"
 #include "networked_msg_manager.h"
+#include "argparser.h"
 
 int main(int argc, char **argv) {
-  ArgParser args(ArgParser::ParseTypes::Registrar, argc, argv);
+  ArgParser args(ArgParser::ParseTypes::WordCountRegistrar, argc, argv);
 
-  Demo producer;
+  WordCount producer(args.get_wordcount_file());
   RealNetworkMessageManager *prod_manager = producer.connect_network();
   Registrar prod_node(args.get_listener_addr(), args.get_listener_port(),
-      3, prod_manager);
+                      3, prod_manager);
 
   // Start up the registrar and the application
   prod_node.start();

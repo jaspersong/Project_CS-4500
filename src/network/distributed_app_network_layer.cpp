@@ -257,3 +257,9 @@ void Node::wait_for_all_connected() {
     this->full_connection_signal.wait();
   }
 }
+void Node::handle_closing_connection(size_t connection_id) {
+  // Close down the the node if the registrar goes down
+  if (connection_id == 0) {
+    this->self_shutdown();
+  }
+}

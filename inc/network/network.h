@@ -60,6 +60,7 @@ protected:
   size_t id;
 
   void println(StrBuff &msg);
+  void self_shutdown();
 
 private:
   bool continue_running;

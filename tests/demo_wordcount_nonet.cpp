@@ -14,12 +14,11 @@ static const size_t NUM_COUNTERS = 2;
 
 int main(int argc, char **argv) {
   assert(argc == 2);
-  String file_name(argv[1]);
 
-  WordCount main_node(file_name);
+  WordCount main_node(argv[1]);
   WordCount *counters[NUM_COUNTERS];
   for (auto & counter : counters) {
-    counter = new WordCount(file_name);
+    counter = new WordCount(argv[1]);
   }
 
   LocalNetworkMessageManager *main_network_manager;
