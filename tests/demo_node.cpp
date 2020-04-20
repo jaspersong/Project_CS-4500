@@ -25,7 +25,6 @@ int main(int argc, char **argv) {
 
   // Run the server on localhost with port 1234
   client1.start();
-  sleep(5);
   client2.start();
   sleep(5);
 

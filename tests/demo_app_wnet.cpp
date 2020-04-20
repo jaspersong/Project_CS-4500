@@ -22,27 +22,18 @@ int main(int argc, char **argv) {
   RealNetworkMessageManager *summarizer_manager = summarizer.connect_network();
 
   // Set up the network layer
-  StdoutMessageManager msg_manager(0);
-  Registrar server(new String("127.0.0.1"), 1234,
-      4, msg_manager);
-  Node prod_node(new String("127.0.0.1"), 1234,
-      new String("127.0.0.1"), 1235, 3,
-      *prod_manager, *prod_manager);
-  Node counter_node(new String("127.0.0.1"), 1234,
-      new String("127.0.0.1"), 1236, 3,
-      *counter_manager, *counter_manager);
-  Node summarizer_node(new String("127.0.0.1"), 1234,
-                    new String("127.0.0.1"), 1237, 3,
-                    *summarizer_manager, *summarizer_manager);
+  Registrar prod_node("127.0.0.1", 1234, 3, prod_manager);
+  Node counter_node("127.0.0.1", 1234, "127.0.0.1", 1235, 3, counter_manager);
+  Node summarizer_node("127.0.0.1", 1234, "127.0.0.1", 1236, 3,
+      summarizer_manager);
 
   // Start up the registrar and the network layers one by one
-  server.start();
-  sleep(10); // Give the registrar time to start up
   prod_node.start();
-  sleep(10); // Give node 0 time to start up
+  sleep(5);
   counter_node.start();
-  sleep(10);
+  sleep(5);
   summarizer_node.start();
+  sleep(5);
 
   // Now start up all of the node applications
   producer.start();
@@ -55,11 +46,9 @@ int main(int argc, char **argv) {
   summarizer.join();
 
   // Now close everything one by one
-  summarizer_node.close_client();
-  counter_node.close_client();
-  prod_node.close_client();
-  sleep(5);
-  server.close_server();
+  summarizer_node.close_network();
+  counter_node.close_network();
+  prod_node.close_network();
 
   delete prod_manager;
   delete counter_manager;

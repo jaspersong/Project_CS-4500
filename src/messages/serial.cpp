@@ -204,7 +204,7 @@ void Status::set_message(String &new_msg) {
   this->msg = new String(new_msg);
 }
 
-String *Status::get_message() { return new String(*this->msg); }
+String *Status::get_message() { return this->msg; }
 
 bool Status::equals(CustomObject *other) const {
   if (other == this)
@@ -425,7 +425,7 @@ String *Directory::get_client_ip_addr(size_t client_id) {
   if (this->addresses[client_id] == nullptr) {
     return nullptr;
   } else {
-    return new String(*this->addresses[client_id]);
+    return this->addresses[client_id];
   }
 }
 

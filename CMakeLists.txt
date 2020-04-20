@@ -6,6 +6,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 # Set the compile flags
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -pthread")
+#add_definitions(-DDEBUG_NETWORK_PRINT)
 
 include_directories(
         "${CMAKE_CURRENT_SOURCE_DIR}/inc"
@@ -69,7 +70,9 @@ set(APP_SRC
         inc/application/networked_msg_manager.h
         src/application/networked_msg_manager.cpp
         src/application/distributed_value.cpp
-        inc/application/distributed_value.h)
+        inc/application/distributed_value.h
+        inc/application/argparser.h
+        src/application/argparser.cpp)
 
 # Create targets for the test suites
 add_executable(test_suite_dataframe
@@ -142,27 +145,19 @@ add_executable(demo_node
         "${NETWORK_SRC}")
 
 # Creates targets to demo applications using real networks
-add_executable(demo_app_wnet
-        tests/demo_app_wnet.cpp
+add_executable(demo_app_registrar
+        demos/demo_app_registrar.cpp
         "${UTILITY_SRC}"
         "${DATAFRAME_SRC}"
         "${NETWORK_SRC}"
         "${APP_SRC}"
         inc/application/demo_app.h
         src/application/demo_app.cpp)
-add_executable(demo_wordcount_wnet
-        tests/demo_wordcount_wnet.cpp
+add_executable(demo_app_node
+        demos/demo_app_node.cpp
         "${UTILITY_SRC}"
         "${DATAFRAME_SRC}"
         "${NETWORK_SRC}"
         "${APP_SRC}"
-        inc/application/word_count_app.h
-        src/application/word_count_app.cpp)
-add_executable(demo_linus_wnet
-        tests/demo_linus_wnet.cpp
-        "${UTILITY_SRC}"
-        "${DATAFRAME_SRC}"
-        "${NETWORK_SRC}"
-        "${APP_SRC}"
-        inc/application/linus_app.h
-        src/application/linus_app.cpp)
+        inc/application/demo_app.h
+        src/application/demo_app.cpp)

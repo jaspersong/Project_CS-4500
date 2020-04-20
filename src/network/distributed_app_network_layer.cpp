@@ -14,15 +14,15 @@ Registrar::Registrar(const char *ip_addr, int port_num, size_t max_connections,
     : Network(0, ip_addr, port_num, max_connections) {
   this->directory = new Directory(max_connections);
   this->directory->add_client(0, this->get_ip_addr(), this->get_port_num());
+  this->at_full_connection = (max_connections == 1);
 
   this->received_msg_manager = received_message_manager;
+  this->received_msg_manager->set_network(this);
 }
 
 Registrar::~Registrar() { delete this->directory; }
 
 void Registrar::handle_closing_connection(size_t connection_id) {
-  printf("%zu: Connection id %zu closed connection\n", this->get_id(),
-         connection_id);
   this->directory_lock.lock();
   this->directory->remove_client(connection_id);
   this->broadcast_message(*this->directory);
@@ -30,6 +30,8 @@ void Registrar::handle_closing_connection(size_t connection_id) {
 }
 
 void Registrar::handle_incoming_message(size_t connection_id, Message *msg) {
+  this->println(StrBuff().c("Received message from ").c(connection_id));
+
   bool dont_delete = false;
 
   // Only register case uses these.
@@ -38,19 +40,25 @@ void Registrar::handle_incoming_message(size_t connection_id, Message *msg) {
 
   switch (msg->get_message_kind()) {
   case MsgKind::Put:
+    this->println(StrBuff().c("Received put message from ").c(connection_id));
     dont_delete = this->received_msg_manager->handle_put(msg->as_put());
     break;
   case MsgKind::Reply:
+    this->println(StrBuff().c("Received reply message from ").c(connection_id));
     dont_delete = this->received_msg_manager->handle_reply(msg->as_reply());
     break;
   case MsgKind::WaitAndGet:
+    this->println(StrBuff().c(
+        "Received wait and get message from ").c(connection_id));
     dont_delete =
         this->received_msg_manager->handle_waitandget(msg->as_waitandget());
     break;
   case MsgKind::Status:
+    this->println(StrBuff().c(
+        "Received status message from ").c(connection_id));
     dont_delete = this->received_msg_manager->handle_status(msg->as_status());
     break;
-  case MsgKind::Register:
+  case MsgKind::Register: {
     // Add this client to the directory
     this->println(
         StrBuff().c("Received Register message from id ").c(connection_id));
@@ -70,10 +78,24 @@ void Registrar::handle_incoming_message(size_t connection_id, Message *msg) {
 
     // Broadcast the updated registrar
     this->broadcast_message(*this->directory);
+
+    // Check to see if all of the things have connected
+    size_t num_connected = 0;
+    for (size_t i = 0; i < this->directory->get_max_num_clients(); i++) {
+      if (this->directory->is_client_connected(i)) {
+        num_connected += 1;
+      }
+    }
+    if (num_connected == this->directory->get_max_num_clients()) {
+      this->full_connection_signal.notify_all();
+      this->at_full_connection = true;
+    }
+
     this->directory_lock.unlock();
 
     delete ip_addr;
     break;
+  }
   case MsgKind::Directory:
     this->println(StrBuff()
                       .c("Received Directory message from id ")
@@ -93,6 +115,12 @@ void Registrar::handle_incoming_message(size_t connection_id, Message *msg) {
   }
 }
 
+void Registrar::wait_for_all_connected() {
+  if (!this->at_full_connection) {
+    this->full_connection_signal.wait();
+  }
+}
+
 Node::Node(const char *registrar_addr, int registrar_port_num,
            const char *listener_ip_addr, int listener_port_num,
            size_t max_connections,
@@ -101,7 +129,9 @@ Node::Node(const char *registrar_addr, int registrar_port_num,
       registrar_ip_addr(registrar_addr) {
   this->registrar_port_num = registrar_port_num;
   this->directory = nullptr;
+  this->at_full_connection = false;
   this->received_msg_manager = received_message_manager;
+  this->received_msg_manager->set_network(this);
 }
 
 Node::~Node() { delete this->directory; }
@@ -124,16 +154,22 @@ void Node::handle_incoming_message(size_t connection_id, Message *msg) {
 
   switch (msg->get_message_kind()) {
   case MsgKind::Put:
+    this->println(StrBuff().c("Received put message from ").c(connection_id));
     dont_delete = this->received_msg_manager->handle_put(msg->as_put());
     break;
   case MsgKind::Reply:
+    this->println(StrBuff().c("Received reply message from ").c(connection_id));
     dont_delete = this->received_msg_manager->handle_reply(msg->as_reply());
     break;
   case MsgKind::WaitAndGet:
+    this->println(StrBuff().c(
+        "Received wait and get message from ").c(connection_id));
     dont_delete =
         this->received_msg_manager->handle_waitandget(msg->as_waitandget());
     break;
   case MsgKind::Status:
+    this->println(StrBuff().c(
+        "Received status message from ").c(connection_id));
     dont_delete = this->received_msg_manager->handle_status(msg->as_status());
     break;
   case MsgKind::Register:
@@ -142,7 +178,7 @@ void Node::handle_incoming_message(size_t connection_id, Message *msg) {
                       .c(connection_id)
                       .c(". Ignoring."));
     break;
-  case MsgKind::Directory:
+  case MsgKind::Directory: {
     // Replace the current directory with the updated directory
     this->println(StrBuff().c("Received Directory from registrar"));
     dir_message = msg->as_directory();
@@ -157,6 +193,18 @@ void Node::handle_incoming_message(size_t connection_id, Message *msg) {
     }
     delete this->directory;
     this->directory = dir_message;
+
+    // Check to see if all of the things have connected
+    size_t num_connected = 0;
+    for (size_t i = 0; i < this->directory->get_max_num_clients(); i++) {
+      if (this->directory->is_client_connected(i)) {
+        num_connected += 1;
+      }
+    }
+    if (num_connected == this->directory->get_max_num_clients()) {
+      this->full_connection_signal.notify_all();
+      this->at_full_connection = true;
+    }
     this->directory_lock.unlock();
 
     // Pull the node id from the directory message as the enumeration, if
@@ -182,6 +230,7 @@ void Node::handle_incoming_message(size_t connection_id, Message *msg) {
     // Make sure not to delete this
     dont_delete = true;
     break;
+  }
   default:
     // Invalid message type. Do nothing and just ignore it.
     printf("Received invalid message from server\n");
@@ -201,4 +250,10 @@ size_t Node::get_id() {
   }
 
   return this->id;
+}
+
+void Node::wait_for_all_connected() {
+  if (!this->at_full_connection) {
+    this->full_connection_signal.wait();
+  }
 }

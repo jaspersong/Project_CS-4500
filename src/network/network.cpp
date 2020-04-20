@@ -125,9 +125,8 @@ void Network::send_message(size_t target_id, Message &msg) {
     this->outgoing_msg_lock.lock();
     send(this->connection_sockets[target_id], message, message_size, 0);
     this->outgoing_msg_lock.unlock();
-
-    sleep(1000);
-    this->println(StrBuff().c("Sent message to ").c(target_id));
+    sleep(50);
+    this->println(StrBuff().c("Sent ").c(message_size).c("byte message to ").c(target_id));
   }
 
   // Clean up
@@ -135,6 +134,7 @@ void Network::send_message(size_t target_id, Message &msg) {
 }
 
 void Network::broadcast_message(Message &msg) {
+  this->println(StrBuff().c("Broadcasting message."));
   for (size_t i = 0; i < this->max_connections; i++) {
     if (i != this->id) {
       this->send_message(i, msg);
@@ -186,7 +186,7 @@ void Network::run() {
     // TODO: Make the polling timeout be configurable
     struct timeval poll_receive_timeout {};
     poll_receive_timeout.tv_sec = 0;
-    poll_receive_timeout.tv_usec = 100;
+    poll_receive_timeout.tv_usec = 500;
     activity = select(max_socket_desc + 1, &connection_selector, nullptr,
                       nullptr, &poll_receive_timeout);
     if (activity != 0) {
@@ -202,10 +202,7 @@ void Network::run() {
         int sd = this->connection_sockets[i];
 
         if (FD_ISSET(sd, &connection_selector)) {
-          Message *msg = this->read_socket(i);
-          if (msg != nullptr) {
-            this->handle_incoming_message(i, msg);
-          }
+          this->read_socket(i);
         }
       }
     }
@@ -270,16 +267,14 @@ void Network::add_new_connection() {
     if ((i != this->id) && (this->connection_sockets[i] == 0)) {
       // Found an empty spot. Add it in, and call the handle callback function
       this->connection_sockets[i] = new_socket;
-      printf("%zu: New id %zu initiated connection\n", this->id, i);
+      this->println(StrBuff().c("New id ").c(i).c(" initiated connection"));
       break;
     }
   }
   this->connection_lock.unlock();
 }
 
-Message *Network::read_socket(int connection_id) {
-  Message *full_msg = nullptr;
-
+void Network::read_socket(int connection_id) {
   // Prepare the buffer for the read
   if (this->msg_buffer_size - this->msg_buffer_index == 0) {
     // There isn't much room left. Increase the size
@@ -309,45 +304,66 @@ Message *Network::read_socket(int connection_id) {
     this->connection_lock.unlock();
 
     // Call the callback
+    this->println(StrBuff().c("Connection id ").c(
+        connection_id).c(" closed connection"));
     this->handle_closing_connection(connection_id);
   } else if (bytes_read != -1) {
     this->msg_buffer_index += bytes_read;
 
-    // Interpret this as a message
-    Message *header = Message::deserialize_as_message_header(
-        this->msg_buffer, this->msg_buffer_index);
-    // Determine if it's a full message if the collected buffer is big enough
-    // to hold the data that the message header promises
-    if (header != nullptr) {
-      if (header->get_payload_size() ==
-          this->msg_buffer_index - Message::HEADER_SIZE) {
-        full_msg = Message::deserialize_as_message(this->msg_buffer,
-                                                   this->msg_buffer_index);
-        this->msg_buffer_index = 0;
-      } else if (header->get_payload_size() <
-                 this->msg_buffer_index - Message::HEADER_SIZE) {
-        full_msg = Message::deserialize_as_message(this->msg_buffer,
-                                                   this->msg_buffer_index);
+    // Read the buffer until we can't interpret anymore messages from this
+    while (this->msg_buffer_index > 0) {
+      // Interpret this as a message
+      Message *full_msg = nullptr;
+      Message *header = Message::deserialize_as_message_header(
+          this->msg_buffer, this->msg_buffer_index);
+      // Determine if it's a full message if the collected buffer is big enough
+      // to hold the data that the message header promises
+      if (header != nullptr) {
+        if (header->get_payload_size() ==
+            this->msg_buffer_index - Message::HEADER_SIZE) {
+          delete header; // Don't need the header anymore
 
-        // Move the left over to the beginning
-        size_t prev_message_size =
-            header->get_payload_size() + Message::HEADER_SIZE;
-        for (size_t i = 0; i < this->msg_buffer_index - prev_message_size;
-             i++) {
-          this->msg_buffer[i] = this->msg_buffer[i + prev_message_size];
+          // Deserialize the message and reset the buffer
+          full_msg = Message::deserialize_as_message(this->msg_buffer,
+                                                     this->msg_buffer_index);
+          this->msg_buffer_index = 0;
+
+          // Now handle the message
+          this->handle_incoming_message(connection_id, full_msg);
+        } else if (header->get_payload_size() <
+                   this->msg_buffer_index - Message::HEADER_SIZE) {
+          delete header; // Don't need the header anymore
+
+          full_msg = Message::deserialize_as_message(this->msg_buffer,
+                                                     this->msg_buffer_index);
+
+          // Move the left over to the beginning
+          size_t prev_message_size =
+              header->get_payload_size() + Message::HEADER_SIZE;
+          for (size_t i = 0; i < this->msg_buffer_index - prev_message_size;
+               i++) {
+            this->msg_buffer[i] = this->msg_buffer[i + prev_message_size];
+          }
+          this->msg_buffer_index = this->msg_buffer_index - prev_message_size;
+
+          // Now handle the message
+          this->handle_incoming_message(connection_id, full_msg);
+        } else {
+          delete header; // Don't need the header anymore
+          break;
         }
-        this->msg_buffer_index = this->msg_buffer_index - prev_message_size;
       }
     }
-
-    delete header;
   }
-
-  return full_msg;
 }
 
 void Network::println(StrBuff &msg) {
+#ifdef DEBUG_NETWORK_PRINT
   String *message = msg.get();
   printf("%zu: %s\n", this->id, message->c_str());
   delete message;
+#else
+  (void)msg;
+  (void)this->id;
+#endif
 }

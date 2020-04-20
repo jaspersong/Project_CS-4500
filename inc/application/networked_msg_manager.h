@@ -24,7 +24,7 @@ public:
   // Attaches a network layer to this interface for an application. Only a
   // Node is a valid client that can be attached to this interface. If a
   // non-Node client is attached to this interface, it will do nothing.
-  void set_client(Client *client) override;
+  void set_network(Network *network) override;
 
   void send_put(size_t node_id, Key &key, DataFrame *value) override;
   void send_waitandget(size_t node_id, Key &key) override;
@@ -36,5 +36,5 @@ public:
   size_t get_home_id() override;
 
 private:
-  Node *network_layer;
+  Network *network_layer;
 };

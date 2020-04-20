@@ -20,10 +20,13 @@ public:
 
   void handle_closing_connection(size_t connection_id) override;
   void handle_incoming_message(size_t connection_id, Message *msg) override;
+  void wait_for_all_connected() override;
 
 private:
   Directory *directory;
   Lock directory_lock;
+  Lock full_connection_signal;
+  bool at_full_connection;
 
   ReceivedMessageManager *received_msg_manager;
 };
@@ -39,6 +42,7 @@ public:
 
   void handle_initialization() override;
   void handle_incoming_message(size_t connection_id, Message *msg) override;
+  void wait_for_all_connected() override;
 
 private:
   String registrar_ip_addr;
@@ -47,6 +51,8 @@ private:
   Directory *directory;
   Lock directory_lock;
   Lock enum_signal;
+  Lock full_connection_signal;
+  bool at_full_connection;
 
   ReceivedMessageManager *received_msg_manager;
 };

@@ -26,9 +26,6 @@ test_valgrind: build_all
 	-cd ./build; valgrind --leak-check=yes ./demo_wordcount_nonet ../data/harrypotter.txt
 	-cd ./build; valgrind --leak-check=yes ./demo_linus_nonet
 
-demo_demo_net_app: build_all
-	-cd ./build; ./demo_app_wnet
-
 demo_wordcount_net_app: build_all
 	-cd ./build; ./demo_wordcount_wnet ../data/shakespeare.txt
 
@@ -37,9 +34,6 @@ demo_wordcount_net_app_hp: build_all
 
 demo_linus_net_app: build_all
 	-cd ./build; ./demo_linus_nonet
-
-demo_distro_app: build_all
-	cd ./build; ./demo_registrar & ./demo_node hello world
 
 clean:
 	rm -rf ./build

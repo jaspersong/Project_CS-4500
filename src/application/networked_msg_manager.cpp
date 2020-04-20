@@ -15,14 +15,15 @@ RealNetworkMessageManager::RealNetworkMessageManager(KeyValueStore *kv_store)
   this->network_layer = nullptr;
 }
 
-void RealNetworkMessageManager::set_client(Client *client) {
+void RealNetworkMessageManager::set_network(Network *network) {
   assert(this->network_layer == nullptr);
-  this->network_layer =reinterpret_cast<Node *>(client);
+  this->network_layer = network;
 }
 
 size_t RealNetworkMessageManager::get_home_id() {
   if (this->network_layer != nullptr) {
-    return this->network_layer->get_node_id_with_wait();
+    this->network_layer->wait_for_all_connected();
+    return this->network_layer->get_id();
   }
   else {
     return -1;
@@ -37,7 +38,7 @@ void RealNetworkMessageManager::send_put(size_t node_id, Key &key,
   value->serialize(serializer);
   Put put_message(serializer);
 
-  this->network_layer->send_direct_message(node_id, put_message);
+  this->network_layer->send_message(node_id, put_message);
 }
 
 void RealNetworkMessageManager::send_waitandget(size_t node_id, Key &key) {
@@ -46,7 +47,7 @@ void RealNetworkMessageManager::send_waitandget(size_t node_id, Key &key) {
   key.serialize(serializer);
   WaitAndGet wait_get_msg(serializer);
 
-  this->network_layer->send_direct_message(node_id, wait_get_msg);
+  this->network_layer->send_message(node_id, wait_get_msg);
 }
 
 void RealNetworkMessageManager::send_reply(size_t node_id, Key &key,
@@ -57,20 +58,15 @@ void RealNetworkMessageManager::send_reply(size_t node_id, Key &key,
   df->serialize(serializer);
   Reply reply(serializer);
 
-  this->network_layer->send_direct_message(node_id, reply);
+  this->network_layer->send_message(node_id, reply);
 }
 void RealNetworkMessageManager::broadcast_value(Key &key,
                                                 DistributedValue *value) {
-  for (size_t n = 0; n < this->kv_store->get_num_nodes(); n++) {
-    // Skip this key-value store
-    if (n != this->kv_store->get_home_id()) {
-      // Build the put command message
-      Serializer serializer;
-      key.serialize(serializer);
-      value->serialize(serializer);
-      Put put_message(serializer);
+  // Build the put command message
+  Serializer serializer;
+  key.serialize(serializer);
+  value->serialize(serializer);
+  Put put_message(serializer);
 
-      this->network_layer->send_direct_message(n, put_message);
-    }
-  }
+  this->network_layer->broadcast_message(put_message);
 }

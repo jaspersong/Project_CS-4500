@@ -38,6 +38,7 @@ public:
   virtual size_t get_id() { return this->id; }
   void close_network();
 
+  virtual void wait_for_all_connected() {}
   bool is_id_connected(size_t connection_id);
   void initiate_connection(size_t connection_id, String *connection_ip_addr,
                            int connection_port_num);
@@ -77,9 +78,10 @@ private:
   size_t msg_buffer_size;
 
   Lock outgoing_msg_lock;
+  std::queue<Message *> incoming_msg_queue;
 
   void run() override;
   void initialize_listening_socket();
   void add_new_connection();
-  Message *read_socket(int connection_id);
+  void read_socket(int connection_id);
 };

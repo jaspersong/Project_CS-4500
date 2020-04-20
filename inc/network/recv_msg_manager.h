@@ -11,8 +11,7 @@
 
 #include "serial.h"
 
-class Server;
-class Client;
+class Network;
 
 /**
  * An abstract class that manages the messages received by the particular
@@ -32,11 +31,7 @@ public:
   virtual bool handle_waitandget(WaitAndGet *msg) { return false; }
   virtual bool handle_status(Status *msg) { return false; }
 
-  /**
-   * Passes in the server and client as the network layer to communicate over.
-   */
-  virtual void set_server(Server *server) {}
-  virtual void set_client(Client *client) {}
+  virtual void set_network(Network *network) {}
 
   /**
    * Virtual functions that can wait for a reply to a wait and get message,

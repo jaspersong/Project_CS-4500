@@ -31,7 +31,6 @@ bool StdoutMessageManager::handle_status(Status *msg) {
   String *status_message = msg->get_message();
   printf("%zu: Received a status message from %zu: %s\n", this->std_id,
          msg->get_sender_id(), status_message->c_str());
-  delete status_message;
 
   return false;
 }

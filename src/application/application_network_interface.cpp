@@ -18,6 +18,8 @@ ApplicationNetworkInterface::ApplicationNetworkInterface(
 }
 
 bool ApplicationNetworkInterface::handle_put(Put *msg) {
+  assert(this->kv_store->verify_distributed_layer());
+
   // Get the key and the dataframe
   Deserializer *deserializer = msg->steal_deserializer();
   Key *key = Key::deserialize_as_key(*deserializer);
@@ -43,6 +45,8 @@ bool ApplicationNetworkInterface::handle_put(Put *msg) {
 }
 
 bool ApplicationNetworkInterface::handle_waitandget(WaitAndGet *msg) {
+  assert(this->kv_store->verify_distributed_layer());
+
   Deserializer *deserializer = msg->steal_deserializer();
   Key *key = Key::deserialize_as_key(*deserializer);
 
@@ -60,6 +64,8 @@ bool ApplicationNetworkInterface::handle_waitandget(WaitAndGet *msg) {
 }
 
 bool ApplicationNetworkInterface::handle_reply(Reply *msg) {
+  assert(this->kv_store->verify_distributed_layer());
+
   this->reply_queue_lock.lock();
   this->reply_queue.push(msg);
   this->reply_queue_lock.unlock();
@@ -69,6 +75,8 @@ bool ApplicationNetworkInterface::handle_reply(Reply *msg) {
 }
 
 void ApplicationNetworkInterface::wait_for_reply() {
+  assert(this->kv_store->verify_distributed_layer());
+
   this->reply_queue_lock.lock();
   if (this->reply_queue.empty()) {
     this->reply_queue_lock.unlock();
@@ -79,6 +87,8 @@ void ApplicationNetworkInterface::wait_for_reply() {
 }
 
 Reply *ApplicationNetworkInterface::get_reply() {
+  assert(this->kv_store->verify_distributed_layer());
+
   this->reply_queue_lock.lock();
   Reply * ret_value = this->reply_queue.front();
   this->reply_queue.pop();
@@ -87,6 +97,8 @@ Reply *ApplicationNetworkInterface::get_reply() {
 }
 
 DataFrame *ApplicationNetworkInterface::get_requested_dataframe() {
+  assert(this->kv_store->verify_distributed_layer());
+
   this->wait_for_reply();
   Reply *reply = this->get_reply();
 
@@ -106,5 +118,6 @@ DataFrame *ApplicationNetworkInterface::get_requested_dataframe() {
 }
 
 size_t ApplicationNetworkInterface::get_home_id() {
+  assert(this->kv_store->verify_distributed_layer());
   return this->kv_store->get_home_id();
 }

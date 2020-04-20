@@ -222,7 +222,6 @@ void status_round_trip() {
   // Free the memory as appropriate
   delete[] buffer;
   delete received_msg;
-  delete received_status;
 
   helper.OK("Test status_round_trip passed");
 }
@@ -238,10 +237,6 @@ void status_funcs() {
   status0.set_message(status_msg1);
   String *recv_msg1 = status0.get_message();
   helper.t_true(recv_msg1->equals(&status_msg1));
-
-  // Free memory as appropriate
-  delete recv_msg0;
-  delete recv_msg1;
 
   helper.OK("Test status_funcs passed");
 }
@@ -435,9 +430,6 @@ void directory_case() {
   delete[] buffer;
   delete received_msg;
   delete ip_addr;
-  delete recv_ip_addr_0;
-  delete recv_ip_addr_2;
-  delete recv_ip_addr_3;
 
   helper.OK("Test directory_case passed");
 }
