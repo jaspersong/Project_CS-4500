@@ -131,18 +131,15 @@ private:
  ****************************************************************************/
 class WordCount : public Application {
 public:
-  // TODO: 8 and above nodes causes problems with sending directory messages
-  //  from the server
-  static const size_t NUM_NODES = 3;
   Key txt = Key("txt");
 
-  explicit WordCount(const char *file_name);
+  explicit WordCount(size_t max_connections, const char *file_name);
   ~WordCount() override;
   void main() override;
 
 private:
   String file_name;
-  Key *wordcount_keys[NUM_NODES] = {};
+  std::vector<Key *> wordcount_keys;
 
   void local_count();
   void merge_counts();

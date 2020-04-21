@@ -181,10 +181,11 @@ bool WordCountMerger::accept(Row &r) {
 
 /****************************************************************************/
 
-WordCount::WordCount(const char *file_name)
-    : Application(WordCount::NUM_NODES), file_name(file_name) {
+WordCount::WordCount(size_t max_connections, const char *file_name)
+    : Application(max_connections), file_name(file_name) {
   // Dynamically create the keys containing the final word count dataframe
-  for (size_t i = 0; i < WordCount::NUM_NODES; i++) {
+  this->wordcount_keys.resize(this->kv->get_num_nodes(), nullptr);
+  for (size_t i = 0; i < this->kv->get_num_nodes(); i++) {
     String *key_name = StrBuff().c("wc-").c(i).get();
     this->wordcount_keys[i] = new Key(key_name->c_str());
     delete key_name;

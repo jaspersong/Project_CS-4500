@@ -13,7 +13,7 @@
 #include <unistd.h>
 
 int main(int argc, char **argv) {
-  ArgParser args(ArgParser::ParseTypes::Registrar, argc, argv);
+  ArgParser args(ArgParser::ParseTypes::DemoRegistrar, argc, argv);
 
   Demo producer;
   SocketNetworkMessageManager *prod_manager = producer.connect_network();

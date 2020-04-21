@@ -15,10 +15,10 @@ static const size_t NUM_COUNTERS = 2;
 int main(int argc, char **argv) {
   assert(argc == 2);
 
-  WordCount main_node(argv[1]);
+  WordCount main_node(NUM_COUNTERS + 1, argv[1]);
   WordCount *counters[NUM_COUNTERS];
   for (auto &counter : counters) {
-    counter = new WordCount(argv[1]);
+    counter = new WordCount(NUM_COUNTERS + 1, argv[1]);
   }
 
   LocalNetworkMessageManager *main_network_manager;

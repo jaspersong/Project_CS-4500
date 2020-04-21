@@ -9,6 +9,8 @@
 
 #pragma once
 
+#include <cstdlib>
+
 /**
  * Argument parser for the demo applications. It has a select few types of
  * ways arguments can be parsed.
@@ -16,8 +18,10 @@
 class ArgParser {
 public:
   enum class ParseTypes {
-    Registrar,
-    Node,
+    DemoRegistrar,
+    DemoNode,
+    LinusRegistrar,
+    LinusNode,
     WordCountRegistrar,
     WordCountNode,
   };
@@ -30,6 +34,8 @@ public:
   int get_registrar_port();
   const char *get_wordcount_file();
 
+  size_t get_num_expected_nodes();
+
 private:
   ParseTypes type;
 
@@ -40,9 +46,12 @@ private:
   int registrar_port_num;
 
   const char *wordcount_file;
+  size_t expected_num_nodes;
 
-  void parse_as_registrar(int argc, char **argv);
-  void parse_as_node(int argc, char **argv);
-  void parse_as_wc_registrar(int argc, char **argv);
-  void parse_as_wc_node(int argc, char **argv);
+  void parse(int argc, char **argv);
+  void print_help();
+  void print_listener_help();
+  void print_registrar_help();
+  void print_wordcount_file_help();
+  void print_nodes_help();
 };

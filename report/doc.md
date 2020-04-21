@@ -59,12 +59,12 @@ The demo application contains two executables: `demo_app_registrar` and
 `demo_app_node`. 
 
 Steps:
-1. In one terminal window, run `./demo_app_registrar <IP> <Port>`
+1. In one terminal window, run `./demo_app_registrar --listener <IP> <Port>`
 where the `<IP>` is the IP address that the registrar will listen for
 incoming connections from, and `<Port>` is the port number that the
 registrar will listen for incoming connections from.
 1. In two other terminal windows, run 
-`./demo_app_node <RegistrarIP> <RegistrarPort> <IP> <Port>`, where
+`./demo_app_node --registrar <RegistrarIP> <RegistrarPort> --listener <IP> <Port>`, where
 `<RegistrarIP>` and `<RegistrarPort>` is the IP address and the port number of
 the registrar, and `<IP>` and `<Port>` is the IP address and the port number
 that the node will listen for incoming direct connections from other nodes.
@@ -78,11 +78,14 @@ registrar.
 
 Steps:
 1. In one terminal window, run 
-`./demo_wordcount_registrar <IP> <Port> <WordCountFile>`
-where the `<WordCountFile>` is the file that the applicatino will read and count
-words from.
+`./demo_wordcount_registrar --listener <IP> <Port> --file <WordCountFile> --nodes <Num>`
+where the `<WordCountFile>` is the file that the application will read and count
+words from, and `<Num>` is the number of nodes that will be running the
+application concurrently. `--nodes <Num>` is an optional argument, and will 
+default to 3.
 1. In two other terminal windows, run 
-`./demo_wordcount_node <RegistrarIP> <RegistrarPort> <IP> <Port>`.
+`./demo_wordcount_node --registrar <RegistrarIP> <RegistrarPort> --listener <IP> <Port> --nodes <Num>`
+where `<Num>` is the same number provided for the registrar.
 
 #### Linus Application
 
@@ -91,9 +94,9 @@ The demo application contains two executables: `demo_linus_registrar` and
 mentioned above.
 
 Steps:
-1. In one terminal window, run `./demo_linus_registrar <IP> <Port>`.
+1. In one terminal window, run `./demo_linus_registrar --listener <IP> <Port> --nodes <Num>`.
 1. In two other terminal windows, run 
-`./demo_linus_node <RegistrarIP> <RegistrarPort> <IP> <Port>`.
+`./demo_linus_node --registrar <RegistrarIP> <RegistrarPort> --listener <IP> <Port> --nodes <Num>`.
 
 ## Architecture
 

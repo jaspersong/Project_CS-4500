@@ -16,10 +16,11 @@
 int main(int argc, char **argv) {
   ArgParser args(ArgParser::ParseTypes::WordCountNode, argc, argv);
 
-  WordCount app("");
+  WordCount app(args.get_num_expected_nodes(), "");
   SocketNetworkMessageManager *app_manager = app.connect_network();
   Node node(args.get_registrar_addr(), args.get_registrar_port(),
-            args.get_listener_addr(), args.get_listener_port(), 3, app_manager);
+            args.get_listener_addr(), args.get_listener_port(),
+            args.get_num_expected_nodes(), app_manager);
 
   // Start up the registrar and the application
   node.start();

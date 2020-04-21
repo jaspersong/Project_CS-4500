@@ -155,17 +155,13 @@ private:
  **************************************************************************/
 class Linus : public Application {
 public:
-  // TODO: 8 and above nodes causes problems with sending directory messages
-  //  from the server
-  static const size_t NUM_NODES = 3;
-
   int DEGREES = 4;  // How many degrees of separation form linus?
   int LINUS = 4967; // The uid of Linus (offset in the user df)
   const char *PROJECT_FILENAME = "../data/projects.ltgt";
   const char *USER_FILENAME = "../data/users.ltgt";
   const char *COMMIT_FILENAME = "../data/commits.ltgt";
 
-  Linus();
+  Linus(size_t max_connections);
   ~Linus() override;
 
   /** Compute DEGREES of Linus.  */

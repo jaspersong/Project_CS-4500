@@ -13,12 +13,12 @@
 #include <unistd.h>
 
 int main(int argc, char **argv) {
-  ArgParser args(ArgParser::ParseTypes::Registrar, argc, argv);
+  ArgParser args(ArgParser::ParseTypes::LinusRegistrar, argc, argv);
 
-  Linus producer;
+  Linus producer(args.get_num_expected_nodes());
   SocketNetworkMessageManager *prod_manager = producer.connect_network();
-  Registrar prod_node(args.get_listener_addr(), args.get_listener_port(), 3,
-                      prod_manager);
+  Registrar prod_node(args.get_listener_addr(), args.get_listener_port(),
+                      args.get_num_expected_nodes(), prod_manager);
 
   // Start up the registrar and the application
   prod_node.start();

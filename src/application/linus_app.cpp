@@ -103,7 +103,7 @@ bool UsersTagger::accept(Row &row) {
 
 /****************************************************************************/
 
-Linus::Linus() : Application(Linus::NUM_NODES) {
+Linus::Linus(size_t max_connections) : Application(max_connections) {
   this->uSet = nullptr;
   this->pSet = nullptr;
 
