@@ -6,7 +6,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 # Set the compile flags
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -pthread")
-add_definitions(-DDEBUG_NETWORK_PRINT)
+#add_definitions(-DDEBUG_NETWORK_PRINT)
 
 include_directories(
         "${CMAKE_CURRENT_SOURCE_DIR}/inc"

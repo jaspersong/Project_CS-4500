@@ -161,7 +161,7 @@ public:
   const char *USER_FILENAME = "../data/users.ltgt";
   const char *COMMIT_FILENAME = "../data/commits.ltgt";
 
-  Linus(size_t max_connections);
+  explicit Linus(size_t max_connections);
   ~Linus() override;
 
   /** Compute DEGREES of Linus.  */
