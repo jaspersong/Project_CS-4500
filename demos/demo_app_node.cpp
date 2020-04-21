@@ -26,6 +26,7 @@ int main(int argc, char **argv) {
   app.start();
 
   // Wait until the app completes and that the node closes down
+  app.detach();
   node.join();
 
   delete app_manager;

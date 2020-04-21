@@ -26,6 +26,7 @@ int main(int argc, char **argv) {
   producer.start();
 
   // Wait until the app completes and that the network closes down
+  producer.detach();
   prod_node.join();
 
   delete prod_manager;
