@@ -11,7 +11,7 @@
 
 Registrar::Registrar(const char *ip_addr, int port_num, size_t max_connections,
                      ReceivedMessageManager *received_message_manager)
-    : Network(0, ip_addr, port_num, max_connections) {
+    : SocketNetwork(0, ip_addr, port_num, max_connections) {
   this->directory = new Directory(max_connections);
   this->directory->add_client(0, this->get_ip_addr(), this->get_port_num());
   this->at_full_connection = (max_connections == 1);
@@ -40,28 +40,35 @@ void Registrar::handle_incoming_message(size_t connection_id, Message *msg) {
 
   switch (msg->get_message_kind()) {
   case MsgKind::Put:
-    this->println(StrBuff().c("Received put message from ").c(connection_id));
+    this->println(StrBuff().c("Received ").c(
+        msg->get_payload_size() + Message::HEADER_SIZE).c(
+            "byte Put message from ").c(connection_id));
     dont_delete = this->received_msg_manager->handle_put(msg->as_put());
     break;
   case MsgKind::Reply:
-    this->println(StrBuff().c("Received reply message from ").c(connection_id));
+    this->println(StrBuff().c("Received ").c(
+        msg->get_payload_size() + Message::HEADER_SIZE).c(
+        "byte Reply message from ").c(connection_id));
     dont_delete = this->received_msg_manager->handle_reply(msg->as_reply());
     break;
   case MsgKind::WaitAndGet:
-    this->println(StrBuff().c(
-        "Received wait and get message from ").c(connection_id));
+    this->println(StrBuff().c("Received ").c(
+        msg->get_payload_size() + Message::HEADER_SIZE).c(
+        "byte Wait And Get message from ").c(connection_id));
     dont_delete =
         this->received_msg_manager->handle_waitandget(msg->as_waitandget());
     break;
   case MsgKind::Status:
-    this->println(StrBuff().c(
-        "Received status message from ").c(connection_id));
+    this->println(StrBuff().c("Received ").c(
+        msg->get_payload_size() + Message::HEADER_SIZE).c(
+        "byte Status message from ").c(connection_id));
     dont_delete = this->received_msg_manager->handle_status(msg->as_status());
     break;
   case MsgKind::Register: {
     // Add this client to the directory
-    this->println(
-        StrBuff().c("Received Register message from id ").c(connection_id));
+    this->println(StrBuff().c("Received ").c(
+        msg->get_payload_size() + Message::HEADER_SIZE).c(
+        "byte Register message from ").c(connection_id));
 
     // Register the client id to the directory
     reg_message = msg->as_register();
@@ -97,16 +104,14 @@ void Registrar::handle_incoming_message(size_t connection_id, Message *msg) {
     break;
   }
   case MsgKind::Directory:
-    this->println(StrBuff()
-                      .c("Received Directory message from id ")
-                      .c(connection_id)
-                      .c(". Ignoring."));
+    this->println(StrBuff().c("Received ").c(
+        msg->get_payload_size() + Message::HEADER_SIZE).c(
+        "byte Directory message from ").c(connection_id).c(". Ignoring."));
     break;
   default:
-    this->println(StrBuff()
-                      .c("Received invalid message from id ")
-                      .c(connection_id)
-                      .c(". Ignoring."));
+    this->println(StrBuff().c("Received ").c(
+        msg->get_payload_size() + Message::HEADER_SIZE).c(
+        "byte Invalid message from ").c(connection_id).c(". Ignoring."));
     break;
   }
 
@@ -125,7 +130,7 @@ Node::Node(const char *registrar_addr, int registrar_port_num,
            const char *listener_ip_addr, int listener_port_num,
            size_t max_connections,
            ReceivedMessageManager *received_message_manager)
-    : Network(-1, listener_ip_addr, listener_port_num, max_connections),
+    : SocketNetwork(-1, listener_ip_addr, listener_port_num, max_connections),
       registrar_ip_addr(registrar_addr) {
   this->registrar_port_num = registrar_port_num;
   this->directory = nullptr;
@@ -154,33 +159,40 @@ void Node::handle_incoming_message(size_t connection_id, Message *msg) {
 
   switch (msg->get_message_kind()) {
   case MsgKind::Put:
-    this->println(StrBuff().c("Received put message from ").c(connection_id));
+    this->println(StrBuff().c("Received ").c(
+        msg->get_payload_size() + Message::HEADER_SIZE).c(
+        "byte Put message from ").c(connection_id));
     dont_delete = this->received_msg_manager->handle_put(msg->as_put());
     break;
   case MsgKind::Reply:
-    this->println(StrBuff().c("Received reply message from ").c(connection_id));
+    this->println(StrBuff().c("Received ").c(
+        msg->get_payload_size() + Message::HEADER_SIZE).c(
+        "byte Reply message from ").c(connection_id));
     dont_delete = this->received_msg_manager->handle_reply(msg->as_reply());
     break;
   case MsgKind::WaitAndGet:
-    this->println(StrBuff().c(
-        "Received wait and get message from ").c(connection_id));
+    this->println(StrBuff().c("Received ").c(
+        msg->get_payload_size() + Message::HEADER_SIZE).c(
+        "byte Wait And Get message from ").c(connection_id));
     dont_delete =
         this->received_msg_manager->handle_waitandget(msg->as_waitandget());
     break;
   case MsgKind::Status:
-    this->println(StrBuff().c(
-        "Received status message from ").c(connection_id));
+    this->println(StrBuff().c("Received ").c(
+        msg->get_payload_size() + Message::HEADER_SIZE).c(
+        "byte Status message from ").c(connection_id));
     dont_delete = this->received_msg_manager->handle_status(msg->as_status());
     break;
   case MsgKind::Register:
-    this->println(StrBuff()
-                      .c("Received Register message from id ")
-                      .c(connection_id)
-                      .c(". Ignoring."));
+    this->println(StrBuff().c("Received ").c(
+        msg->get_payload_size() + Message::HEADER_SIZE).c(
+        "byte Register message from ").c(connection_id).c(". Ignoring."));
     break;
   case MsgKind::Directory: {
     // Replace the current directory with the updated directory
-    this->println(StrBuff().c("Received Directory from registrar"));
+    this->println(StrBuff().c("Received ").c(
+        msg->get_payload_size() + Message::HEADER_SIZE).c(
+        "byte Directory message from ").c(connection_id));
     dir_message = msg->as_directory();
 
     // Update the directory
@@ -233,7 +245,9 @@ void Node::handle_incoming_message(size_t connection_id, Message *msg) {
   }
   default:
     // Invalid message type. Do nothing and just ignore it.
-    printf("Received invalid message from server\n");
+    this->println(StrBuff().c("Received ").c(
+        msg->get_payload_size() + Message::HEADER_SIZE).c(
+        "byte Invalid message from ").c(connection_id).c(". Ignoring."));
     break;
   }
 

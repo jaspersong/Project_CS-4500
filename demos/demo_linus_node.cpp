@@ -8,15 +8,14 @@
 // Lang::Cpp
 
 #include "argparser.h"
+#include "linus_app.h"
 #include "socket_network_msg_manager.h"
-#include "stdout_msg_manager.h"
-#include "word_count_app.h"
 #include <unistd.h>
 
 int main(int argc, char **argv) {
-  ArgParser args(ArgParser::ParseTypes::WordCountNode, argc, argv);
+  ArgParser args(ArgParser::ParseTypes::Node, argc, argv);
 
-  WordCount app("");
+  Linus app;
   SocketNetworkMessageManager *app_manager = app.connect_network();
   Node node(args.get_registrar_addr(), args.get_registrar_port(),
             args.get_listener_addr(), args.get_listener_port(),

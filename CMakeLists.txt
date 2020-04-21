@@ -6,7 +6,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 # Set the compile flags
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -pthread")
-#add_definitions(-DDEBUG_NETWORK_PRINT)
+add_definitions(-DDEBUG_NETWORK_PRINT)
 
 include_directories(
         "${CMAKE_CURRENT_SOURCE_DIR}/inc"
@@ -51,8 +51,8 @@ set(NETWORK_SRC
         src/messages/serial.cpp
         inc/network/distributed_app_network_layer.h
         src/network/distributed_app_network_layer.cpp
-        inc/network/network.h
-        src/network/network.cpp
+        inc/network/socket_network.h
+        src/network/socket_network.cpp
         inc/network/recv_msg_manager.h
         inc/application/stdout_msg_manager.h
         src/application/stdout_msg_manager.cpp)
@@ -67,8 +67,8 @@ set(APP_SRC
         src/application/local_network_msg_manager.cpp
         inc/application/application_network_interface.h
         src/application/application_network_interface.cpp
-        inc/application/networked_msg_manager.h
-        src/application/networked_msg_manager.cpp
+        inc/application/socket_network_msg_manager.h
+        src/application/socket_network_msg_manager.cpp
         src/application/distributed_value.cpp
         inc/application/distributed_value.h
         inc/application/argparser.h
@@ -178,3 +178,20 @@ add_executable(demo_wordcount_node
         "${APP_SRC}"
         inc/application/word_count_app.h
         src/application/word_count_app.cpp)
+
+add_executable(demo_linus_registrar
+        demos/demo_linus_registrar.cpp
+        "${UTILITY_SRC}"
+        "${DATAFRAME_SRC}"
+        "${NETWORK_SRC}"
+        "${APP_SRC}"
+        inc/application/linus_app.h
+        src/application/linus_app.cpp)
+add_executable(demo_linus_node
+        demos/demo_linus_node.cpp
+        "${UTILITY_SRC}"
+        "${DATAFRAME_SRC}"
+        "${NETWORK_SRC}"
+        "${APP_SRC}"
+        inc/application/linus_app.h
+        src/application/linus_app.cpp)

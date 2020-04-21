@@ -11,7 +11,7 @@
 
 #include "serial.h"
 
-class Network;
+class SocketNetwork;
 
 /**
  * An abstract class that manages the messages received by the particular
@@ -31,7 +31,7 @@ public:
   virtual bool handle_waitandget(WaitAndGet *msg) { return false; }
   virtual bool handle_status(Status *msg) { return false; }
 
-  virtual void set_network(Network *network) {}
+  virtual void set_network(SocketNetwork *network) {}
 
   /**
    * Virtual functions that can wait for a reply to a wait and get message,

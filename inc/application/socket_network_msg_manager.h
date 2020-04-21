@@ -17,14 +17,14 @@
  * layer so that the application is able to interface over a distributed
  * application using a real network layer.
  */
-class RealNetworkMessageManager : public ApplicationNetworkInterface {
+class SocketNetworkMessageManager : public ApplicationNetworkInterface {
 public:
-  explicit RealNetworkMessageManager(KeyValueStore *kv_store);
+  explicit SocketNetworkMessageManager(KeyValueStore *kv_store);
 
   // Attaches a network layer to this interface for an application. Only a
   // Node is a valid client that can be attached to this interface. If a
   // non-Node client is attached to this interface, it will do nothing.
-  void set_network(Network *network) override;
+  void set_network(SocketNetwork *network) override;
 
   void send_put(size_t node_id, Key &key, DataFrame *value) override;
   void send_waitandget(size_t node_id, Key &key) override;
@@ -36,5 +36,5 @@ public:
   size_t get_home_id() override;
 
 private:
-  Network *network_layer;
+  SocketNetwork *network_layer;
 };

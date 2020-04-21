@@ -16,7 +16,7 @@
 #include "rower.h"
 
 class LocalNetworkMessageManager;
-class RealNetworkMessageManager;
+class SocketNetworkMessageManager;
 
 class KeyValueStore : public CustomObject {
 public:
@@ -89,7 +89,7 @@ public:
   /**
    * Configures this application to use a real network layer.
    */
-  RealNetworkMessageManager *connect_network();
+  SocketNetworkMessageManager *connect_network();
 
   /**
    * Verifies that the distributed layer has been configured properly in
@@ -176,7 +176,7 @@ private:
   Lock distro_kv_lock;
 
   LocalNetworkMessageManager *local_network_layer;
-  RealNetworkMessageManager *real_network_layer;
+  SocketNetworkMessageManager *real_network_layer;
 
   /**
    * Function to signal that whoever is waiting for this key that this key

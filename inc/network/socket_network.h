@@ -17,7 +17,7 @@
  * A socket network layer. It is able to initiate connections to known IP
  * address-port number pairs, and have others connect to this.
  */
-class Network : public Thread {
+class SocketNetwork : public Thread {
 public:
   /**
    * Constructs a socket network.
@@ -30,8 +30,8 @@ public:
    * @param max_receive_size The maximum number of bytes this server can
    * receive in an incoming message.
    */
-  Network(size_t id, const char *ip_addr, int port_num, size_t max_connections);
-  ~Network() override;
+  SocketNetwork(size_t id, const char *ip_addr, int port_num, size_t max_connections);
+  ~SocketNetwork() override;
 
   String *get_ip_addr() { return &this->ip_addr; }
   int get_port_num() { return this->port_num; }
@@ -63,6 +63,8 @@ protected:
   void self_shutdown();
 
 private:
+  class Connection;
+
   bool continue_running;
   bool is_running;
 
@@ -71,18 +73,9 @@ private:
   int listening_socket;
 
   size_t max_connections;
-  int *connection_sockets;
-  Lock connection_lock;
-
-  unsigned char *msg_buffer;
-  size_t msg_buffer_index;
-  size_t msg_buffer_size;
-
-  Lock outgoing_msg_lock;
-  std::queue<Message *> incoming_msg_queue;
+  std::vector<Connection *> connections;
 
   void run() override;
   void initialize_listening_socket();
   void add_new_connection();
-  void read_socket(int connection_id);
 };

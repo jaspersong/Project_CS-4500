@@ -64,7 +64,7 @@ public:
    * layer in order to communicate to other nodes in a distributed application
    * @return
    */
-  RealNetworkMessageManager *connect_network();
+  SocketNetworkMessageManager *connect_network();
 
 protected:
   KeyValueStore *kv;

@@ -7,16 +7,16 @@
 
 // Lang::Cpp
 
-#include <unistd.h>
 #include "argparser.h"
 #include "demo_app.h"
-#include "networked_msg_manager.h"
+#include "socket_network_msg_manager.h"
+#include <unistd.h>
 
 int main(int argc, char **argv) {
   ArgParser args(ArgParser::ParseTypes::Registrar, argc, argv);
 
   Demo producer;
-  RealNetworkMessageManager *prod_manager = producer.connect_network();
+  SocketNetworkMessageManager *prod_manager = producer.connect_network();
   Registrar prod_node(args.get_listener_addr(), args.get_listener_port(),
       3, prod_manager);
 
@@ -26,7 +26,6 @@ int main(int argc, char **argv) {
   producer.start();
 
   // Wait until the app completes and that the network closes down
-  producer.join();
   prod_node.join();
 
   delete prod_manager;

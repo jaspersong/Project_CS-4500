@@ -7,20 +7,20 @@
 
 // Lang::Cpp
 
-#include "networked_msg_manager.h"
+#include "socket_network_msg_manager.h"
 #include "dataframe.h"
 
-RealNetworkMessageManager::RealNetworkMessageManager(KeyValueStore *kv_store)
+SocketNetworkMessageManager::SocketNetworkMessageManager(KeyValueStore *kv_store)
     : ApplicationNetworkInterface(kv_store) {
   this->network_layer = nullptr;
 }
 
-void RealNetworkMessageManager::set_network(Network *network) {
+void SocketNetworkMessageManager::set_network(SocketNetwork *network) {
   assert(this->network_layer == nullptr);
   this->network_layer = network;
 }
 
-size_t RealNetworkMessageManager::get_home_id() {
+size_t SocketNetworkMessageManager::get_home_id() {
   if (this->network_layer != nullptr) {
     this->network_layer->wait_for_all_connected();
     return this->network_layer->get_id();
@@ -30,7 +30,7 @@ size_t RealNetworkMessageManager::get_home_id() {
   }
 }
 
-void RealNetworkMessageManager::send_put(size_t node_id, Key &key,
+void SocketNetworkMessageManager::send_put(size_t node_id, Key &key,
                                           DataFrame *value) {
   // Build the put command message
   Serializer serializer;
@@ -41,7 +41,7 @@ void RealNetworkMessageManager::send_put(size_t node_id, Key &key,
   this->network_layer->send_message(node_id, put_message);
 }
 
-void RealNetworkMessageManager::send_waitandget(size_t node_id, Key &key) {
+void SocketNetworkMessageManager::send_waitandget(size_t node_id, Key &key) {
   // Build the wait and get message
   Serializer serializer;
   key.serialize(serializer);
@@ -50,7 +50,7 @@ void RealNetworkMessageManager::send_waitandget(size_t node_id, Key &key) {
   this->network_layer->send_message(node_id, wait_get_msg);
 }
 
-void RealNetworkMessageManager::send_reply(size_t node_id, Key &key,
+void SocketNetworkMessageManager::send_reply(size_t node_id, Key &key,
                                             DataFrame *df) {
   // Construct the reply
   Serializer serializer;
@@ -60,7 +60,7 @@ void RealNetworkMessageManager::send_reply(size_t node_id, Key &key,
 
   this->network_layer->send_message(node_id, reply);
 }
-void RealNetworkMessageManager::broadcast_value(Key &key,
+void SocketNetworkMessageManager::broadcast_value(Key &key,
                                                 DistributedValue *value) {
   // Build the put command message
   Serializer serializer;

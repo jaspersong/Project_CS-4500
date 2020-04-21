@@ -11,7 +11,7 @@
 #include "copy_writer.h"
 #include "distributed_value.h"
 #include "local_network_msg_manager.h"
-#include "networked_msg_manager.h"
+#include "socket_network_msg_manager.h"
 #include "sorer_integrator.h"
 #include "thread.h"
 
@@ -207,13 +207,13 @@ void KeyValueStore::register_local(LocalNetworkMessageManager *msg_manager) {
   this->local_network_layer->register_local(msg_manager);
 }
 
-RealNetworkMessageManager *KeyValueStore::connect_network() {
+SocketNetworkMessageManager *KeyValueStore::connect_network() {
   assert(this->local_network_layer == nullptr);
   assert(this->real_network_layer == nullptr);
   assert(this->num_nodes > 1);
   assert(this->home_node == -1);
 
-  this->real_network_layer = new RealNetworkMessageManager(this);
+  this->real_network_layer = new SocketNetworkMessageManager(this);
   return this->real_network_layer;
 }
 

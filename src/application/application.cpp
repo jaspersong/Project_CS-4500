@@ -35,7 +35,7 @@ void Application::register_local(LocalNetworkMessageManager *msg_manager) {
   this->kv->register_local(msg_manager);
 }
 
-RealNetworkMessageManager *Application::connect_network() {
+SocketNetworkMessageManager *Application::connect_network() {
   assert(!this->running);
   return this->kv->connect_network();
 }

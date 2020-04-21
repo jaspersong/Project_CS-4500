@@ -7,16 +7,16 @@
 
 // Lang::Cpp
 
-#include <unistd.h>
 #include "argparser.h"
 #include "demo_app.h"
-#include "networked_msg_manager.h"
+#include "socket_network_msg_manager.h"
+#include <unistd.h>
 
 int main(int argc, char **argv) {
   ArgParser args(ArgParser::ParseTypes::Node, argc, argv);
 
   Demo app;
-  RealNetworkMessageManager *app_manager = app.connect_network();
+  SocketNetworkMessageManager *app_manager = app.connect_network();
   Node node(args.get_registrar_addr(), args.get_registrar_port(),
       args.get_listener_addr(), args.get_listener_port(),
       3, app_manager);
@@ -27,7 +27,6 @@ int main(int argc, char **argv) {
   app.start();
 
   // Wait until the app completes and that the node closes down
-  app.join();
   node.join();
 
   delete app_manager;

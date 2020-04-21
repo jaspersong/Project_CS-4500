@@ -7,10 +7,10 @@
 
 // Lang::Cpp
 
-#include <unistd.h>
 #include "linus_app.h"
+#include "socket_network_msg_manager.h"
 #include "stdout_msg_manager.h"
-#include "networked_msg_manager.h"
+#include <unistd.h>
 
 static const size_t NUM_COUNTERS = 2;
 

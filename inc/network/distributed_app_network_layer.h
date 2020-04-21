@@ -9,10 +9,10 @@
 
 #pragma once
 
-#include "network.h"
 #include "recv_msg_manager.h"
+#include "socket_network.h"
 
-class Registrar : public Network {
+class Registrar : public SocketNetwork {
 public:
   Registrar(const char *ip_addr, int port_num, size_t max_connections,
       ReceivedMessageManager *received_message_manager);
@@ -31,7 +31,7 @@ private:
   ReceivedMessageManager *received_msg_manager;
 };
 
-class Node : public Network {
+class Node : public SocketNetwork {
 public:
   Node(const char *registrar_addr, int registrar_port_num,
       const char *listener_ip_addr, int listener_port_num,
