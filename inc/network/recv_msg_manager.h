@@ -14,8 +14,8 @@
 class SocketNetwork;
 
 /**
- * An abstract class that manages the messages received by the particular
- * server/client that use the message types in the serial.h.
+ * An abstract class that manages the messages received by a registrar or node
+ * instance socket network instance.
  */
 class ReceivedMessageManager : public CustomObject {
 public:

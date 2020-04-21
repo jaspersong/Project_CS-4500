@@ -21,9 +21,7 @@ class SocketNetworkMessageManager : public ApplicationNetworkInterface {
 public:
   explicit SocketNetworkMessageManager(KeyValueStore *kv_store);
 
-  // Attaches a network layer to this interface for an application. Only a
-  // Node is a valid client that can be attached to this interface. If a
-  // non-Node client is attached to this interface, it will do nothing.
+  // Attaches the network layer to this interface for an application.
   void set_network(SocketNetwork *network) override;
 
   void send_put(size_t node_id, Key &key, DataFrame *value) override;

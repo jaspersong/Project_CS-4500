@@ -178,9 +178,8 @@ void KeyValueStore::local_map(String *key_prefix, Rower &rower) {
   assert(key_prefix);
 
   this->distro_kv_lock.lock();
-  for (auto & iter : this->distro_kv_map) {
-    String other_prefix(iter.first->get_name()->c_str(),
-                        key_prefix->size());
+  for (auto &iter : this->distro_kv_map) {
+    String other_prefix(iter.first->get_name()->c_str(), key_prefix->size());
     if (other_prefix.equals(key_prefix)) {
       // this prefix matches. Map through it with the rower
       DataFrame *df = iter.second;
@@ -446,7 +445,7 @@ void KeyValueStore::wait_for_listener(Key &key) {
   this->kv_lock.unlock();
 
   // Get a lock to wait on
-  Lock * signal = nullptr;
+  Lock *signal = nullptr;
   bool created_signal; // Determines if we own the signal, or we borrowed
   this->listener_lock.lock();
   auto it = this->waiting_listeners.find(&key);

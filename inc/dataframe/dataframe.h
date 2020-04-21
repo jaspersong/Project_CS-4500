@@ -9,13 +9,13 @@
 
 #pragma once
 
-#include <vector>
 #include "custom_object.h"
 #include "custom_string.h"
 #include "dataframe_column.h"
 #include "row.h"
 #include "rower.h"
 #include "schema.h"
+#include <vector>
 
 /****************************************************************************
  * DataFrame::
@@ -95,18 +95,6 @@ private:
 
   // Cache of the number of rows
   size_t num_rows;
-
-  /**
-   * A helper function that takes in a column, row and column type and
-   * verifies that the given coordinate is valid and can execute functions
-   * related to the column data type provided.
-   * @param col 0-indexed column index.
-   * @param row 0-indexed row index.
-   * @param type The expected column data type.
-   * @return True if everything is invalid. False if otherwise. If it is
-   *         false, it will also print out the error message to stdout.
-   */
-  bool verify_col_row_parameters(size_t col, size_t row, ColumnType_t type);
 
   /**
    * Helper function that copy the row of the contents at the specified

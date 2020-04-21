@@ -37,7 +37,7 @@ void Message::serialize(Serializer &serializer) {
   // NOTE: All Message classes should call this function before serializing
   // the rest of their payloads!
   serializer.set_generic(reinterpret_cast<unsigned char *>(&this->kind),
-      sizeof(MsgKind));
+                         sizeof(MsgKind));
   serializer.set_size_t(this->sender);
   serializer.set_size_t(this->target);
   serializer.set_size_t(this->id);
@@ -222,18 +222,18 @@ size_t Status::hash_me() { return Message::hash_me() + this->msg->hash_me(); }
 
 Register::Register() : Message(MsgKind::Register) {
   // Initialize the properties with default values
-  this->client = {0};
-  this->client.sin_family = AF_INET;
-  inet_pton(AF_INET, "127.0.0.1", &this->client.sin_addr);
-  this->client.sin_port = htons(-1);
+  this->connection = {0};
+  this->connection.sin_family = AF_INET;
+  inet_pton(AF_INET, "127.0.0.1", &this->connection.sin_addr);
+  this->connection.sin_port = htons(-1);
   this->port = -1;
 }
 
 Register::Register(String *ip_addr, int port_num) : Message(MsgKind::Register) {
-  this->client = {0};
-  this->client.sin_family = AF_INET;
-  inet_pton(AF_INET, ip_addr->c_str(), &this->client.sin_addr);
-  this->client.sin_port = htons(port_num);
+  this->connection = {0};
+  this->connection.sin_family = AF_INET;
+  inet_pton(AF_INET, ip_addr->c_str(), &this->connection.sin_addr);
+  this->connection.sin_port = htons(port_num);
 
   this->port = static_cast<size_t>(port_num);
 }
@@ -243,8 +243,7 @@ Register::Register(unsigned char *payload, size_t num_bytes)
   Deserializer deserializer(payload, num_bytes);
 
   // Get the socket address
-  auto *sock_addr_buffer =
-      reinterpret_cast<unsigned char *>(&this->client);
+  auto *sock_addr_buffer = reinterpret_cast<unsigned char *>(&this->connection);
   for (size_t i = 0; i < sizeof(struct sockaddr_in); i++) {
     sock_addr_buffer[i] = deserializer.get_byte();
   }
@@ -256,20 +255,20 @@ Register::Register(unsigned char *payload, size_t num_bytes)
 void Register::serialize(Serializer &serializer) {
   // Prepare the header
   size_t payload_size =
-      sizeof(this->client) + Serializer::get_required_bytes(this->port);
+      sizeof(this->connection) + Serializer::get_required_bytes(this->port);
   this->set_payload_size(payload_size);
   Message::serialize(serializer);
 
   // Now copy in the socket address structure byte by byte
-  serializer.set_generic(reinterpret_cast<unsigned char *>(&this->client),
-      sizeof(this->client));
+  serializer.set_generic(reinterpret_cast<unsigned char *>(&this->connection),
+                         sizeof(this->connection));
 
   // Set the port
   serializer.set_size_t(this->port);
 }
 
 String *Register::get_ip_addr() const {
-  struct in_addr ip_addr = this->client.sin_addr;
+  struct in_addr ip_addr = this->connection.sin_addr;
   char addr_cstr[INET_ADDRSTRLEN];
   inet_ntop(AF_INET, &ip_addr, addr_cstr, INET_ADDRSTRLEN);
   return new String(addr_cstr);
@@ -289,7 +288,7 @@ bool Register::equals(CustomObject *other) const {
   String *this_ip = this->get_ip_addr();
   String *that_ip = x->get_ip_addr();
 
-  bool ret_value = ((this->client.sin_family == x->client.sin_family) &&
+  bool ret_value = ((this->connection.sin_family == x->connection.sin_family) &&
                     (this_ip->equals(that_ip)) && (this->port == x->port));
 
   delete this_ip;
@@ -308,13 +307,13 @@ size_t Register::hash_me() {
   return ret_value;
 }
 
-Directory::Directory(size_t max_clients) : Message(MsgKind::Directory) {
-  assert(max_clients > 0);
+Directory::Directory(size_t max_connections) : Message(MsgKind::Directory) {
+  assert(max_connections > 0);
 
-  this->clients = max_clients;
-  this->ports.resize(this->clients, 0);
-  this->addresses.resize(this->clients, nullptr);
-  for (size_t i = 0; i < this->clients; i++) {
+  this->max_connections = max_connections;
+  this->ports.resize(this->max_connections, 0);
+  this->addresses.resize(this->max_connections, nullptr);
+  for (size_t i = 0; i < this->max_connections; i++) {
     this->ports[i] = 0;
     this->addresses[i] = nullptr;
   }
@@ -325,18 +324,18 @@ Directory::Directory(unsigned char *payload, size_t num_bytes)
   Deserializer deserializer(payload, num_bytes);
   String blank_string("");
 
-  // Get the maximum number of clients
-  this->clients = deserializer.get_size_t();
+  // Get the maximum number of connections
+  this->max_connections = deserializer.get_size_t();
 
   // Get the ports
-  this->ports.resize(this->clients, 0);
-  for (size_t i = 0; i < this->clients; i++) {
+  this->ports.resize(this->max_connections, 0);
+  for (size_t i = 0; i < this->max_connections; i++) {
     this->ports[i] = deserializer.get_size_t();
   }
 
   // Get the addresses
-  this->addresses.resize(this->clients, nullptr);
-  for (size_t i = 0; i < this->clients; i++) {
+  this->addresses.resize(this->max_connections, nullptr);
+  for (size_t i = 0; i < this->max_connections; i++) {
     String *address = String::deserialize_as_string(deserializer);
     if (address->equals(&blank_string)) {
       // Replace it with a nullptr
@@ -349,23 +348,23 @@ Directory::Directory(unsigned char *payload, size_t num_bytes)
 }
 
 Directory::~Directory() {
-  for (size_t i = 0; i < this->clients; i++) {
+  for (size_t i = 0; i < this->max_connections; i++) {
     delete this->addresses[i];
   }
-  this->clients = 0;
+  this->max_connections = 0;
 }
 
 void Directory::serialize(Serializer &serializer) {
   // Prepare the header
   String blank_string("");
-  size_t payload_size = Serializer::get_required_bytes(this->clients);
-  for (size_t i = 0; i < this->clients; i++) {
+  size_t payload_size = Serializer::get_required_bytes(this->max_connections);
+  for (size_t i = 0; i < this->max_connections; i++) {
     payload_size += Serializer::get_required_bytes(this->ports[i]);
     if (this->addresses[i] != nullptr) {
       payload_size += this->addresses[i]->serialization_required_bytes();
     } else {
       // Request enough bytes for an empty string as a place holder for
-      // empty client ids
+      // empty node ids
       payload_size += blank_string.serialization_required_bytes();
     }
   }
@@ -373,65 +372,65 @@ void Directory::serialize(Serializer &serializer) {
   Message::serialize(serializer);
 
   // Now serialize the values.
-  serializer.set_size_t(this->clients);
-  for (size_t i = 0; i < this->clients; i++) {
+  serializer.set_size_t(this->max_connections);
+  for (size_t i = 0; i < this->max_connections; i++) {
     serializer.set_size_t(this->ports[i]);
   }
-  for (size_t i = 0; i < this->clients; i++) {
+  for (size_t i = 0; i < this->max_connections; i++) {
     if (this->addresses[i] != nullptr) {
       this->addresses[i]->serialize(serializer);
     } else {
       // Request enough bytes for an empty string as a place holder for
-      // empty client ids
+      // empty connection ids
       blank_string.serialize(serializer);
     }
   }
 }
 
-bool Directory::add_client(size_t client_id, String *ip_addr, int port_num) {
-  assert((client_id >= 0) && (client_id < this->clients));
+bool Directory::add_connection(size_t connection_id, String *ip_addr, int port_num) {
+  assert((connection_id >= 0) && (connection_id < this->max_connections));
   assert(ip_addr != nullptr);
 
-  if (this->addresses[client_id] == nullptr) {
-    this->addresses[client_id] = new String(*ip_addr);
-    this->ports[client_id] = static_cast<size_t>(port_num);
+  if (this->addresses[connection_id] == nullptr) {
+    this->addresses[connection_id] = new String(*ip_addr);
+    this->ports[connection_id] = static_cast<size_t>(port_num);
     return true;
   } else {
     return false;
   }
 }
 
-bool Directory::remove_client(size_t client_id) {
-  assert((client_id >= 0) && (client_id < this->clients));
+bool Directory::remove_connection(size_t connection_id) {
+  assert((connection_id >= 0) && (connection_id < this->max_connections));
 
-  if (this->addresses[client_id] == nullptr) {
+  if (this->addresses[connection_id] == nullptr) {
     return false;
   } else {
-    delete this->addresses[client_id];
-    this->addresses[client_id] = nullptr;
-    this->ports[client_id] = 0;
+    delete this->addresses[connection_id];
+    this->addresses[connection_id] = nullptr;
+    this->ports[connection_id] = 0;
     return true;
   }
 }
 
-bool Directory::is_client_connected(size_t client_id) {
-  assert((client_id >= 0) && (client_id < this->clients));
-  return (this->addresses[client_id] != nullptr);
+bool Directory::is_connected(size_t connection_id) {
+  assert((connection_id >= 0) && (connection_id < this->max_connections));
+  return (this->addresses[connection_id] != nullptr);
 }
 
-String *Directory::get_client_ip_addr(size_t client_id) {
-  assert((client_id >= 0) && (client_id < this->clients));
+String *Directory::get_connection_ip(size_t connection_id) {
+  assert((connection_id >= 0) && (connection_id < this->max_connections));
 
-  if (this->addresses[client_id] == nullptr) {
+  if (this->addresses[connection_id] == nullptr) {
     return nullptr;
   } else {
-    return this->addresses[client_id];
+    return this->addresses[connection_id];
   }
 }
 
-int Directory::get_client_port_num(size_t client_id) {
-  assert((client_id >= 0) && (client_id < this->clients));
-  return this->ports[client_id];
+int Directory::get_connection_port_num(size_t connection_id) {
+  assert((connection_id >= 0) && (connection_id < this->max_connections));
+  return this->ports[connection_id];
 }
 
 bool Directory::equals(CustomObject *other) const {
@@ -443,9 +442,9 @@ bool Directory::equals(CustomObject *other) const {
   auto *x = dynamic_cast<Directory *>(other);
   if (x == nullptr)
     return false;
-  if (this->clients != x->clients)
+  if (this->max_connections != x->max_connections)
     return false;
-  for (size_t i = 0; i < this->clients; i++) {
+  for (size_t i = 0; i < this->max_connections; i++) {
     if (this->ports[i] != x->ports[i])
       return false;
 
@@ -466,8 +465,8 @@ bool Directory::equals(CustomObject *other) const {
 
 size_t Directory::hash_me() {
   size_t ret_value = Message::hash_me();
-  ret_value += this->clients;
-  for (size_t i = 0; i < this->clients; i++) {
+  ret_value += this->max_connections;
+  for (size_t i = 0; i < this->max_connections; i++) {
     ret_value += this->ports[i];
     ret_value += this->addresses[i]->hash_me();
   }

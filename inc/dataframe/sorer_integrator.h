@@ -21,7 +21,7 @@ class SorerWriter : public Writer {
 public:
   explicit SorerWriter(SorerIntegrator *sorer);
 
-  void visit(Row& r) override;
+  void visit(Row &r) override;
   bool done() override;
 
 private:
@@ -87,9 +87,8 @@ public:
   void parse() {
     // No need to parse if this was already parsed
     if (this->set == nullptr) {
-      this->parser =
-          new SorParser(this->file, this->start, this->start + this->len,
-                        this->file_size);
+      this->parser = new SorParser(this->file, this->start,
+                                   this->start + this->len, this->file_size);
       this->parser->guessSchema();
       this->parser->parseFile();
       this->set = this->parser->getColumnSet();

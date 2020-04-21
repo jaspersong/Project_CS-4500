@@ -12,9 +12,9 @@
 #include "custom_object.h"
 #include "custom_string.h"
 
+#include "dataframe.h"
 #include "row.h"
 #include "rower.h"
-#include "dataframe.h"
 
 /**
  * An implementation of a Rower that goes through a dataframe and copies it
@@ -24,7 +24,7 @@
 class CopyWriter : public Writer {
 public:
   explicit CopyWriter(DataFrame *source_dataframe);
-  void visit(Row& r) override;
+  void visit(Row &r) override;
   bool done() override;
 
 private:

@@ -9,8 +9,8 @@
 
 #pragma once
 
-#include "key_value_store.h"
 #include "application_network_interface.h"
+#include "key_value_store.h"
 
 /**
  * An implementation of an interface between an application and a network

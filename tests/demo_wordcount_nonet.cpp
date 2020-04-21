@@ -7,8 +7,8 @@
 
 // Lang::Cpp
 
-#include "word_count_app.h"
 #include "local_network_msg_manager.h"
+#include "word_count_app.h"
 
 static const size_t NUM_COUNTERS = 2;
 
@@ -17,7 +17,7 @@ int main(int argc, char **argv) {
 
   WordCount main_node(argv[1]);
   WordCount *counters[NUM_COUNTERS];
-  for (auto & counter : counters) {
+  for (auto &counter : counters) {
     counter = new WordCount(argv[1]);
   }
 
@@ -45,16 +45,16 @@ int main(int argc, char **argv) {
 
   // Start up all of the applications
   main_node.start();
-  for (auto & counter : counters) {
+  for (auto &counter : counters) {
     counter->start();
   }
 
   // Now wait for them all to finish
   main_node.join();
-  for (auto & counter : counters) {
+  for (auto &counter : counters) {
     counter->join();
   }
-  
+
   delete main_network_manager;
   for (size_t i = 0; i < NUM_COUNTERS; i++) {
     delete counters[i];

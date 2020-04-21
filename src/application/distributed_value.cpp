@@ -8,11 +8,11 @@
 // Lang::Cpp
 
 #include "distributed_value.h"
-#include "key_value_store.h"
 #include "dataframe.h"
+#include "key_value_store.h"
 
 DistributedValue::DistributedValue(Key &key, Schema &schema,
-    KeyValueStore *kv) {
+                                   KeyValueStore *kv) {
   assert(kv);
 
   this->key = new Key(key.get_name()->c_str(), key.get_home_id());
@@ -126,7 +126,7 @@ size_t DistributedValue::serialization_required_bytes() {
 
 DistributedValue *
 DistributedValue::deserialize_as_distributed_val(Deserializer &deserializer,
-    Key &key, KeyValueStore *kv) {
+                                                 Key &key, KeyValueStore *kv) {
   assert(key.get_home_id() == -1);
   assert(kv);
 
@@ -160,8 +160,11 @@ void DistributedValue::add_row(Row &row) {
   // Store the dataframe if we've reached the maximum number of rows
   if (this->writer_curr_row_num >= DistributedValue::MAX_NUM_ROWS) {
     // Generate the key
-    String *key_name = StrBuff().c(key->get_name()->c_str()).c("-").
-        c(this->writer_curr_num_segments).get();
+    String *key_name = StrBuff()
+                           .c(key->get_name()->c_str())
+                           .c("-")
+                           .c(this->writer_curr_num_segments)
+                           .get();
     Key new_key(key_name->c_str(), this->writer_node_id);
     delete key_name;
 
@@ -188,8 +191,11 @@ void DistributedValue::package_value() {
   // Add the last dataframe if applicable
   if (this->building_df != nullptr) {
     // Generate the key
-    String *key_name =
-        StrBuff().c(key->get_name()->c_str()).c("-").c(this->writer_curr_num_segments).get();
+    String *key_name = StrBuff()
+                           .c(key->get_name()->c_str())
+                           .c("-")
+                           .c(this->writer_curr_num_segments)
+                           .get();
     Key new_key(key_name->c_str(), this->writer_node_id);
     delete key_name;
 

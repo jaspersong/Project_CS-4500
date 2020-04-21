@@ -34,18 +34,14 @@ public:
     this->msg_buffer = new unsigned char[this->msg_buffer_size];
   }
 
-  ~Connection() {
-    delete[] this->msg_buffer;
-  }
+  ~Connection() { delete[] this->msg_buffer; }
 
   size_t get_socket() {
     assert(this->is_connected());
     return this->socket;
   }
 
-  bool is_connected() {
-    return this->socket != 0;
-  }
+  bool is_connected() { return this->socket != 0; }
 
   // Assign this connection with an actively connected socket with another.
   void assign_connection(int connection_socket) {
@@ -79,8 +75,11 @@ public:
     if (this->is_connected()) {
       send(this->socket, message, message_size, 0);
       sleep(50);
-      this->network->println(StrBuff().c("Sent ").c(message_size).c(
-          "byte message to ").c(this->connection_id));
+      this->network->println(StrBuff()
+                                 .c("Sent ")
+                                 .c(message_size)
+                                 .c("byte message to ")
+                                 .c(this->connection_id));
     }
     this->connection_lock.unlock();
 
@@ -105,7 +104,7 @@ public:
     this->connection_lock.lock();
     if (this->is_connected()) {
       bytes_read = read(this->socket, this->msg_buffer + this->msg_buffer_index,
-               this->msg_buffer_size - this->msg_buffer_index);
+                        this->msg_buffer_size - this->msg_buffer_index);
     }
     this->connection_lock.unlock();
 
@@ -118,8 +117,10 @@ public:
       this->close_connection();
 
       // Call the callback
-      this->network->println(StrBuff().c("Connection id ").c(
-          connection_id).c(" closed connection"));
+      this->network->println(StrBuff()
+                                 .c("Connection id ")
+                                 .c(connection_id)
+                                 .c(" closed connection"));
       this->network->handle_closing_connection(this->connection_id);
     } else if (bytes_read != -1) {
       this->msg_buffer_index += bytes_read;
@@ -130,8 +131,8 @@ public:
         Message *full_msg = nullptr;
         Message *header = Message::deserialize_as_message_header(
             this->msg_buffer, this->msg_buffer_index);
-        // Determine if it's a full message if the collected buffer is big enough
-        // to hold the data that the message header promises
+        // Determine if it's a full message if the collected buffer is big
+        // enough to hold the data that the message header promises
         if (header != nullptr) {
           if (header->get_payload_size() ==
               this->msg_buffer_index - Message::HEADER_SIZE) {
@@ -144,7 +145,7 @@ public:
 
             // Now handle the message
             this->network->handle_incoming_message(this->connection_id,
-                full_msg);
+                                                   full_msg);
           } else if (header->get_payload_size() <
                      this->msg_buffer_index - Message::HEADER_SIZE) {
             delete header; // Don't need the header anymore
@@ -163,7 +164,7 @@ public:
 
             // Now handle the message
             this->network->handle_incoming_message(this->connection_id,
-                full_msg);
+                                                   full_msg);
           } else {
             delete header; // Don't need the header anymore
             break;
@@ -185,7 +186,7 @@ private:
 };
 
 SocketNetwork::SocketNetwork(size_t id, const char *ip_addr, int port_num,
-                 size_t max_connections)
+                             size_t max_connections)
     : ip_addr(ip_addr) {
   assert(ip_addr);
   assert(max_connections > 0);
@@ -227,8 +228,8 @@ bool SocketNetwork::is_id_connected(size_t connection_id) {
 }
 
 void SocketNetwork::initiate_connection(size_t connection_id,
-                                  String *connection_ip_addr,
-                                  int connection_port_num) {
+                                        String *connection_ip_addr,
+                                        int connection_port_num) {
   assert(connection_id < this->max_connections);
 
   if (this->is_id_connected(connection_id)) {
@@ -264,6 +265,7 @@ void SocketNetwork::close_connection(size_t connection_id) {
     return;
   } else {
     this->connections[connection_id]->close_connection();
+    this->handle_closing_connection(connection_id);
     this->println(StrBuff().c("Closed connection to ").c(connection_id));
   }
 }
@@ -311,14 +313,14 @@ void SocketNetwork::run() {
     // Add the child sockets to the set
     for (size_t i = 0; i < this->max_connections; i++) {
       if (this->connections[i]->is_connected()) {
-        // This client is connected. Add it to the set.
-        int client = this->connections[i]->get_socket();
-        FD_SET(client, &connection_selector);
+        // This node is connected. Add it to the set.
+        int connection = this->connections[i]->get_socket();
+        FD_SET(connection, &connection_selector);
 
-        if (client > max_socket_desc) {
-          // This client's file descriptor is the largest file descriptor
+        if (connection > max_socket_desc) {
+          // This connection's file descriptor is the largest file descriptor
           // thus far.
-          max_socket_desc = client;
+          max_socket_desc = connection;
         }
       }
     }
@@ -334,15 +336,15 @@ void SocketNetwork::run() {
       // Something happened in one of the sockets. Handle it.
       if (FD_ISSET(this->listening_socket, &connection_selector)) {
         // Something happened on the listening socket, which means it's a new
-        // connection from a new client.
+        // connection from a new node.
         this->add_new_connection();
       }
 
       // Handle activity from the other connections
       for (size_t i = 0; i < this->max_connections; i++) {
         if (this->connections[i]->is_connected()) {
-          int client = this->connections[i]->get_socket();
-          if (FD_ISSET(client, &connection_selector)) {
+          int connection = this->connections[i]->get_socket();
+          if (FD_ISSET(connection, &connection_selector)) {
             this->connections[i]->read_socket();
           }
         }
@@ -391,7 +393,7 @@ void SocketNetwork::add_new_connection() {
                       (socklen_t *)&addrlen);
   assert(new_socket >= 0);
 
-  // Find an empty client position/id
+  // Find an empty connection id
   for (size_t i = 0; i < this->max_connections; i++) {
     if ((i != this->id) && (!this->connections[i]->is_connected())) {
       // Found an empty spot. Add it in

@@ -10,8 +10,8 @@
 #pragma once
 
 #include "application.h"
-#include "key.h"
 #include "application_network_interface.h"
+#include "key.h"
 
 /**
  * The input data is a processed extract from GitHub.
@@ -37,7 +37,7 @@
 class Set {
 public:
   /** Creates a set of the same size as the dataframe. */
-  explicit Set(DistributedValue* df);
+  explicit Set(DistributedValue *df);
 
   /** Creates a set of the given size. */
   explicit Set(size_t sz);
@@ -54,15 +54,15 @@ public:
   bool test(size_t idx);
 
   /** Performs set union in place. */
-  void union_set(Set& from);
+  void union_set(Set &from);
 
   size_t size();
   size_t size_set();
 
 private:
-  bool*vals;  // owned; data
+  bool *vals;          // owned; data
   size_t num_elements; // number of elements
-  size_t num_set; // Number of elements that were set
+  size_t num_set;      // Number of elements that were set
 };
 
 /*******************************************************************************
@@ -71,15 +71,15 @@ private:
  ******************************************************************************/
 class SetUpdater : public Reader {
 public:
-  explicit SetUpdater(Set& set);
+  explicit SetUpdater(Set &set);
 
   /** Assume a row with at least one column of type I. Assumes that there
    * are no missing. Reads the value and sets the corresponding position.
    * The return value is irrelevant here. */
-  bool accept(Row & row) override;
+  bool accept(Row &row) override;
 
 private:
-  Set& set; // set to update
+  Set &set; // set to update
 };
 
 /*****************************************************************************
@@ -87,18 +87,18 @@ private:
  * dataframe. The data contains all the values in the set. The dataframe has
  * at least one integer column.
  ****************************************************************************/
-class SetWriter: public Writer {
+class SetWriter : public Writer {
 public:
-  explicit SetWriter(Set& set);
+  explicit SetWriter(Set &set);
 
   /** Skip over false values and stop when the entire set has been seen */
   bool done() override;
 
-  void visit(Row & row) override;
+  void visit(Row &row) override;
 
 private:
-  Set& set; // set to read from
-  int pos = 0;  // position in set
+  Set &set;    // set to read from
+  int pos = 0; // position in set
 };
 
 /***************************************************************************
@@ -113,18 +113,18 @@ private:
  *************************************************************************/
 class ProjectsTagger : public Reader {
 public:
-  Set newProjects;  // newly tagged collaborator projects
+  Set newProjects; // newly tagged collaborator projects
 
-  ProjectsTagger(Set& uSet, Set& pSet, DistributedValue* proj);
+  ProjectsTagger(Set &uSet, Set &pSet, DistributedValue *proj);
 
   /** The data frame must have at least two integer columns. The newProject
    * set keeps track of projects that were newly tagged (they will have to
    * be communicated to other nodes). */
-  bool accept(Row & row) override;
+  bool accept(Row &row) override;
 
 private:
-  Set& uSet; // set of collaborator
-  Set& pSet; // set of projects of collaborators
+  Set &uSet; // set of collaborator
+  Set &pSet; // set of projects of collaborators
 };
 
 /***************************************************************************
@@ -139,13 +139,13 @@ class UsersTagger : public Reader {
 public:
   Set newUsers;
 
-  UsersTagger(Set& pSet,Set& uSet, DistributedValue* users);
+  UsersTagger(Set &pSet, Set &uSet, DistributedValue *users);
 
-  bool accept(Row & row) override;
+  bool accept(Row &row) override;
 
 private:
-  Set& pSet;
-  Set& uSet;
+  Set &pSet;
+  Set &uSet;
 };
 
 /*************************************************************************
@@ -160,10 +160,10 @@ public:
   static const size_t NUM_NODES = 3;
 
   int DEGREES = 4;  // How many degrees of separation form linus?
-  int LINUS = 4967;   // The uid of Linus (offset in the user df)
-  const char* PROJECT_FILENAME = "../data/projects.ltgt";
-  const char* USER_FILENAME = "../data/users.ltgt";
-  const char* COMMIT_FILENAME = "../data/commits.ltgt";
+  int LINUS = 4967; // The uid of Linus (offset in the user df)
+  const char *PROJECT_FILENAME = "../data/projects.ltgt";
+  const char *USER_FILENAME = "../data/users.ltgt";
+  const char *COMMIT_FILENAME = "../data/commits.ltgt";
 
   Linus();
   ~Linus() override;
@@ -190,13 +190,13 @@ public:
    * 'users' or 'projects', stage is the degree of separation being
    * computed.
    */
-  void merge(Set& set, char const* name, int stage);
+  void merge(Set &set, char const *name, int stage);
 
 private:
-  DistributedValue* projects; //  pid x project name
-  DistributedValue* users;  // uid x user name
-  DistributedValue* commits;  // pid x uid x uid
+  DistributedValue *projects; //  pid x project name
+  DistributedValue *users;    // uid x user name
+  DistributedValue *commits;  // pid x uid x uid
 
-  Set* uSet; // Linus' collaborators
-  Set* pSet; // projects of collaborators
+  Set *uSet; // Linus' collaborators
+  Set *pSet; // projects of collaborators
 };

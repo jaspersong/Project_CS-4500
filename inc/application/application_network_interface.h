@@ -33,9 +33,7 @@ public:
     assert(false);
   }
 
-  virtual void send_waitandget(size_t node_id, Key &key) {
-    assert(false);
-  }
+  virtual void send_waitandget(size_t node_id, Key &key) { assert(false); }
 
   virtual void broadcast_value(Key &key, DistributedValue *value) {
     assert(false);

@@ -9,9 +9,9 @@
 
 #pragma once
 
-#include <vector>
 #include "custom_object.h"
 #include "custom_string.h"
+#include <vector>
 
 /**
  * An enumeration that contains the column type represented in a char. The

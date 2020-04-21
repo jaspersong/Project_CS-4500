@@ -9,9 +9,9 @@
 
 #pragma once
 
-#include "key_value_store.h"
-#include "key.h"
 #include "distributed_value.h"
+#include "key.h"
+#include "key_value_store.h"
 #include "thread.h"
 
 /**

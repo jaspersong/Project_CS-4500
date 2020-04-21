@@ -40,18 +40,18 @@ int main(int argc, char **argv) {
 
   // Start up all of the applications
   main_node.start();
-  for (auto & counter : counters) {
+  for (auto &counter : counters) {
     counter.start();
   }
 
   // Now wait for them all to finish
   main_node.join();
-  for (auto & counter : counters) {
+  for (auto &counter : counters) {
     counter.join();
   }
 
   delete main_network_manager;
-  for (auto & counter_network_manager : counter_network_managers) {
+  for (auto &counter_network_manager : counter_network_managers) {
     delete counter_network_manager;
   }
 

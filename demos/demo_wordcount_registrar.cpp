@@ -18,8 +18,8 @@ int main(int argc, char **argv) {
 
   WordCount producer(args.get_wordcount_file());
   SocketNetworkMessageManager *prod_manager = producer.connect_network();
-  Registrar prod_node(args.get_listener_addr(), args.get_listener_port(),
-                      3, prod_manager);
+  Registrar prod_node(args.get_listener_addr(), args.get_listener_port(), 3,
+                      prod_manager);
 
   // Start up the registrar and the application
   prod_node.start();

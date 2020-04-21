@@ -8,7 +8,7 @@ test_all: build_all
 	-cd ./build; ./test_suite_messages && echo "SUCCESS"
 	-cd ./build; ./test_suite_sorer && echo "SUCCESS"
 	-cd ./build; ./test_suite_kv_store && echo "SUCCESS"
-	-cd ./build; ./demo_trivial_app_nonet && echo "SUCCESS"
+	-cd ./build; ./demo_trivial_nonet && echo "SUCCESS"
 	-cd ./build; ./demo_app_nonet && echo "SUCCESS"
 	-cd ./build; ./demo_wordcount_nonet ../data/shakespeare.txt && echo "SUCCESS"
 	-cd ./build; ./demo_wordcount_nonet ../data/harrypotter.txt && echo "SUCCESS"
@@ -20,21 +20,12 @@ test_valgrind: build_all
 	-cd ./build; valgrind --leak-check=yes ./test_suite_messages
 	-cd ./build; valgrind --leak-check=yes ./test_suite_sorer
 	-cd ./build; valgrind --leak-check=yes ./test_suite_kv_store
-	-cd ./build; valgrind --leak-check=yes ./demo_trivial_app_nonet
+	-cd ./build; valgrind --leak-check=yes ./demo_trivial_nonet
 	-cd ./build; valgrind --leak-check=yes ./demo_app_nonet
 	-cd ./build; valgrind --leak-check=yes ./demo_wordcount_nonet ../data/shakespeare.txt
 	-cd ./build; valgrind --leak-check=yes ./demo_wordcount_nonet ../data/harrypotter.txt
 	-cd ./build; valgrind --leak-check=yes ./demo_wordcount_nonet ../data/100k.txt
 	-cd ./build; valgrind --leak-check=yes ./demo_linus_nonet
-
-demo_wordcount_net_app: build_all
-	-cd ./build; ./demo_wordcount_wnet ../data/shakespeare.txt
-
-demo_wordcount_net_app_hp: build_all
-	-cd ./build; ./demo_wordcount_wnet ../data/harrypotter.txt
-
-demo_linus_net_app: build_all
-	-cd ./build; ./demo_linus_nonet
 
 clean:
 	rm -rf ./build

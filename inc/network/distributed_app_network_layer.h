@@ -15,7 +15,7 @@
 class Registrar : public SocketNetwork {
 public:
   Registrar(const char *ip_addr, int port_num, size_t max_connections,
-      ReceivedMessageManager *received_message_manager);
+            ReceivedMessageManager *received_message_manager);
   ~Registrar() override;
 
   void handle_closing_connection(size_t connection_id) override;
@@ -34,8 +34,9 @@ private:
 class Node : public SocketNetwork {
 public:
   Node(const char *registrar_addr, int registrar_port_num,
-      const char *listener_ip_addr, int listener_port_num,
-      size_t max_connections, ReceivedMessageManager *received_message_manager);
+       const char *listener_ip_addr, int listener_port_num,
+       size_t max_connections,
+       ReceivedMessageManager *received_message_manager);
   ~Node() override;
 
   size_t get_id() override;

@@ -99,8 +99,8 @@ add_executable(test_suite_kv_store
         "${APP_SRC}")
 
 # Create targets to demo the applications without a real network layer
-add_executable(demo_trivial_app_nonet
-        tests/trivial_app_nonet.cpp
+add_executable(demo_trivial_nonet
+        tests/demo_trivial_nonet.cpp
         "${UTILITY_SRC}"
         "${DATAFRAME_SRC}"
         "${NETWORK_SRC}"

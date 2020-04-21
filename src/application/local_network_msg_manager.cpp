@@ -76,7 +76,8 @@ void LocalNetworkMessageManager::send_reply(size_t node_id, Key &key,
   other_kv->handle_reply(reply);
 }
 
-void LocalNetworkMessageManager::register_local(LocalNetworkMessageManager *msg_manager) {
+void LocalNetworkMessageManager::register_local(
+    LocalNetworkMessageManager *msg_manager) {
   assert(this->app_list.size() == this->kv_store->get_num_nodes());
   assert(msg_manager != nullptr);
   assert(msg_manager->get_home_id() != -1);

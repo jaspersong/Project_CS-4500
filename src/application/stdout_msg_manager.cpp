@@ -16,14 +16,14 @@ StdoutMessageManager::StdoutMessageManager(size_t std_id) {
 bool StdoutMessageManager::handle_put(Put *msg) {
   (void)msg;
   printf("%zu: Received a put message from %zu.\n", this->std_id,
-      msg->get_sender_id());
+         msg->get_sender_id());
   return false;
 }
 
 bool StdoutMessageManager::handle_waitandget(WaitAndGet *msg) {
   (void)msg;
   printf("%zu: Received a Wait and Get message from %zu.\b", this->std_id,
-      msg->get_sender_id());
+         msg->get_sender_id());
   return false;
 }
 

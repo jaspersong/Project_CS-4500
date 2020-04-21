@@ -25,12 +25,13 @@ public:
    * @param ip_addr The IP address that the network will listen on for
    * incoming connections and incoming messages.
    * @param port_num The port number
-   * @param max_clients The maximum number of connections that the network
+   * @param max_connections The maximum number of connections that the network
    * can connect to at any single moment in time.
    * @param max_receive_size The maximum number of bytes this server can
    * receive in an incoming message.
    */
-  SocketNetwork(size_t id, const char *ip_addr, int port_num, size_t max_connections);
+  SocketNetwork(size_t id, const char *ip_addr, int port_num,
+                size_t max_connections);
   ~SocketNetwork() override;
 
   String *get_ip_addr() { return &this->ip_addr; }

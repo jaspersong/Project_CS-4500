@@ -71,7 +71,7 @@ void String::serialize(Serializer &serializer) {
 
   // Now copy the string to the serializer, including the null terminator
   serializer.set_generic(reinterpret_cast<unsigned char *>(this->cstr_),
-      this->size_ + 1);
+                         this->size_ + 1);
 }
 
 String *String::deserialize_as_string(Deserializer &deserializer) {

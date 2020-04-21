@@ -9,10 +9,10 @@
 
 #pragma once
 
-#include <vector>
+#include "custom_string.h"
 #include <arpa/inet.h>
 #include <netinet/in.h>
-#include "custom_string.h"
+#include <vector>
 
 class Put;
 class Reply;
@@ -21,14 +21,7 @@ class Status;
 class Register;
 class Directory;
 
-enum class MsgKind {
-  Put,
-  Reply,
-  WaitAndGet,
-  Status,
-  Register,
-  Directory
-};
+enum class MsgKind { Put, Reply, WaitAndGet, Status, Register, Directory };
 
 /**
  * An abstract class that details a serializeable and deserializeable message.
@@ -232,52 +225,52 @@ public:
   size_t hash_me() override;
 
 private:
-  struct sockaddr_in client{};
+  struct sockaddr_in connection {};
   size_t port;
 };
 
 class Directory : public Message {
 public:
-  explicit Directory(size_t max_clients);
+  explicit Directory(size_t max_connections);
   Directory(unsigned char *payload, size_t num_bytes);
   ~Directory() override;
 
   void serialize(Serializer &serializer) override;
 
   /**
-   * Adds a client to the directory.
-   * @param client_id The id of the client to be added. The id will be from 0
-   *        to 1 less than the maximum number of clients that the registrar
+   * Adds a connection to the directory.
+   * @param connection_id The id of the node to be added. The id will be from 0
+   *        to 1 less than the maximum number of nodes that the registrar
    *        server can have registered at any given one time.
-   * @param ip_addr The IP address of the client. It will remain external.
-   * @param True if the client could be added. False if it could not, either
-   *        because the id is invalid, because there is already a client
+   * @param ip_addr The IP address of the node. It will remain external.
+   * @param True if the node could be added. False if it could not, either
+   *        because the id is invalid, because there is already a node
    *        registered at that id, or if the ip address provided is null.
    */
-  bool add_client(size_t client_id, String *ip_addr, int port_num);
+  bool add_connection(size_t connection_id, String *ip_addr, int port_num);
 
   /**
-   * Removes a client from the directory.
-   * @param client_id The id of the client to be removed. The id will be from 0
-   *        to 1 less tha the maximum number of clients taht the registrar
-   *        server can have registered at any given one time.
-   * @param True if the client had been removed. False if there is no client
-   *        registered at the id. If the client id is invalid, it will
+   * Removes a node from the directory.
+   * @param connection_id The id of the node to be removed. The id will be
+   *        from 0 to 1 less tha the maximum number of nodes taht the
+   *        registrar server can have registered at any given one time.
+   * @param True if the node had been removed. False if there is no node
+   *        registered at the id. If the node id is invalid, it will
    *        termiante the program.
    */
-  bool remove_client(size_t client_id);
+  bool remove_connection(size_t connection_id);
 
-  size_t get_max_num_clients() { return this->clients; }
-  bool is_client_connected(size_t client_id);
-  String *get_client_ip_addr(size_t client_id);
-  int get_client_port_num(size_t client_id);
+  size_t get_max_num_connections() { return this->max_connections; }
+  bool is_connected(size_t connection_id);
+  String *get_connection_ip(size_t connection_id);
+  int get_connection_port_num(size_t connection_id);
 
   Directory *as_directory() override { return this; }
   bool equals(CustomObject *other) const override;
   size_t hash_me() override;
 
 private:
-  size_t clients;
-  std::vector<size_t> ports;      // owned
+  size_t max_connections;
+  std::vector<size_t> ports; // owned
   std::vector<String *> addresses;
 };

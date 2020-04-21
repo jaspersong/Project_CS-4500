@@ -13,7 +13,7 @@
 
 int main(int argc, char **argv) {
   // Creates a server that sends all strings provided as arguments to the
-  // client that connects to it.
+  // node that connects to it.
   StdoutMessageManager msg_manager(0);
   Registrar registrar("127.0.0.1", 1234, 3, &msg_manager);
 

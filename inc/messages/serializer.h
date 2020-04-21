@@ -46,19 +46,19 @@ public:
    */
   bool set_bool(bool value) {
     return this->set_generic(reinterpret_cast<unsigned char *>(&value),
-        sizeof(value));
+                             sizeof(value));
   }
   bool set_size_t(size_t value) {
     return this->set_generic(reinterpret_cast<unsigned char *>(&value),
-        sizeof(value));
+                             sizeof(value));
   }
   bool set_int(int value) {
     return this->set_generic(reinterpret_cast<unsigned char *>(&value),
-        sizeof(value));
+                             sizeof(value));
   }
   bool set_double(double value) {
     return this->set_generic(reinterpret_cast<unsigned char *>(&value),
-        sizeof(value));
+                             sizeof(value));
   }
 
   /**

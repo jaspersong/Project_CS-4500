@@ -16,9 +16,7 @@ Application::Application(size_t num_nodes) {
   this->running = false;
 }
 
-Application::~Application() {
-  delete this->kv;
-}
+Application::~Application() { delete this->kv; }
 
 void Application::main() { assert(false); }
 
@@ -45,4 +43,6 @@ void Application::run() {
   assert(this->kv->verify_distributed_layer());
   this->main();
   this->running = false;
+
+  printf("Completed execution.\n");
 }

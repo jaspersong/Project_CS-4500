@@ -9,11 +9,11 @@
 
 #pragma once
 
-#include <map>
-#include "thread.h"
-#include "key.h"
 #include "distributed_value.h"
+#include "key.h"
 #include "rower.h"
+#include "thread.h"
+#include <map>
 
 class LocalNetworkMessageManager;
 class SocketNetworkMessageManager;

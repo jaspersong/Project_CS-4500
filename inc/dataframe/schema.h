@@ -9,10 +9,10 @@
 
 #pragma once
 
-#include <vector>
 #include "custom_object.h"
 #include "custom_string.h"
 #include "dataframe_column.h"
+#include <vector>
 
 /*************************************************************************
  * Schema::

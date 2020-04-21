@@ -476,7 +476,8 @@ void test6() {
   df.serialize(serializer);
 
   unsigned char *buffer = serializer.get_serialized_buffer();
-  helper.t_true(df.serialization_required_bytes() == serializer.get_size_serialized_data());
+  helper.t_true(df.serialization_required_bytes() ==
+                serializer.get_size_serialized_data());
 
   Deserializer deserializer(buffer, serializer.get_size_serialized_data());
   DataFrame *ret_df = DataFrame::deserialize_as_dataframe(deserializer);
@@ -484,10 +485,14 @@ void test6() {
   // Now make sure that it's the same the original
   helper.t_true(df.nrows() == ret_df->nrows());
   helper.t_true(df.ncols() == ret_df->ncols());
-  helper.t_true(df.get_schema().col_type(0) == ret_df->get_schema().col_type(0));
-  helper.t_true(df.get_schema().col_type(1) == ret_df->get_schema().col_type(1));
-  helper.t_true(df.get_schema().col_type(2) == ret_df->get_schema().col_type(2));
-  helper.t_true(df.get_schema().col_type(3) == ret_df->get_schema().col_type(3));
+  helper.t_true(df.get_schema().col_type(0) ==
+                ret_df->get_schema().col_type(0));
+  helper.t_true(df.get_schema().col_type(1) ==
+                ret_df->get_schema().col_type(1));
+  helper.t_true(df.get_schema().col_type(2) ==
+                ret_df->get_schema().col_type(2));
+  helper.t_true(df.get_schema().col_type(3) ==
+                ret_df->get_schema().col_type(3));
   for (size_t i = 0; i < 5; i++) {
     helper.t_true(df.get_bool(0, i) == ret_df->get_bool(0, i));
     helper.t_true(df.get_int(1, i) == ret_df->get_int(1, i));

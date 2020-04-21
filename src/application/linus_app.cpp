@@ -71,7 +71,7 @@ void SetWriter::visit(Row &row) { row.set(0, pos++); }
 
 /****************************************************************************/
 
-ProjectsTagger::ProjectsTagger(Set& uSet, Set& pSet, DistributedValue* proj)
+ProjectsTagger::ProjectsTagger(Set &uSet, Set &pSet, DistributedValue *proj)
     : uSet(uSet), pSet(pSet), newProjects(proj) {}
 
 bool ProjectsTagger::accept(Row &row) {
@@ -87,7 +87,7 @@ bool ProjectsTagger::accept(Row &row) {
 
 /****************************************************************************/
 
-UsersTagger::UsersTagger(Set& pSet,Set& uSet, DistributedValue* users)
+UsersTagger::UsersTagger(Set &pSet, Set &uSet, DistributedValue *users)
     : pSet(pSet), uSet(uSet), newUsers(users) {}
 
 bool UsersTagger::accept(Row &row) {
@@ -160,8 +160,8 @@ void Linus::readInput() {
     this->commits = this->kv->wait_and_get(cK);
   }
 
-  this-> uSet = new Set(this->users);
-  this-> pSet = new Set(this->projects);
+  this->uSet = new Set(this->users);
+  this->pSet = new Set(this->projects);
 }
 
 void Linus::step(int stage) {
@@ -188,17 +188,17 @@ void Linus::step(int stage) {
   uSet->union_set(utagger.newUsers);
 
   printf("    %zu: after stage %i:\n", this->get_node_id(), stage);
-  printf("        %zu: tagged projects: %zu\n",
-      this->get_node_id(), this->pSet->size_set());
-  printf("        %zu: tagged users: %zu\n",
-      this->get_node_id(), this->uSet->size_set());
+  printf("        %zu: tagged projects: %zu\n", this->get_node_id(),
+         this->pSet->size_set());
+  printf("        %zu: tagged users: %zu\n", this->get_node_id(),
+         this->uSet->size_set());
 }
 
 void Linus::merge(Set &set, char const *name, int stage) {
   if (this->get_node_id() == 0) {
     for (size_t i = 1; i < this->kv->get_num_nodes(); ++i) {
-      printf("    %zu: %s master node has %zu elements\n",
-             this->get_node_id(), name, set.size_set());
+      printf("    %zu: %s master node has %zu elements\n", this->get_node_id(),
+             name, set.size_set());
 
       String *key_name = StrBuff().c(name).c(stage).c("-").c(i).get();
       Key nK(key_name->c_str());
@@ -206,13 +206,13 @@ void Linus::merge(Set &set, char const *name, int stage) {
 
       DistributedValue *delta = kv->wait_and_get(nK);
       printf("    %zu: %s received delta of %zu elements from node %zu\n",
-          this->get_node_id(), name, delta->nrows(), i);
+             this->get_node_id(), name, delta->nrows(), i);
       SetUpdater upd(set);
       delta->map(upd);
     }
 
     printf("    %zu: %s storing %zu merged elements\n", this->get_node_id(),
-        name, set.size_set());
+           name, set.size_set());
     SetWriter writer(set);
     String *key_name = StrBuff().c(name).c(stage).c("-0").get();
     Key k(key_name->c_str());
@@ -220,10 +220,11 @@ void Linus::merge(Set &set, char const *name, int stage) {
     KeyValueStore::from_visitor(k, this->kv, "I", writer);
   } else {
     printf("    %zu: %s sending %zu elements to master node\n",
-        this->get_node_id(), name, set.size_set());
+           this->get_node_id(), name, set.size_set());
 
     SetWriter writer(set);
-    String *key_name = StrBuff().c(name).c(stage).c("-").c(this->get_node_id()).get();
+    String *key_name =
+        StrBuff().c(name).c(stage).c("-").c(this->get_node_id()).get();
     Key k(key_name->c_str());
     delete key_name;
     KeyValueStore::from_visitor(k, this->kv, "I", writer);
@@ -233,8 +234,8 @@ void Linus::merge(Set &set, char const *name, int stage) {
     delete key_name;
     DistributedValue *merged = this->kv->wait_and_get(mK);
 
-    printf("    %zu: %s receiving %zu merged elements\n",
-        this->get_node_id(), name, merged->nrows());
+    printf("    %zu: %s receiving %zu merged elements\n", this->get_node_id(),
+           name, merged->nrows());
     SetUpdater upd(set);
     merged->map(upd);
   }

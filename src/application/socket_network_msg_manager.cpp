@@ -10,7 +10,8 @@
 #include "socket_network_msg_manager.h"
 #include "dataframe.h"
 
-SocketNetworkMessageManager::SocketNetworkMessageManager(KeyValueStore *kv_store)
+SocketNetworkMessageManager::SocketNetworkMessageManager(
+    KeyValueStore *kv_store)
     : ApplicationNetworkInterface(kv_store) {
   this->network_layer = nullptr;
 }
@@ -24,14 +25,13 @@ size_t SocketNetworkMessageManager::get_home_id() {
   if (this->network_layer != nullptr) {
     this->network_layer->wait_for_all_connected();
     return this->network_layer->get_id();
-  }
-  else {
+  } else {
     return -1;
   }
 }
 
 void SocketNetworkMessageManager::send_put(size_t node_id, Key &key,
-                                          DataFrame *value) {
+                                           DataFrame *value) {
   // Build the put command message
   Serializer serializer;
   key.serialize(serializer);
@@ -51,7 +51,7 @@ void SocketNetworkMessageManager::send_waitandget(size_t node_id, Key &key) {
 }
 
 void SocketNetworkMessageManager::send_reply(size_t node_id, Key &key,
-                                            DataFrame *df) {
+                                             DataFrame *df) {
   // Construct the reply
   Serializer serializer;
   key.serialize(serializer);
@@ -61,7 +61,7 @@ void SocketNetworkMessageManager::send_reply(size_t node_id, Key &key,
   this->network_layer->send_message(node_id, reply);
 }
 void SocketNetworkMessageManager::broadcast_value(Key &key,
-                                                DistributedValue *value) {
+                                                  DistributedValue *value) {
   // Build the put command message
   Serializer serializer;
   key.serialize(serializer);

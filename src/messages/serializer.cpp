@@ -36,7 +36,7 @@ bool Serializer::grow_buffer() {
 
     // Copy the previous data into
     memcpy(static_cast<void *>(new_buffer), static_cast<void *>(this->buffer),
-        this->offset);
+           this->offset);
 
     // Now replace the old buffer with the new one
     delete[] this->buffer;
@@ -157,8 +157,7 @@ size_t Deserializer::get_size_t() {
   assert(this->get_num_bytes_left() >= sizeof(size_t));
 
   // Get the size of the string
-  auto *size_t_buffer =
-      reinterpret_cast<size_t *>(this->buffer + this->offset);
+  auto *size_t_buffer = reinterpret_cast<size_t *>(this->buffer + this->offset);
   size_t ret_value = size_t_buffer[0];
 
   // Update the offset to a new offset based off the string

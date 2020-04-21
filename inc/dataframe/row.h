@@ -9,10 +9,10 @@
 
 #pragma once
 
-#include <vector>
 #include "custom_object.h"
 #include "custom_string.h"
 #include "schema.h"
+#include <vector>
 
 /*************************************************************************
  * Row::

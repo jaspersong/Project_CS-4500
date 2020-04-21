@@ -21,9 +21,7 @@ bool SIMap::contains(String &key) {
   return it != this->map.end();
 }
 
-int SIMap::get(String &key) {
-  return this->map[&key];
-}
+int SIMap::get(String &key) { return this->map[&key]; }
 
 void SIMap::set(String &key, int value) {
   if (this->contains(key)) {
@@ -36,34 +34,22 @@ void SIMap::set(String &key, int value) {
   }
 }
 
-void SIMap::start_iteration() {
-  this->iter = this->map.begin();
-}
+void SIMap::start_iteration() { this->iter = this->map.begin(); }
 
-bool SIMap::has_next() {
-  return this->iter != this->map.end();
-}
+bool SIMap::has_next() { return this->iter != this->map.end(); }
 
-void SIMap::next_iter() {
-  this->iter++;
-}
+void SIMap::next_iter() { this->iter++; }
 
-String *SIMap::get_iter_key() {
-  return this->iter->first;
-}
+String *SIMap::get_iter_key() { return this->iter->first; }
 
-int SIMap::get_iter_value() {
-  return this->iter->second;
-}
+int SIMap::get_iter_value() { return this->iter->second; }
 
 void SIMap::print_vals() {
-  for (auto const& kv : this->map) {
+  for (auto const &kv : this->map) {
     printf("%s: %d\n", kv.first->c_str(), kv.second);
   }
 }
-size_t SIMap::size() {
-  return this->map.size();
-}
+size_t SIMap::size() { return this->map.size(); }
 
 /****************************************************************************/
 
@@ -75,9 +61,7 @@ FileReader::FileReader(String *file_name) {
   skipWhitespace_();
 }
 
-FileReader::~FileReader() {
-  fclose(this->file_);
-}
+FileReader::~FileReader() { fclose(this->file_); }
 
 void FileReader::visit(Row &r) {
   assert(i_ < end_);
@@ -165,15 +149,13 @@ SIMapToDF::SIMapToDF(SIMap *map) {
   this->map->start_iteration();
 }
 
-void SIMapToDF::visit(Row& r) {
+void SIMapToDF::visit(Row &r) {
   r.set(0, this->map->get_iter_key());
   r.set(1, this->map->get_iter_value());
   this->map->next_iter();
 }
 
-bool SIMapToDF::done() {
-  return !this->map->has_next();
-}
+bool SIMapToDF::done() { return !this->map->has_next(); }
 
 /****************************************************************************/
 
@@ -199,11 +181,11 @@ bool WordCountMerger::accept(Row &r) {
 
 /****************************************************************************/
 
-WordCount::WordCount(const char *file_name) :
-  Application(WordCount::NUM_NODES), file_name(file_name) {
+WordCount::WordCount(const char *file_name)
+    : Application(WordCount::NUM_NODES), file_name(file_name) {
   // Dynamically create the keys containing the final word count dataframe
   for (size_t i = 0; i < WordCount::NUM_NODES; i++) {
-    String * key_name = StrBuff().c("wc-").c(i).get();
+    String *key_name = StrBuff().c("wc-").c(i).get();
     this->wordcount_keys[i] = new Key(key_name->c_str());
     delete key_name;
   }
@@ -246,7 +228,7 @@ void WordCount::local_count() {
   String *key_name = this->wordcount_keys[this->kv->get_home_id()]->get_name();
   printf("Storing count to key %s\n", key_name->c_str());
   KeyValueStore::from_visitor(*this->wordcount_keys[this->kv->get_home_id()],
-      this->kv, "SI", map_to_df);
+                              this->kv, "SI", map_to_df);
 }
 
 void WordCount::merge_counts() {
@@ -263,5 +245,4 @@ void WordCount::merge_counts() {
   // Now print out the word counter
   printf("Different words: %zu\n", total_word_count.size());
   total_word_count.print_vals();
-  printf("Completed word count.\n");
 }

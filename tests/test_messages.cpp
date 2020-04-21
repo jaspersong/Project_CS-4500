@@ -386,9 +386,9 @@ void directory_case() {
   directory0.set_sender_id(2);
   directory0.set_id(3);
 
-  directory0.add_client(0, ip_addr, 1);
-  directory0.add_client(2, ip_addr, 4);
-  directory0.add_client(3, ip_addr, 5);
+  directory0.add_connection(0, ip_addr, 1);
+  directory0.add_connection(2, ip_addr, 4);
+  directory0.add_connection(3, ip_addr, 5);
 
   // Serialize the message
   Serializer serializer;
@@ -410,18 +410,18 @@ void directory_case() {
   helper.t_true(dir_received->get_id() == 3);
   helper.t_false(dir_received->get_id() == 0);
 
-  helper.t_true(dir_received->get_max_num_clients() == 5);
-  helper.t_true(dir_received->is_client_connected(0));
-  helper.t_false(dir_received->is_client_connected(1));
-  helper.t_true(dir_received->is_client_connected(2));
-  helper.t_true(dir_received->is_client_connected(3));
-  helper.t_false(dir_received->is_client_connected(4));
-  helper.t_true(dir_received->get_client_port_num(0) == 1);
-  helper.t_true(dir_received->get_client_port_num(2) == 4);
-  helper.t_true(dir_received->get_client_port_num(3) == 5);
-  String *recv_ip_addr_0 = dir_received->get_client_ip_addr(0);
-  String *recv_ip_addr_2 = dir_received->get_client_ip_addr(2);
-  String *recv_ip_addr_3 = dir_received->get_client_ip_addr(3);
+  helper.t_true(dir_received->get_max_num_connections() == 5);
+  helper.t_true(dir_received->is_connected(0));
+  helper.t_false(dir_received->is_connected(1));
+  helper.t_true(dir_received->is_connected(2));
+  helper.t_true(dir_received->is_connected(3));
+  helper.t_false(dir_received->is_connected(4));
+  helper.t_true(dir_received->get_connection_port_num(0) == 1);
+  helper.t_true(dir_received->get_connection_port_num(2) == 4);
+  helper.t_true(dir_received->get_connection_port_num(3) == 5);
+  String *recv_ip_addr_0 = dir_received->get_connection_ip(0);
+  String *recv_ip_addr_2 = dir_received->get_connection_ip(2);
+  String *recv_ip_addr_3 = dir_received->get_connection_ip(3);
   helper.t_true(recv_ip_addr_0->equals(ip_addr));
   helper.t_true(recv_ip_addr_2->equals(ip_addr));
   helper.t_true(recv_ip_addr_3->equals(ip_addr));

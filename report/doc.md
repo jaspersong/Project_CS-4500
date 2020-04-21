@@ -15,10 +15,11 @@ In order to use and run this project, the following tools must be installed:
 - cmake
 - git
 - clang
-- python3
+
+### Tests
 
 The following are terminal commands to run within the root of the project folder
-in order to build and run the various parts of the project system:
+in order to build and run the individual tests:
 - `make build_all`: Builds the whole project.
 - `make test_all`: Runs all of the test suites of the project
 - `make test_valgrind`: Runs all the test suites of the project with valgrind
@@ -31,17 +32,68 @@ a Docker image. This command only will run if the Docker is online.
 - `make docker_test_valgrind`: Runs all of the test suites of the project
 within a Docker image with valgrind turned on. This command will only run if
 the Docker is online
-- Various demo targets: Because the project currently cannot run the demos
-using socket programming communication, they are not included within the test
-targets listed above. As a result, they have been given separate demo targets
-    - `make demo_demo_net_app`: Runs the demo application
-    - `make demo_wordcount_net_app`: Runs the word counter application using
-     the shakespeare text
-    - `make demo_wordcount_net_app_hp`: Runs the word counter application
-     using the harry potter text
-    - `make demo_linus_net_app`: Runs the Degrees of Linus application
-    - `make demo_distro_app`: Runs a demo of the underlying distributed
-     application, without an application running on top of it.
+
+### Demos
+
+All applications that make use of socket programming have individual demo
+builds and runs. At the moment, none of the projects run on the Docker image.
+
+All demos can be built with the `make build_all` command mentioned in the
+Test section. The executables will then be in the `build` folder automatically
+generated within the root of the project folder. 
+
+#### Demo Basic Distributed Application
+
+The basic distributed application demo contains two executables: 
+`demo_registrar` and `demo_node`. The demo runs with hard-coded IP address
+and port numbers over the same local machine.
+
+Steps:
+1. In one terminal window, run `./demo_registrar`.
+1. In a separate terminal window, but on the same local machine, run 
+`./demo_node`.
+
+#### Demo Application
+
+The demo application contains two executables: `demo_app_registrar` and 
+`demo_app_node`. 
+
+Steps:
+1. In one terminal window, run `./demo_app_registrar <IP> <Port>`
+where the `<IP>` is the IP address that the registrar will listen for
+incoming connections from, and `<Port>` is the port number that the
+registrar will listen for incoming connections from.
+1. In two other terminal windows, run 
+`./demo_app_node <RegistrarIP> <RegistrarPort> <IP> <Port>`, where
+`<RegistrarIP>` and `<RegistrarPort>` is the IP address and the port number of
+the registrar, and `<IP>` and `<Port>` is the IP address and the port number
+that the node will listen for incoming direct connections from other nodes.
+
+#### Word Count Application
+
+The demo application contains two executables: `demo_wordcount_registrar` and 
+`demo_wordcount_node`. It takes in a similar set of arguments as the demo
+application mentioned above, except with one additional argument for the
+registrar.
+
+Steps:
+1. In one terminal window, run 
+`./demo_wordcount_registrar <IP> <Port> <WordCountFile>`
+where the `<WordCountFile>` is the file that the applicatino will read and count
+words from.
+1. In two other terminal windows, run 
+`./demo_wordcount_node <RegistrarIP> <RegistrarPort> <IP> <Port>`.
+
+#### Linus Application
+
+The demo application contains two executables: `demo_linus_registrar` and 
+`demo_linus_node`. It takes in the same set of arguments as the demo application
+mentioned above.
+
+Steps:
+1. In one terminal window, run `./demo_linus_registrar <IP> <Port>`.
+1. In two other terminal windows, run 
+`./demo_linus_node <RegistrarIP> <RegistrarPort> <IP> <Port>`.
 
 ## Architecture
 
@@ -69,50 +121,22 @@ eau2 system. If the home node id is 0 and greater, then it is referring to a
 a dataframe, which can be the entire DataFrame the DistributedValue is
 referencing, or be a chunk of it. 
 
-For nodes that do not contain the value of a particular Key can send a Get or a
+For nodes that do not contain the value of a particular Key can send a
 WaitAndGet message to the node id associated to that Key.
 
 ## Implementation
 
-### Dataframe Folder
+### Dataframe
 
-* `dataframe.h`
-An implementation of thread that will be used to concurrently iterate
-through the rows of a dataframe. A RowerThread_ will only every other
-RowerThread_ id row index within the DataFrame.
+A Dataframe is a collection of columns containing rows of data of data types 
+boolean, integer, float, and string. Each dataframe has a schema, which contains
+an ordered list of data types for each column from index 0 to any positive 
+index. The dataframe and all of its rows and columns are expected to follow the
+schema. Then each column is a list of data of the specified data type.
 
-* `dataframe_helper.h`
-A helper class for Column, Row and Schema in order to have a resizeable
-data structure with sort of O(1) algorithmic getting methods. This class
-primarily stores items in DataItem_, which is a union of various other
-primitives. The data type of the value stored within a DataItem must be
-determined by the class that uses the ArrayOfArrays.
-NOTE: This linked list of arrays does NOT support removing items. Only
-replacing them with different values, or adding new ones. This is because
-Row, Schema and Column APIs do not have a need for removing items.
-
-* `dataframe_column.h`
-Represents one column of a data frame which holds values of a single type.
-This abstract class defines methods overriden in subclasses. There is
-one subclass per element type. Columns are mutable, equality is pointer
-equality. 
-
-* `row.h`
-This class represents a single row of data constructed according to a
-dataframe's schema. The purpose of this class is to make it easier to add
-read/write complete rows. Internally a dataframe hold data in columns.
-Rows have pointer equality.
-
-* `rower.h`
-An interface for iterating through each row of a data frame. The intent
-is that this class should subclassed and the accept() method be given
-a meaningful implementation. Rowers can be cloned for parallel execution.
-
-* `schema.h`
-A schema is a description of the contents of a data frame, the schema
-knows the number of columns and number of rows, the type of each column,
-optionally columns and rows can be named by strings.
-The valid types are represented by the chars 'S', 'B', 'I' and 'F'.
+The Dataframe contains interfaces of Rower and Writer. A Rower is an interface 
+that can be used to iterate each row of a dataframe using the `map` functions.
+A Writer is used to generate a completely new dataframe row by row.
 
 #### CS4500-A1-part1
 
@@ -130,153 +154,29 @@ avoid linking issues upon compile time.
 ### Network Folder
 
 The communication layer was implemented in two pieces: One is the Registrar, 
-and the other is Node. The Registrar is an implementation of an abstract class 
-Server, that supports basic server functionality in a thread. The Node is an 
-implementation of an abstract class, Client, that supports basic client 
-functionality in a thread. The Node has a second thread running that implements 
-the same Server abstract class in order to manage client-to-client direct 
-communication.
+and the other is Node. They are both an implementation of an abstract class
+called the SocketNetwork. A registrar has all the same functionality as a Node,
+except it does not broadcast a Register message, and it is responsible to 
+manage the Directory of Nodes, which includes the IP address and port number
+of the Registrar itself.
 
-Two abstract classes were implemented in order to support general functionality 
-for any type of server or client. They are meant to be built upon in order to 
-support more specific functionality through the use of callback functions. This 
-means that the abstract Server class has implemented the following 
-functionality that all servers must be able to support: supporting services for 
-multiple clients, handling new incoming connections, handling incoming messages 
-from already connected clients, sending messages to clients, and handling 
-closing connections. Similarly, the abstract class Client supports the 
-following necessary functions: establishing a connection to the server, 
-handling incoming messages from the server, sending messages to the server, 
-and closing the connection.
+The SocketNetwork supports general functionality for any server/client network.
+Each instance is able to support incoming new connections by listening to a
+socket established by a fixed IP address and port number. And each instance
+can initiate a new connection to another instance of the SocketNetwork that is
+at a known, fixed IP address and port number.
 
-#### Server
-
-The foundation of the server is implemented in the abstract class called 
-Server in network.h. It runs on an infinite loop on a separate thread that 
-polls for activity on an array of sockets that contain the mater socket, which 
-handles incoming connections, and the sockets to each client connected. The 
-polling has a timeout of 100ms, so the infinite loop blocks for 100ms before 
-running through its other tasks, namely sending messages, and other specific 
-functionality.
-
-The infinite loop starts and runs with the `start()` function call, where it 
-calls various virtual functions depending on the event that is being handled. 
-These function calls can be implemented by concrete Server classes in order to 
-support more specific functionality.
-
-The following are the functions with information on its purpose and the event 
-that is meant to handle:
-- `void init()`: Completes specific tasks needed to start running the server. 
-This function will be called after the server has already established a socket 
-to listen for incoming connections. Thus, this function will be run just before 
-the start of the infinite loop.
-- `void run_server()`: A generic function that will be run during every
-iteration of the infinite loop, regardless of what had happened (i.e., a 
-new connection has been established, a new message has been received, etc.). 
-This will be the last function called after polling for activity on the open 
-master and client sockets, and after sending messages that were queued up
-- `void handle_incoming_message(size_t client_id, unsigned char * buffer, 
-size_t num_bytes)`: A function that will be called when a message from a 
-client arrives to the server. It will provide a unique id for the client 
-ranging from 0 to 1 less than the maximum number of clients the server instance 
-can support. It will always provide a non-null pointer to a buffer containing 
-the message with the specified number of bytes. This buffer is owned by the 
-abstract Server, and will be reused for all incoming messages. As a result, 
-the Server implementation should not free the buffer or take ownership of it.
-- `void handle_incoming_connection(size_t new_client_id, String *addr, int
-port_num)`: A function called after a new client has established connection 
-to the server. The new established connection will contain a unique client 
-id ranging from 0 to 1 less than the maximum nubmer of clients the server 
-instance can support. In addition, it has a string representation of the 
-client's IP address and an integer containing the port number of the client.
-- `void handle_closing_connection(size_t client_id)`: A function called when a
-client has closed its connection to the server. The provided id is the unique 
-identifier of the client instance. This function will be called after the 
-connection has already been closed.
-
-The Registrar implemented the following virtual functions in order to support 
-its specific functionality:
-- `void handle_incoming_message(size_t client_id, unsigned char *buffer, size_t
-num_bytes)`: New clients will send a message to the server detailing its 
-ip address and port number that it will listen for incoming connections in the 
-format of "ip:port". The server will broadcast that message to the other 
-clients, and add it to its array of clients.
-- `void handle_closing_connection(size_t client_id)`: It will remove the
-specified client from the array of connected clients. Then it will broadcast 
-a message in the format of "c:ip:port" to all of the currently connected clients
-within that modified array.
-
-Other general purpose functions implemented by the abstract server class are 
-the following:
-- `void close_server()`: A thread-safe function to close the server instance. 
-It will also close all the connections to the clients as well.
-- `bool running()`: A function to query whether or not the server is running.
-- `bool send_message(size_t client_id, unsigned char *message, size_t bytes)`: 
-A function to send a message to a client at a specified client id. The provided 
-buffer is set to be unsigned char in order to support messages that are encoded 
-in bytes, and are not ASCII messages. The buffer will also be acquired by the 
-abstract Server class, and be put on a queue of messages to send.
-- `size_t get_max_clients()`: Gets the maximum number of clients the server
-will support at any one time.
-- `size_t get_max_receive_size()`: Gets the maximum size of incoming messages.
-
-#### Client
-
-The client abstract class employs the same architecture as the server, 
-where it will run on an infinite loop that handles multiple events, polling 
-for activity on the socket connected to the server for 100ms. The infinite 
-loop can be initiated by `start_client()`.
-
-The following are the functions with information on its purpose and the event 
-that is meant to handle:
-- `void init()`: Completes specific tasks needed to start running the client. 
-This function will be called after the client has already established a 
-connection to the server specified in the `start_client()`.
-- `void run_client()`: A generic function that will be run during every
-iteration of the infinite loop, regardless of what had happened. This will be 
-the last function called after polling for activity incoming from the server, 
-and after sending messages that were queued up.
-- `void handle_incoming_message(unsigned char *buffer, size_t num_bytes)`: A
-function that will be called when a message from server arrives. It will always 
-provide a non-null pointer to a buffer containing the message with the 
-specified number of bytes. This buffer is owned by the abstract Client, and 
-will be reused for all incoming messages. As a result, the Client 
-implementation should not free the buffer or take ownership of it.
-- `void handle_closing_connection()`: A function called when server has closed
-its connection. The provided id is the unique identifier of the client 
-instance. This function will be called just prior to the client shutting down, 
-and the infinite loop is broken.
-
-The Node implemented the following virtual functions in order to support its 
-specific functionality:
-- `void init()`: Starts the client-to-client direct communication manager and
-sends the register message to the registrar server.
-- `void handle_incoming_message(unsigned char *buffer, size_t num_bytes)`: The
-Node receives directory messages from the server and then passes it to the 
-communication manager
-
-The Node's communication manager implemented the following virtual functions 
-of server in order to support direct communication between clients:
-- `void handle_incoming_message(size_t client_id, unsigned char * buffer, 
-size_t num_bytes)`: Handles incoming messages from other clients. 
-The client ids should correlate to the same client ids within the directory 
-that had been broadcasted out to all of the Nodes.
-
-The communication manager also has functions in order to initiate and 
-close direct connection to other nodes in the directory, and can send 
-direct messages to the nodes that the communication manager has established 
-direct communication with.
-
-Other general purpose functions implemented by the abstract client class are 
-the following:
-- `void close_client()`: A thread-safe function to close the client instance.
-- `bool running()`: A function to query whether or not the client is running.
-- `bool send_message(unsigned char *message, size_t bytes)`: A function to send
-a message the server. The provided buffer is set to be unsigned char in order 
-to support messages that are encoded in bytes, and are not ASCII messages. 
-The buffer will also be acquired by the abstract Client class, and be put on a 
-queue of messages to send.
-- `size_t get_max_receive_size()`: Gets the maximum size of incoming messages.
+The SocketNetwork includes a variety of virtual callback functions that will
+handle events that occur during normal network uptime:
+- `void handle_initialization()`: A callback function called moments after
+the listener socket is established to listen for incoming connections, but
+before any formal connections are made.
+- `void handle_closing_connection()`: A callback function called when an
+established connection gets closed.
+- `void handle_incoming_message(size_t connection_id, Message *msg)`: A callback
+function called to handle messages that have come from the specified connection
+id. The callback function is expected to take complete ownership of the passed
+in dynamically allocated message object.
 
 #### Serialization
 
@@ -288,6 +188,7 @@ virtual size_t serialization_required_bytes();
 // Serializes the object within the buffer provided by the Serializer.
 virtual void serialize(Serializer &serializer);
 ```
+
 All objects that have implemented the above two functions should have a static
 function to assist with deserialization with a return type of that object type,
 and an argument to a Deserializer passed in by reference.
@@ -432,10 +333,7 @@ a Nack message.
 The values of the payload are formatted in the following order:
 ```C++
 Key key
-struct timeval timeout
 ```
-
-If the timeout value is 0, that means that the client will wait indefinitely.
 
 ###### Status
 
@@ -462,7 +360,7 @@ connect to in order to directly communicate with the node.
 
 The values of the payload are formatted in the following order:
 ```C++
-struct sockaddr_in client_address
+struct sockaddr_in address
 size_t port_num
 ```
 
@@ -494,13 +392,13 @@ application to communicate through an interface that fakes a "network" across
 different threads within the same process. This function will be paired with
 `register_local()`. The return value is a communicate interface that will allow
 another application to communicate with this application.
-- `void register_local(LocalNetworkMessageManager *msg_manager`: This function
+- `void register_local(LocalNetworkMessageManager *msg_manager)`: This function
 must be called after `connect_local()`. This passes the provided interface into
 an application to allow that application to communicate with the application
 that has been configured in.
-- `connect_network()`: This function prepares the application to communicate an
-interface that hooks up to a real network. This network MUST be an instance
-of a Node of the networked eau2 system.
+- `SocketNetworkMessageManager *connect_network()`: This function prepares the 
+application to communicate an interface that hooks up to an instance of either
+a Registrar or a Node.
 
 ## Use cases
 
@@ -643,35 +541,9 @@ explicitly reference class fields.
 
 ## Status
 
-### Completed Tasks
-
-- Finished transferring the code to this new project repository
-- Paid technical debt: Creating a serializer helper class to assist
-serializing messages and data
-- Paid technical debt: Simplified the dataframe implementation, stripping out
-unnecessary functionality, such as row and column names.
-- Paid technical debt: Improved the performance of the dataframe's data
-structure in regard to a growing buffer of large amounts of data
-- Integrated 4500ne's sorer into the project
-- Created hooks to receive put, get, reply, and wait and get message types
-- Fixed memory leaks found within the test suites
-- Implemented from_array API functions within the DataFrame class
-- Created a trivial application that run standalone.
-- Simplify the target source code lists for the CMakeLists.txt
-- Connect multiple local KV-Stores to support communicating to each other
-over threads and over the network
-- Assigning and aligning of the node ids in order to maintain ids throughout
-the direct communication between nodes
-- Move the distributed dataframe code out of the key-value store/application
-layer and into a new interface called the DistributedDataframe
-- Get Linux app to work over network
-
 ### Technical Debt and TODOs
 
 - Make polling timeouts configurable within the server and clients
-- Create unit tests for the dataframe's array of arrays
 - Get the network code to run within Docker
-- Make use of templates for similar classes and methods
-- Update the schema field in the dataframe to not be a pointer
 - Minimize copying strings when going when adding them to dataframes
- 
+- Have the Linus application work on the socket network

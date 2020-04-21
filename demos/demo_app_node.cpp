@@ -18,8 +18,7 @@ int main(int argc, char **argv) {
   Demo app;
   SocketNetworkMessageManager *app_manager = app.connect_network();
   Node node(args.get_registrar_addr(), args.get_registrar_port(),
-      args.get_listener_addr(), args.get_listener_port(),
-      3, app_manager);
+            args.get_listener_addr(), args.get_listener_port(), 3, app_manager);
 
   // Start up the registrar and the application
   node.start();

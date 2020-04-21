@@ -41,8 +41,6 @@ void Schema::add_column(char typ) {
   this->column_list.push_back(static_cast<ColumnType_t>(typ));
 }
 
-ColumnType_t Schema::col_type(size_t idx) {
-  return this->column_list[idx];
-}
+ColumnType_t Schema::col_type(size_t idx) { return this->column_list[idx]; }
 
 size_t Schema::width() { return this->column_list.size(); }

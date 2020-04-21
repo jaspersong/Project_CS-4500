@@ -8,8 +8,8 @@
 // Lang::Cpp
 
 #include "application_network_interface.h"
-#include "distributed_value.h"
 #include "dataframe.h"
+#include "distributed_value.h"
 
 ApplicationNetworkInterface::ApplicationNetworkInterface(
     KeyValueStore *kv_store) {
@@ -26,9 +26,8 @@ bool ApplicationNetworkInterface::handle_put(Put *msg) {
 
   // Determine how this value will be put into th key-value store
   if (key->get_home_id() == -1) {
-    DistributedValue *value =
-        DistributedValue::deserialize_as_distributed_val(*deserializer, *key,
-            this->kv_store);
+    DistributedValue *value = DistributedValue::deserialize_as_distributed_val(
+        *deserializer, *key, this->kv_store);
     this->kv_store->put(*key, value);
   } else if (key->get_home_id() == this->kv_store->get_home_id()) {
     DataFrame *df = DataFrame::deserialize_as_dataframe(*deserializer);
@@ -90,7 +89,7 @@ Reply *ApplicationNetworkInterface::get_reply() {
   assert(this->kv_store->verify_distributed_layer());
 
   this->reply_queue_lock.lock();
-  Reply * ret_value = this->reply_queue.front();
+  Reply *ret_value = this->reply_queue.front();
   this->reply_queue.pop();
   this->reply_queue_lock.unlock();
   return ret_value;

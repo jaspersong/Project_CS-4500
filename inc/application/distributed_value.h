@@ -58,8 +58,9 @@ public:
 
   void serialize(Serializer &serializer) override;
   size_t serialization_required_bytes() override;
-  static DistributedValue *deserialize_as_distributed_val(
-      Deserializer &deserializer, Key &key, KeyValueStore *kv);
+  static DistributedValue *
+  deserialize_as_distributed_val(Deserializer &deserializer, Key &key,
+                                 KeyValueStore *kv);
 
 private:
   static const size_t MAX_NUM_ROWS = 50;

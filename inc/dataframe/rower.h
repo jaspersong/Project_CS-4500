@@ -41,7 +41,7 @@ public:
    * the next call.
    * @param r The row to populate
    */
-  virtual void visit(Row& r) {}
+  virtual void visit(Row &r) {}
 
   /**
    * Returns whether or not there is any more data to write into a dataframe.

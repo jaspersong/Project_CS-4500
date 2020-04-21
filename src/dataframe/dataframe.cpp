@@ -22,7 +22,7 @@ DataFrame::DataFrame(Schema &schema) : schema(schema) {
 }
 
 DataFrame::~DataFrame() {
-  for (auto & i : this->col_list) {
+  for (auto &i : this->col_list) {
     delete i;
   }
 }
@@ -45,22 +45,6 @@ void DataFrame::add_column(DF_Column *col) {
     if (this->num_rows < col->size()) {
       this->num_rows = col->size();
     }
-  }
-}
-
-bool DataFrame::verify_col_row_parameters(size_t col, size_t row,
-                                           ColumnType_t type) {
-  if ((row < 0) || (row > this->nrows())) {
-    printf("Row %zu is out of bounds.\n", row);
-    return false;
-  } else if ((col < 0) || (col > this->ncols())) {
-    printf("Column %zu is out of bounds.\n", col);
-    return false;
-  } else if (this->schema.col_type(col) != static_cast<char>(type)) {
-    printf("Column %zu is not the correct datatype.\n", col);
-    return false;
-  } else {
-    return true;
   }
 }
 
@@ -222,7 +206,7 @@ void DataFrame::serialize(Serializer &serializer) {
   for (size_t c = 0; c < this->ncols(); c++) {
     ColumnType_t data_type = this->get_schema().col_type(c);
     serializer.set_generic(reinterpret_cast<unsigned char *>(&data_type),
-        sizeof(data_type));
+                           sizeof(data_type));
     for (size_t r = 0; r < this->nrows(); r++) {
       switch (data_type) {
       case ColumnType_Bool:
@@ -259,8 +243,8 @@ size_t DataFrame::serialization_required_bytes() {
         ret_value += Serializer::get_required_bytes(this->get_int(c, r));
         break;
       case ColumnType_Float:
-        ret_value += Serializer::get_required_bytes
-            (static_cast<double>(this->get_float(c, r)));
+        ret_value += Serializer::get_required_bytes(
+            static_cast<double>(this->get_float(c, r)));
         break;
       case ColumnType_String:
       default:

@@ -10,8 +10,8 @@
 #pragma once
 
 #include "application.h"
-#include "key.h"
 #include "application_network_interface.h"
+#include "key.h"
 
 /**
  * A map where the key is a string, and the value is an integer.
@@ -37,7 +37,7 @@ public:
 private:
   class StringComp {
   public:
-    bool operator() (const String *lhs, const String *rhs) const {
+    bool operator()(const String *lhs, const String *rhs) const {
       return strcmp(lhs->c_str(), rhs->c_str()) < 0;
     }
   };
@@ -59,7 +59,7 @@ public:
 
   /** Reads next word and stores it in the row. Actually read the word.
       While reading the word, we may have to re-fill the buffer  */
-  void visit(Row& r) override;
+  void visit(Row &r) override;
 
   /** Returns true when there are no more words to read.  There is nothing
      more to read if we are at the end of the buffer and the file has
@@ -70,7 +70,7 @@ private:
   char buf_[BUFSIZE + 1] = {0};
   size_t end_ = 0;
   size_t i_ = 0;
-  FILE * file_;
+  FILE *file_;
 
   /** Reads more data from the file. */
   void fillBuffer_();
@@ -88,7 +88,7 @@ private:
 class DFWordCounter : public Reader {
 public:
   explicit DFWordCounter(SIMap *dest_map);
-  bool accept(Row& r) override;
+  bool accept(Row &r) override;
 
 private:
   SIMap *map;
@@ -101,11 +101,11 @@ class SIMapToDF : public Writer {
 public:
   explicit SIMapToDF(SIMap *map);
 
-  void visit(Row& r) override;
+  void visit(Row &r) override;
   bool done() override;
 
 private:
-  SIMap* map;
+  SIMap *map;
 };
 
 /**
@@ -117,7 +117,7 @@ private:
 class WordCountMerger : public Reader {
 public:
   explicit WordCountMerger(SIMap *dest_map);
-  bool accept(Row& r) override;
+  bool accept(Row &r) override;
 
 private:
   SIMap *map;
@@ -129,7 +129,7 @@ private:
  *   2) produce word counts per homed chunks, in parallel
  *   3) combine the results
  ****************************************************************************/
-class WordCount: public Application {
+class WordCount : public Application {
 public:
   // TODO: 8 and above nodes causes problems with sending directory messages
   //  from the server
